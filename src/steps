@@ -1,0 +1,20 @@
+###-> Standardize a docker image for this (Run everything on docker)
+###-> To purge and reinstall: https://johnmee.com/how-to-reinstall-postgresql-on-ubuntu
+- sudo apt-get install postgresql
+- sudo apt-get update
+- sudo apt-get install -f
+- sudo apt-get install libpq-dev
+- sudo apt-get install postgresql-server-dev-all
+- git clone --branch v0.4.2 https://github.com/pgvector/pgvector.git
+- sudo make
+- sudo make install
+- sudo service postgresql start
+- sudo -u postgres psql
+- sudo -u postgres createuser aditya
+- sudo -u postgres createdb temp
+- sudo -u postgres psql and then "alter user aditya with encrypted password admin;"
+- ALTER USER aditya WITH SUPERUSER;
+- CREATE EXTENSION vector;
+
+
+
