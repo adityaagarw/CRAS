@@ -15,6 +15,9 @@
 - sudo -u postgres psql and then "alter user aditya with encrypted password admin;"
 - ALTER USER aditya WITH SUPERUSER;
 - CREATE EXTENSION vector;
+- sql CREATE INDEX ON table USING ivfflat (column vector_cosine_ops);
 
 
-
+- REQUIREMENTS
+ - pywin32
+ - 
