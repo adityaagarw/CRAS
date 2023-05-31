@@ -21,3 +21,27 @@
 - REQUIREMENTS
  - pywin32
  - 
+--------------------------------------------------------------------------------------------------
+'POSTGRES_USER': 'cras_admin',
+'POSTGRES_PASSWORD': 'admin',
+'POSTGRES_DB': 'localdb'
+
+
+
+
+--------------------------------------------------------------------------------------------------
+
+-> Build config, `cd config`
+-> `python3 default_config.py`
+-> `mv config.ini ../cameras/; cd ..`
+-> `cd db; python3 install_db.py`
+-> pip install psycopg2-binary
+
+
+
+
+
+
+
+
+

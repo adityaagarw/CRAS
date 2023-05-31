@@ -10,13 +10,16 @@ import io
 import os
 import cv2
 import numpy as np
-import params
 import dlib
 from keras_vggface.vggface import VGGFace
 from keras_vggface.utils import preprocess_input
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
 from keras_facenet import FaceNet
 from PIL import Image
+
+#Private packages
+from config import params
+
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 

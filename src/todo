@@ -1,0 +1,7 @@
+-> Error handling for pipes and processes
+-> Skip frames 1/3rd
+-> Improve detection algo
+-> Improve recognition using yaw etc.
+-> Set pythonpath and environment properly. Use sitepackages for published code, pythonpath or sysenv
+-> Index postgres db based on encodings when encodings exceed 10k entries
+-> Fischer face recognition

@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 def runloop():
-    pipe_name = "cam_feed0"
+    pipe_name = "../cam_feed0"
     pipe_reader = os.open(pipe_name, os.O_RDONLY)
 
     while True:

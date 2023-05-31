@@ -3,8 +3,8 @@ import time
 import os
 import cv2
 import dlib
-from face import Detection, Recognition, Rectangle, Similarity
-from params import Parameters
+from face.face import Detection, Recognition, Rectangle, Similarity
+from config.params import Parameters
 
 
 image_path = "/home/aditya/cras/face_recognition_system/src/CRAS/src/models/test.jpg"

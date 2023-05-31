@@ -1,6 +1,6 @@
 import argparse
 import configparser
-import params
+from config.params import Parameters
 
 def build_configuration_file(p):
     config = configparser.ConfigParser()

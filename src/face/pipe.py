@@ -3,7 +3,7 @@ import cv2
 import platform
 if platform.system() == "Windows":
     import win32pipe, win32file, pywintypes
-from face import Rectangle
+from face.face import Rectangle
 
 class FacePipe:
     def __init__(self, camera):
