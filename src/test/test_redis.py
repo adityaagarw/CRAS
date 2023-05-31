@@ -1,13 +1,42 @@
+import argparse
+import io
+import cv2
 import numpy as np
 from db.database import *
+import time
+from PIL import Image
 
 inmem_db = InMemoryRedisDB(host='localhost', port=6379)
 inmem_db.connect()
 
-def display_inmem_redis_db(encoding='utf-8'):
-    # Connect to the in-memory Redis database
-    inmem_db = InMemoryRedisDB(host='localhost', port=6379)  # Update with your Redis connection details
-    inmem_db.connect()
+def display_inmem_images(inmem_db):
+    keys = inmem_db.connection.keys('*')
+    for key in keys:
+        record = inmem_db.connection.hgetall(key)
+        img_bytes = record.get(b'image')
+        image = Image.open(io.BytesIO(img_bytes))
+        image_arr = np.array(image)
+        cv2.imshow("Window", image_arr)
+        cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def delete_inmem_record(inmem_db, record_id):
+    inmem_db.delete_record(record_id)
+
+def delete_all_records(inmem_db):
+    keys = inmem_db.connection.keys('*')
+
+    count = 0
+    for key in keys:
+        record = inmem_db.connection.hgetall(key)
+        cust_id = record.get(b'customer_id').decode()
+        print(cust_id) 
+        inmem_db.delete_record(cust_id)
+        count += 1
+
+    print("Successfully deleted ", count, " records")
+
+def display_inmem_redis_db(inmem_db, encoding='utf-8'):
 
     # Retrieve all keys in the database
     keys = inmem_db.connection.keys('*')
@@ -35,7 +64,27 @@ def display_inmem_redis_db(encoding='utf-8'):
         print()
 
     # Disconnect from the in-memory Redis database
-    inmem_db.connection.close()
 
-# Example usage: Display the records in the in-memory Redis database
-display_inmem_redis_db()
+if __name__ == "__main__":
+    inmem_db = InMemoryRedisDB(host='localhost', port=6379)  # Update with your Redis connection details
+    inmem_db.connect()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-delete", type=str, help="Delete a particular record", required = False)
+    parser.add_argument("-print", type=str, help="Print the whole db", required=False, default="no")
+    parser.add_argument("-delete_all_records", type=str, help="Delete all records", required=False, default="no") 
+    parser.add_argument("-display_all_images", type=str, help="Display all images", required=False, default="no") 
+    args = parser.parse_args()
+    if args.print == "yes":
+        display_inmem_redis_db(inmem_db)
+
+    if args.delete:
+        delete_inmem_record(inmem_db, args.delete)
+
+    if args.delete_all_records == "yes":
+        delete_all_records(inmem_db)
+
+    if args.display_all_images == "yes":
+        display_inmem_images(inmem_db)
+
+    inmem_db.connection.close()

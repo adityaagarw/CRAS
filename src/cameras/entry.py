@@ -156,9 +156,12 @@ def get_face_record_from_mem(face_encoding, threshold):
 
         # Check if the similarity exceeds the threshold and is closer than the previous closest
         if similarity > float(threshold) and similarity > closest_similarity:
+            print("SIM: ", similarity)
             closest_record = record_data
             closest_similarity = similarity
 
+    if closest_record:
+        print("FINAL SIM: ", similarity)
     return closest_record
 
 def get_face_record_from_localdb(face_encoding, threshold):
