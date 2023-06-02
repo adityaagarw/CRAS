@@ -7,8 +7,8 @@ from face.face import Rectangle
 
 class FacePipe:
     def __init__(self, camera):
-        #self.pipe_name = r'\.\pipe\cam_feed' + str(camera)
-        self.pipe_name ='cam_feed' + str(camera)
+        self.pipe_name = r'\\.\pipe\webcam_feed' + str(camera)
+        #self.pipe_name =r'.\\cam_feed' + str(camera)
 
     def create_named_pipe(self):
         if platform.system() == "Windows":

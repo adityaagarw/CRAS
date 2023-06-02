@@ -6,9 +6,6 @@ from db.database import *
 import time
 from PIL import Image
 
-inmem_db = InMemoryRedisDB(host='localhost', port=6379)
-inmem_db.connect()
-
 def display_inmem_images(inmem_db):
     keys = inmem_db.connection.keys('*')
     for key in keys:
@@ -66,7 +63,7 @@ def display_inmem_redis_db(inmem_db, encoding='utf-8'):
     # Disconnect from the in-memory Redis database
 
 if __name__ == "__main__":
-    inmem_db = InMemoryRedisDB(host='localhost', port=6379)  # Update with your Redis connection details
+    inmem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)  # Update with your Redis connection details
     inmem_db.connect()
 
     parser = argparse.ArgumentParser()

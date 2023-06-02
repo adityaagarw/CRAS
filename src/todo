@@ -5,3 +5,5 @@
 -> Set pythonpath and environment properly. Use sitepackages for published code, pythonpath or sysenv
 -> Index postgres db based on encodings when encodings exceed 10k entries
 -> Fischer face recognition
+-> Replace keras vgg face source_input Error
+-> Run sample keras program first

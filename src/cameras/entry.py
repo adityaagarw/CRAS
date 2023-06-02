@@ -11,6 +11,8 @@ import multiprocessing
 from datetime import datetime
 from PIL import Image
 from multiprocessing import Process
+from multiprocessing import Manager
+
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Private packages
@@ -21,24 +23,9 @@ from config.params import Parameters
 from db.database import *
 
 QUEUE_MAX_SIZE = 100000
-message_queue = multiprocessing.Queue(maxsize=QUEUE_MAX_SIZE)
 camfeed_break_flag = multiprocessing.Event()
 
-# DB objects
-local_db = LocalPostgresDB(host='localhost', port=5432, database='localdb', user='cras_admin', password='admin')
-in_mem_db = InMemoryRedisDB(host='localhost', port=6379)
 
-local_db.connect()
-if not local_db.connection:
-    print("Local db connection failed!")
-else:
-    print("Connected to localdb")
-
-in_mem_db.connect()
-if not in_mem_db.connection:
-    print("Redis db connection failed!")
-else:
-    print("Connected to redis db")
 
 def get_face_image(face_pixels):
     face_8bit = np.clip(face_pixels, 0, 255).astype(np.uint8)
@@ -61,7 +48,7 @@ def get_face_image_encoding(r, parameters, face, frame):
 
     return embedding, face_pixels
 
-def insert_initial_record_inmem(face_encoding, face_pixels):
+def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
     new_id = Utils.generate_unique_id()
     face_img = get_face_image(face_pixels)
     current_location = Utils.get_location()
@@ -101,7 +88,7 @@ def insert_initial_record_inmem(face_encoding, face_pixels):
     print("Welcome new customer")
     return(new_customer_record)
 
-def insert_existing_record_inmem(new_record, record):
+def insert_existing_record_inmem(new_record, record, in_mem_db):
     # Delete exisitng record
     in_mem_db.delete_record(new_record.customer_id)
 
@@ -131,7 +118,7 @@ def insert_existing_record_inmem(new_record, record):
     )
     in_mem_db.insert_record(existing_customer_record)
 
-def get_face_record_from_mem(face_encoding, threshold):
+def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
     # Get all customer records from the in-memory Redis database
     records = in_mem_db.connection.keys('customer_inmem_db:*')
 
@@ -156,15 +143,12 @@ def get_face_record_from_mem(face_encoding, threshold):
 
         # Check if the similarity exceeds the threshold and is closer than the previous closest
         if similarity > float(threshold) and similarity > closest_similarity:
-            print("SIM: ", similarity)
             closest_record = record_data
             closest_similarity = similarity
 
-    if closest_record:
-        print("FINAL SIM: ", similarity)
     return closest_record
 
-def get_face_record_from_localdb(face_encoding, threshold):
+def get_face_record_from_localdb(face_encoding, threshold, local_db):
     # Query to get nearest similarity face record
     face_encoding_str = f"{face_encoding.tolist()}"
     face_record_query = """
@@ -175,17 +159,31 @@ def get_face_record_from_localdb(face_encoding, threshold):
 
     return record
 
-def consume_face_data(parameters):
+def consume_face_data(parameters, q):
+    # DB objects
+    local_db = LocalPostgresDB(host='localhost', port=5432, database='localdb', user='cras_admin', password='admin')
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    local_db.connect()
+    if not local_db.connection:
+        print("Local db connection failed!")
+    else:
+        print("Connected to localdb")
+
+    in_mem_db.connect()
+    if not in_mem_db.connection:
+        print("Redis db connection failed!")
+    else:
+        print("Connected to redis db")
     r = Recognition(parameters)
     while True:
         if camfeed_break_flag is True:
             print("Camera feed stopped ending message queue consumer")
             break
         try:
-            obj = message_queue.get()
+            obj = q.get(timeout=1)
             faces = obj[0] # Faces
             frame = obj[1] # Frame
-        except message_queue.Empty:
+        except: #queue.Empty:
             print("Queue is empty!")
             break
 
@@ -197,14 +195,14 @@ def consume_face_data(parameters):
                 continue
             elapsed_time = time.perf_counter() - start_time
             print("Elapsed time:", elapsed_time, "seconds")
-            record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold)
+            record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
 
             if not record_from_mem:
                 # Create a record < Assign an ID < treat as new
-                new_record = insert_initial_record_inmem(face_encoding, face_pixels)
+                new_record = insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db)
                
                 # Check if we have the record in localdb i.e. the customer has visited before 
-                record_from_localdb = get_face_record_from_localdb(face_encoding, parameters.threshold)
+                record_from_localdb = get_face_record_from_localdb(face_encoding, parameters.threshold, local_db)
                 if not record_from_localdb:
                     # Do nothing, we have already created a new customer
                     # Record to be added to localdb on exit/billing
@@ -212,21 +210,22 @@ def consume_face_data(parameters):
                 else:
                     # Overwrite everything
                     # Delete new record and add existing record
-                    insert_existing_record_inmem(new_record, record_from_localdb)
+                    insert_existing_record_inmem(new_record, record_from_localdb, in_mem_db)
                     pass
             else:
                 # Do nothing
                 pass
 
-def send_faces_to_queue(faces, frame):
-    message_queue.put((faces, frame))
+def send_faces_to_queue(faces, frame, q):
+    item = (faces, frame)
+    q.put(item)
     # Concerning if it keeps rising
-    print("Queue size:", message_queue.qsize())
+    print("Queue size:", q.qsize())
 
-def pipe_stream_process(camera, parameters, cap):
+def pipe_stream_process(camera, parameters):
     fp = FacePipe(camera)
-
-    cap = cv2.VideoCapture(parameters.video_path + "/test.mp4")
+    cap = cv2.VideoCapture(camera)
+    #cap = cv2.VideoCapture(parameters.video_path + "/test.mp4")
     pipe = fp.create_named_pipe()
     detector = Detection(parameters)
     while True:
@@ -240,21 +239,20 @@ def pipe_stream_process(camera, parameters, cap):
     fp.destroy_pipe(pipe)
 
 
-def start_entry_cam(parameters, camera):
+def start_entry_cam(parameters, camera, q):
 
     # Choose source
-    #cap = cv2.VideoCapture(camera)
-    cap = cv2.VideoCapture(parameters.video_path + "/test.mp4")
-
+    cap = cv2.VideoCapture(camera)
+    #cap = cv2.VideoCapture(parameters.video_path + "/test.mp4")
     detector = Detection(parameters)
 
-    stream_process = Process(target = pipe_stream_process, args = (camera, parameters, cap,))
+    stream_process = Process(target = pipe_stream_process, args = (camera, parameters,))
     stream_process.start()
 
-    num_consumers = 2
+    num_consumers = 1
     consumers = []
     for _ in range(num_consumers):
-        consumer_process = Process(target = consume_face_data, args = (parameters,))
+        consumer_process = Process(target = consume_face_data, args = (parameters, q))
         consumer_process.start()
         consumers.append(consumer_process)
 
@@ -270,7 +268,7 @@ def start_entry_cam(parameters, camera):
             continue
 
         # 2. Send faces to message queue for recognition and db operations
-        send_faces_to_queue(faces, frame)
+        send_faces_to_queue(faces, frame, q)
 
     camfeed_break_flag.set()
     stream_process.join()
@@ -308,4 +306,7 @@ if __name__ == "__main__":
 
     parameters = build_parameters("config.ini")
 
-    start_entry_cam(parameters, args.camera)
+    manager = Manager()
+    message_queue = manager.Queue(maxsize=QUEUE_MAX_SIZE)
+
+    start_entry_cam(parameters, args.camera, message_queue)

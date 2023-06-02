@@ -340,7 +340,7 @@ class MapInMemtoLocal:
             return {key.decode(): ast.literal_eval(value.decode()) for key, value in record.items()}
         return None
 
-    def fetch_employee_inmem_from_redis(self, employee_name):
+    def fetch_employee_inmem_from_redis(self, employee_id):
         record = self.redis_db.connection.hgetall(f'employee_inmem_db:{employee_id}')
         if record:
             return {key.decode(): ast.literal_eval(value.decode()) for key, value in record.items()}
