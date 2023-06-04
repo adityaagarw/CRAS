@@ -1,0 +1,47 @@
+###-> Standardize a docker image for this (Run everything on docker)
+###-> To purge and reinstall: https://johnmee.com/how-to-reinstall-postgresql-on-ubuntu
+- sudo apt-get install postgresql
+- sudo apt-get update
+- sudo apt-get install -f
+- sudo apt-get install libpq-dev
+- sudo apt-get install postgresql-server-dev-all
+- git clone --branch v0.4.2 https://github.com/pgvector/pgvector.git
+- sudo make
+- sudo make install
+- sudo service postgresql start
+- sudo -u postgres psql
+- sudo -u postgres createuser aditya
+- sudo -u postgres createdb temp
+- sudo -u postgres psql and then "alter user aditya with encrypted password admin;"
+- ALTER USER aditya WITH SUPERUSER;
+- CREATE EXTENSION vector;
+- sql CREATE INDEX ON table USING ivfflat (column vector_cosine_ops);
+
+
+- REQUIREMENTS
+ - pywin32
+ - 
+--------------------------------------------------------------------------------------------------
+'POSTGRES_USER': 'cras_admin',
+'POSTGRES_PASSWORD': 'admin',
+'POSTGRES_DB': 'localdb'
+
+
+
+
+--------------------------------------------------------------------------------------------------
+
+-> Build config, `cd config`
+-> `python3 default_config.py`
+-> `mv config.ini ../cameras/; cd ..`
+-> `cd db; python3 install_db.py`
+-> pip install psycopg2-binary
+
+
+
+
+
+
+
+
+
