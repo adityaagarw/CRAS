@@ -2,19 +2,27 @@
 
 import sys
 import os
+import subprocess
+import shutil
 from db.database import LocalPostgresDB, InMemoryRedisDB, InMemoryRedisEmployeeDB
 
-def set_library_path():
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(current_dir)
+def get_python_command():
+    python_commands = ['python3', 'python', 'py']
 
-    if parent_dir not in sys.path:
-        sys.path.append(parent_dir)
+    for command in python_commands:
+        if shutil.which(command) is not None:
+            return command
+
+    raise EnvironmentError('Python command not found in your system')
+
+def start_docker():
+    os.system("python3 db/install_db.py")
+    return 0
 
 # Initialize and create db if not created
 def check_create_db():
-    local_db = LocalPostgresDB(host='localhost', port=5432, database='localdb', user='cras_admin', password='admin')
-    redis_db = InMemoryRedisDB(host='localhost', port=6379)
+    local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
+    redis_db = InMemoryRedisDB(host='127.0.0.1', port=6379)
 
     local_db.connect()
     if not local_db.connection:
@@ -41,17 +49,27 @@ def check_create_db():
 # Start cameras - Producer 
 def start_cameras():
     # Start entry camera
-    entry = "python3 cameras/entry.py -camera 0"
-    os.system(entry)
+    py_cmd = get_python_command()
+    subprocess.Popen([py_cmd, 'cameras/entry.py', '-camera', '0'])
+ 
+def get_camera_ids():
+    # Get camera ids
+    pass
 
 # Start the UI - Consumer
 def start_ui():
     pass
 
-
 if __name__ == "__main__":
-    set_library_path()
+    get_camera_ids()
+    ret = start_docker()
+    if ret:
+        print("Docker failed to start")
+        exit(1)
     ret = check_create_db()
-    if not ret:  
-        start_cameras()
-        start_ui()
+    if ret:
+        print("DB failed to start")
+        exit(1)
+
+    start_cameras()
+    start_ui()

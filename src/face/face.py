@@ -9,6 +9,7 @@
 import io
 import os
 import cv2
+import math
 import numpy as np
 import dlib
 from keras_vggface.vggface import VGGFace
@@ -58,7 +59,7 @@ class Rectangle:
         return self.x, self.y, self.width, self.height
 
     def get_rectangle(self):
-        return dlib.rectangle(self.left(), self.top(), self.right(), self.bottom())
+        return dlib.rectangle(self.left, self.top, self.right, self.bottom)
 
 
 class Detection:
@@ -137,7 +138,7 @@ class Recognition:
     def calculate_yaw_pitch(self, face, frame): 
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         predictor = Predictor(self.parameters)
-        landmarks = predictor.get_shape(frame_gray, rect)
+        landmarks = predictor.get_shape(frame_gray, face)
         landmarks_arr = np.zeros((68, 3), dtype=np.float32)
         num_landmarks = len(landmarks.parts())
         landmarks_arr = []
@@ -150,7 +151,7 @@ class Recognition:
         '''for landmark in landmarks_arr:
             # Draw a circle at the landmark position
             center = tuple(landmark)
-            radius = 2
+            radius = 1
             color = (0, 255, 0)
             thickness = -1
             cv2.circle(frame, center, radius, color, thickness)'''
@@ -172,6 +173,78 @@ class Recognition:
         pitch = math.degrees(math.atan2(dz, math.hypot(dx, dy)))
 
         return yaw, pitch
+    
+    def calculate_yaw_pitch_roll(self, frame, rect, predictor):
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        landmarks = predictor.get_shape(gray, rect)
+        #2D image points. If you change the image, you need to change vector
+        image_points = np.array([
+                                    (landmarks.part(30).x, landmarks.part(30).y),     # Nose tip
+                                    (landmarks.part(8).x, landmarks.part(8).y),     # Chin
+                                    (landmarks.part(36).x, landmarks.part(36).y),     # Left eye left corner
+                                    (landmarks.part(45).x, landmarks.part(45).y),     # Right eye right corner
+                                    (landmarks.part(48).x, landmarks.part(48).y),     # Left Mouth corner
+                                    (landmarks.part(54).x, landmarks.part(54).y)      # Right mouth corner
+                                ], dtype="double")
+
+        landmarks_arr = []
+        for i in range(0, 68):
+            x = landmarks.part(i).x
+            y = landmarks.part(i).y
+            landmarks_arr.append([x, y])
+
+        # Loop through each landmark
+        for landmark in landmarks_arr:
+            # Draw a circle at the landmark position
+            center = tuple(landmark)
+            radius = 1
+            color = (0, 255, 0)
+            thickness = -1
+            cv2.circle(frame, center, radius, color, thickness)
+
+        # 3D model points.
+        model_points = np.array([
+                                    (0.0, 0.0, 0.0),             # Nose tip
+                                    (0.0, -330.0, -65.0),        # Chin
+                                    (-225.0, 170.0, -135.0),     # Left eye left corner
+                                    (225.0, 170.0, -135.0),      # Right eye right corner
+                                    (-150.0, -150.0, -125.0),    # Left Mouth corner
+                                    (150.0, -150.0, -125.0)      # Right mouth corner
+                            
+                                ])
+
+        # Camera internals
+        size = frame.shape
+        focal_length = size[1]
+        center = (size[1]/2, size[0]/2)
+        camera_matrix = np.array(
+                                [[focal_length, 0, center[0]],
+                                [0, focal_length, center[1]],
+                                [0, 0, 1]], dtype = "double"
+                                )
+    
+        dist_coeffs = np.zeros((4,1)) # Assuming no lens distortion
+        (success, rotation_vector, translation_vector) = cv2.solvePnP(model_points, image_points, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE)
+    
+        # Project 3D points for axis lines
+        axis_points = np.array([
+            (500.0, 0.0, 0.0),     # X-axis points
+            (0.0, 500.0, 0.0),     # Y-axis points
+            (0.0, 0.0, 500.0)      # Z-axis points
+        ], dtype="double")
+
+        imgpts, _ = cv2.projectPoints(axis_points, rotation_vector, translation_vector, camera_matrix, dist_coeffs)
+
+        # Draw the axis lines
+        cv2.line(frame, (int(image_points[0][0]), int(image_points[0][1])), (int(imgpts[0][0][0]), int(imgpts[0][0][1])), (255, 0, 0), 2)  # X-axis line (blue)
+        cv2.line(frame, (int(image_points[0][0]), int(image_points[0][1])), (int(imgpts[1][0][0]), int(imgpts[1][0][1])), (0, 255, 0), 2)  # Y-axis line (green)
+        cv2.line(frame, (int(image_points[0][0]), int(image_points[0][1])), (int(imgpts[2][0][0]), int(imgpts[2][0][1])), (0, 0, 255), 2)  # Z-axis line (red)
+
+        # Calculate Euler angles
+        rmat, jac = cv2.Rodrigues(rotation_vector)
+        angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(rmat)
+
+        return angles[1], angles[0], angles[2]
 
 class Similarity:
     def __init__(self, parameters):
@@ -204,10 +277,10 @@ class Similarity:
         distance = euclidean_distances(embedding1, embedding2)
 
         # Convert the distance to a similarity score
-        similarity = 1 / (1 + distance)
+        similarity_scores = 1 / (1 + distance)
         print("Similarity scores: ", similarity_scores[0][0])
         matching_indices = np.where(similarity_scores >= self.threshold)[0]
-        if matching_indeces.size == 0:
+        if matching_indices.size == 0:
             return False
         else:
             return True
@@ -221,10 +294,10 @@ class Similarity:
         distance = manhattan_distances(embedding1, embedding2)
 
         # Convert the distance to a similarity score
-        similarity = 1 / (1 + distance)
+        similarity_scores = 1 / (1 + distance)
         print("Similarity scores: ", similarity_scores[0][0])
         matching_indices = np.where(similarity_scores >= self.threshold)[0]
-        if matching_indeces.size == 0:
+        if matching_indices.size == 0:
             return False
         else:
             return True
@@ -240,6 +313,13 @@ class Similarity:
             return False
         else:
             return True
+
+    def get_cosine_similarity(self, embedding1, embedding2):
+        if self.library == "DLIB":
+            embedding1 = np.array(embedding1)
+            embedding2 = np.array(embedding2)
+        similarity_scores = cosine_similarity(embedding1.reshape(1, -1), embedding2.reshape(1, -1))
+        return similarity_scores[0][0]
 
     def is_same_face(self, embedding1, embedding2):
         return self.method(embedding1, embedding2)

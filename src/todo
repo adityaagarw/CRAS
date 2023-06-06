@@ -7,3 +7,17 @@
 -> Fischer face recognition
 -> Replace keras vgg face source_input Error
 -> Run sample keras program first
+-> Control detection distance
+-> Group faces together based on time and similarity (dynamic similarity).
+-> Handle employee
+-> In mem cache to improve performance
+-> Yaw etc
+-> Publish message for welcoming new customer
+-> Performance tests with 10k faces
+-> Map cameras properly
+-> Remove prints and add logs
+
+In order:
+-> Yaw etc
+-> Resolve exit issues. Should be able to gracefully exit the program including all pipes and queues. Stop script
+-> Pre-set location

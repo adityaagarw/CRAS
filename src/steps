@@ -26,16 +26,19 @@
 'POSTGRES_PASSWORD': 'admin',
 'POSTGRES_DB': 'localdb'
 
-
-
+Postgres port: 5432
+Redis port: 6379
 
 --------------------------------------------------------------------------------------------------
 
 -> Build config, `cd config`
 -> `python3 default_config.py`
--> `mv config.ini ../cameras/; cd ..`
+-> `mv config.ini ../. ; cd ..`
 -> `cd db; python3 install_db.py`
 -> pip install psycopg2-binary
+-> Replace source_input to resolve the keras_vggface error
+-> Run sample keras application to download the face model
+-> Set python path so that libraries are known
 
 
 

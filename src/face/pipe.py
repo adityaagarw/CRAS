@@ -36,8 +36,12 @@ class FacePipe:
         _, img_encoded = cv2.imencode('.jpg', frame)
 
         if platform.system() == "Windows":
-            # Write the frame to the named pipe
-            win32file.WriteFile(pipe, img_encoded.tobytes())
+            try:
+                # Write the frame to the named pipe
+                win32file.WriteFile(pipe, img_encoded.tobytes())
+            except pywintypes.error as e:
+                self.destroy_pipe(pipe)
+                pipe = self.create_named_pipe()
         else:
             os.write(pipe, img_encoded.tobytes())
 

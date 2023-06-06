@@ -27,7 +27,8 @@ default_sim_method = "Cosine"
 default_recognition_library = "VGG"
 default_model = 'resnet50'
 default_threshold = 0.7
-default_yaw_threshold = 10
+default_yaw_threshold = 30
+default_pitch_threshold = 170
 default_debug_method = 1
 default_input_type = "video" # Change to camera
 
@@ -36,6 +37,7 @@ command = " -detection " + default_detection_method + \
           " -model " + default_model + \
           " -threshold " + str(default_threshold) + \
           " -yaw_threshold " + str(default_yaw_threshold) + \
+          " -pitch_threshold " + str(default_pitch_threshold) + \
           " -sim_method " + default_sim_method + \
           " -debug_mode " + str(default_debug_method) + \
           " -username " + default_username + \

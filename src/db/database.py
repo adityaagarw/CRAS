@@ -33,7 +33,7 @@ class LocalCustomer:
                  return_customer=False, last_visit=None, average_time_spent=None,
                  average_purchase=None, maximum_purchase=None, remarks=None,
                  loyalty_level=None, num_visits=0, last_location=None,
-                 location_list=None, category=None):
+                 location_list=None, category=None, creation_date=None, group_id=None):
         self.customer_id = customer_id
         self.name = name
         self.phone_number = phone_number
@@ -50,6 +50,8 @@ class LocalCustomer:
         self.last_location = last_location
         self.location_list = location_list
         self.category = category
+        self.creation_date = creation_date
+        self.group_id = group_id
 
 class LocalEmployee:
     def __init__(self, name, phone_number, face_image, face_encoding):
@@ -92,7 +94,9 @@ class LocalPostgresDB(Database):
             num_visits INTEGER DEFAULT 0,
             last_location VARCHAR(255),
             location_list TEXT[],
-            category VARCHAR(255)
+            category VARCHAR(255),
+            creation_date TIMESTAMP,
+            group_id NUMERIC
         )
         """
         self.cursor.execute(create_table_query)
@@ -117,16 +121,16 @@ class LocalPostgresDB(Database):
             INSERT INTO local_customer_db (
                 customer_id, name, phone_number, encoding, image, return_customer, last_visit, 
                 average_time_spent, average_purchase, maximum_purchase, remarks, 
-                loyalty_level, num_visits, last_location, location_list, category
+                loyalty_level, num_visits, last_location, location_list, category, creation_date, group_id
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(insert_query, (
                 record.customer_id, record.name, record.phone_number, record.encoding, record.image,
                 record.return_customer, record.last_visit, record.average_time_spent,
                 record.average_purchase, record.maximum_purchase, record.remarks,
                 record.loyalty_level, record.num_visits, record.last_location,
-                record.location_list, record.category
+                record.location_list, record.category, record.creation_date, record.group_id
             ))
             self.connection.commit()
 
@@ -150,7 +154,7 @@ class LocalPostgresDB(Database):
                 return_customer = %s, last_visit = %s, average_time_spent = %s, 
                 average_purchase = %s, maximum_purchase = %s, remarks = %s, 
                 loyalty_level = %s, num_visits = %s, last_location = %s, 
-                location_list = %s, category = %s
+                location_list = %s, category = %s, creation_date = %s, group_id = %s
             WHERE customer_id = %s
             """
             cursor.execute(update_query, (
@@ -158,7 +162,7 @@ class LocalPostgresDB(Database):
                 record.return_customer, record.last_visit, record.average_time_spent,
                 record.average_purchase, record.maximum_purchase, record.remarks,
                 record.loyalty_level, record.num_visits, record.last_location,
-                record.location_list, record.category, record.customer_id
+                record.location_list, record.category, record.customer_id, record.creation_date, record.group_id
             ))
             self.connection.commit()
 
@@ -209,7 +213,8 @@ class InMemCustomer:
                  average_purchase=None, maximum_purchase=None, remarks=None,
                  loyalty_level=None, num_visits=0, last_location=None,
                  location_list=None, category=None, entry_time=None,
-                 billed=False, exited=None, visit_time=None, exit_time=None):
+                 billed=False, exited=None, visit_time=None, exit_time=None,
+                 creation_date=None, group_id=None):
         self.customer_id = customer_id
         self.name = name
         self.phone_number = phone_number
@@ -231,6 +236,8 @@ class InMemCustomer:
         self.exited = exited
         self.visit_time = visit_time
         self.exit_time = exit_time
+        self.creation_date = creation_date
+        self.group_id = group_id
 
 
 # Class for the in-memory Redis database
@@ -320,7 +327,9 @@ class MapInMemtoLocal:
             num_visits=inmem_customer.num_visits,
             last_location=inmem_customer.last_location,
             location_list=inmem_customer.location_list,
-            category=inmem_customer.category
+            category=inmem_customer.category,
+            creation_date=inmem_customer.creation_date,
+            group_id=inmem_customer.group_id, 
         )
         self.local_db.insert_record(local_customer)
 
