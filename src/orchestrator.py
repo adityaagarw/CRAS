@@ -19,6 +19,10 @@ def start_docker():
     os.system("python3 db/install_db.py")
     return 0
 
+def build_config():
+    os.system("python3 config/default_config.py")
+    return 0
+
 # Initialize and create db if not created
 def check_create_db():
     local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
@@ -62,6 +66,7 @@ def start_ui():
 
 if __name__ == "__main__":
     get_camera_ids()
+    build_config()
     ret = start_docker()
     if ret:
         print("Docker failed to start")

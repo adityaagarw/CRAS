@@ -48,5 +48,5 @@ command = " -detection " + default_detection_method + \
           " -video_path " + "\"" + default_video_path + "\"" + \
           " -model_dir " + "\"" + default_model_dir + "\""
 
-command = "python3 build_config.py" + command
+command = "python3 config/build_config.py" + command
 os.system(command)
