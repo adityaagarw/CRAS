@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -12,27 +13,31 @@ namespace CRAS
     {
         public static ConnectionMultiplexer ConnectToRedis(string host = "127.0.0.1", string port = "6379")
         {
-            ConnectionMultiplexer redisConnection;
-            try
+            ConnectionMultiplexer redisConnection = null;
+            int attempt = 1;
+            while (redisConnection == null || !redisConnection.IsConnected)
             {
-                ConfigurationOptions options = new ConfigurationOptions
+                try
                 {
-                    EndPoints = { host },
-                    
-                };
-                redisConnection = ConnectionMultiplexer.Connect(options); // Replace "localhost" with your Redis server IP or hostname if needed
-                
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to connect to Redis server: {ex.Message}");
-                return null;
-            }
-            
+                   
+                    ConfigurationOptions options = new ConfigurationOptions
+                    {
+                        EndPoints = { host },
+
+                    };
+                    redisConnection = ConnectionMultiplexer.Connect(options); // Replace "localhost" with your Redis server IP or hostname if needed
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to connect to Redis server: {ex.Message}");
+                }
+            } 
+
             return redisConnection;
         }
 
-        public static void UpdateRedisRecord(string key, string column_name, string new_value, ConnectionMultiplexer redisConnection)
+        public static void UpdateRedisRecord(string key, Dictionary<string, string> values, ConnectionMultiplexer redisConnection)
         {
             if(redisConnection != null)
             {
@@ -40,7 +45,15 @@ namespace CRAS
 
                 IDatabase db = redisConnection.GetDatabase();
 
-                var data = new HashEntry[] { new HashEntry(column_name, new_value) };
+                var data = new HashEntry[values.Count];
+
+                int index = 0;
+
+                foreach(var value in values)
+                {
+                    data[index] = new HashEntry(value.Key, value.Value);
+                    index++;
+                }
 
                 db.HashSet(key, data);
             }
@@ -54,7 +67,7 @@ namespace CRAS
             {
                 IServer redisServer = redisConnection.GetServer("127.0.0.1", 6379);
 
-                foreach (var key in redisServer.Keys())
+                foreach (var key in redisServer.Keys(pattern: "customer_inmem_db:*"))
                 {
                     var redisValueDict = redisConnection.GetDatabase().HashGetAll(key);
                     redis_customer customer = new redis_customer();
@@ -101,10 +114,19 @@ namespace CRAS
                         }
                         if (entry.Name.ToString().Equals("last_location")) customer.last_location = entry.Value.ToString();
                         if (entry.Name.ToString().Equals("category")) customer.category = entry.Value.ToString();
-
+                        if (entry.Name.ToString().Equals("entry_time"))
+                        {
+                            bool valid = DateTime.TryParse(entry.Value.ToString(), out DateTime result);
+                            if(valid) customer.entry_time = result;
+                        }
+                        if (entry.Name.ToString().Equals("creation_date"))
+                        {
+                            bool valid = DateTime.TryParse(entry.Value.ToString(), out DateTime result);
+                            if (valid) customer.creation_date = result;
+                        }
                     }
                     customer_list.Add(customer);
-                    customer.print_record();
+                    //customer.print_record();
                     //Console.WriteLine(customer_list);
                 }
             }

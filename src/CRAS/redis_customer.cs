@@ -24,7 +24,9 @@ namespace CRAS
         public string last_location { get; set; }
         public List<string> location_list { get; set; }
         public string category { get; set; }
+        public DateTime entry_time { get; set; }
 
+        public DateTime creation_date { get; set; }
         public redis_customer()
         { }
 
@@ -44,10 +46,11 @@ namespace CRAS
             Console.WriteLine("Loyalty Level: " + loyalty_level);
             Console.WriteLine("Last Location: " + last_location);
             Console.WriteLine("Category: " + category);
+            Console.WriteLine("Entry Time: " + entry_time);
             Console.WriteLine("********************************************");
         }
 
-        public redis_customer(string customer_id, string name, string phone_number, byte[] image, string return_customer, string last_visit, float average_time_spent, float average_purchase, float maximum_purchase, string remarks, int loyalty_level, int num_visits, string last_location, List<string> location_list, string category)
+        public redis_customer(string customer_id, string name, string phone_number, byte[] image, string return_customer, string last_visit, float average_time_spent, float average_purchase, float maximum_purchase, string remarks, int loyalty_level, int num_visits, string last_location, List<string> location_list, string category, DateTime entry_time, DateTime creation_date)
         {
             this.customer_id = customer_id;
             this.name = name;
@@ -64,6 +67,8 @@ namespace CRAS
             this.last_location = last_location;
             this.location_list = location_list;
             this.category = category;
+            this.entry_time = entry_time;
+            this.creation_date = creation_date;
         }
     }
 }

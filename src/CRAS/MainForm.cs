@@ -6,7 +6,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -21,64 +23,142 @@ namespace CRAS
         private Process pythonProcess1;
         private Process pythonProcess2;
         public static ConnectionMultiplexer redisConnection;
+        public static IDatabase redisDB;
         BindingList<redis_customer> customer_list;
+        CustomerDataUC selectedCustomerUC;
+        public static LoadingForm loadingForm;
         public MainForm()
         {
             InitializeComponent();
         }
 
+        /*private ConnectionMultiplexer EstablishRedisConnection()
+        {
+            // Keep trying to establish a connection until successful
+            while (redisConnection == null || !redisConnection.IsConnected)
+            {
+                try
+                {
+                    redisConnection = redis_utilities.ConnectToRedis("127.0.0.1");
+                }
+                catch (RedisConnectionException)
+                {
+                    // Connection failed, wait for a while before retrying
+                    Thread.Sleep(1000);
+                }
+            }
+        }*/
+
+        private void ShowLoadingForm()
+        {
+            loadingForm = new LoadingForm();
+            Application.Run(loadingForm);
+        }
         private void MainForm_Load(object sender, EventArgs e)
         {
             //StartPythonScript("0");
 
             //StartPythonScript("1");
-            
-            //LoadingForm loadingForm = new LoadingForm();
+
             //loadingForm.Show();
-            //await Task.Run(() => redisConnection = redis_utilities.ConnectToRedis("127.0.0.11"));
-            
-            redisConnection = redis_utilities.ConnectToRedis("127.0.0.1");
+
+            //redisConnection = redis_utilities.ConnectToRedis("127.0.0.1");
+            Thread loadingThread = new Thread(ShowLoadingForm);
+            loadingThread.Start();
+
+            redisConnection = redis_utilities.ConnectToRedis("127.0.0.1", "6379");
+            redisDB = redisConnection.GetDatabase();
+
+            loadingForm.Invoke(new Action(() => loadingForm.Close()));
 
             customer_list = redis_utilities.ReadAllDataFromRedis(redisConnection);
-            dataGridView1.DataSource = customer_list;
-        }
-
-        public void DisplayDataInDataGridView(BindingList<redis_customer> customer_list)
-        {
-            // Assuming you have a DataGridView control named "dataGridView1" on your form
-
-            // Clear existing rows and columns in the DataGridView
-            dataGridView1.Rows.Clear();
-            dataGridView1.Columns.Clear();
+            customer_list = utilities.OrderBy(customer_list, "entry_time", "DESC");
 
             
-            // Check if there is any data to display
-            if (customer_list.Count == 0)
-                return;
-            dataGridView1.DataSource = customer_list;
+            InitialiseSubscribers();
 
-            /* 
-            // Create columns in the DataGridView based on the fields in the first dictionary
-            foreach (var field in dataList[0].Keys)
-            {
-
-                dataGridView1.Columns.Add(field, field);
-            }
-
-            // Add rows to the DataGridView with the data from each dictionary
-            foreach (var dataDict in dataList)
-            {
-                DataGridViewRow row = new DataGridViewRow();
-                foreach (var field in dataDict.Keys)
-                {
-                    DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
-                    cell.Value = dataDict[field];
-                    row.Cells.Add(cell);
-                }
-                dataGridView1.Rows.Add(row);
-            }*/
+            //Add ListChanged Listener to customer_list
+            customer_list.ListChanged += Customer_list_ListChanged;
+            PopulateCustomerFlowLayout();
         }
 
+        private void InitialiseSubscribers()
+        {
+            ISubscriber newCustomerSub = redisConnection.GetSubscriber();
+            ISubscriber existingCustomerSub = redisConnection.GetSubscriber();
+            ISubscriber employeeSub = redisConnection.GetSubscriber();
+
+            newCustomerSub.Subscribe("Backend", (channel, message) => Console.WriteLine(message));
+        }
+
+        private void Customer_list_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            PopulateCustomerFlowLayout();
+            //throw new NotImplementedException();
+        }
+
+        public void PopulateCustomerFlowLayout()
+        {
+            customerFlowLayout.Controls.Clear();
+            customerFlowLayout.FlowDirection = FlowDirection.TopDown;
+            customerFlowLayout.AutoScroll = true;
+
+            foreach (var customer in customer_list)
+            {
+                CustomerDataUC customerData = new CustomerDataUC();
+
+                customerData.ControlDoubleClicked += UserControl_ControlDoubleClicked;
+                customerData.SetImage(customer.image);
+                customerData.SetLabel("label1", "Name: ", customer.name);
+                customerData.SetLabel("label2", "Phone: ", customer.phone_number);
+                customerData.SetLabel("label3", "Returning: ", customer.return_customer);
+                customerData.SetLabel("label4", "Category: ", customer.category);
+                customerData.SetLabel("label5", "Last Visit: ", customer.last_visit);
+                customerData.SetLabel("label6", "Entry Time: ", customer.entry_time.ToShortTimeString());
+
+
+                customerFlowLayout.Controls.Add(customerData);
+            }
+        }
+
+        private void UserControl_ControlClicked(object sender, int index)
+        {
+            selectedCustomerUC = (CustomerDataUC)sender;
+            bool selected = selectedCustomerUC.isSelected;
+
+            CustomerDataUC.UnselectAllControls(customerFlowLayout);
+            
+            if (!selected) selectedCustomerUC.Select();
+            else if(selected) selectedCustomerUC.UnSelect();
+        }
+
+        private void OpenCustomerDetail(redis_customer customer, CustomerDataUC customerData)
+        {
+            Form customerDetail = new CustomerDetailForm(customer);
+            customerDetail.ShowDialog();
+
+            if(customerDetail.DialogResult == DialogResult.OK)
+            {
+                customerData.SetLabel("label1", "Name: ", customer.name);
+                customerData.SetLabel("label2", "Phone: ", customer.phone_number);
+                //customerData.SetLabel("label2", "Phone: ", customer.phone_number);
+
+            }
+        }
+
+        private void UserControl_ControlDoubleClicked(object sender, int index)
+        {
+            selectedCustomerUC = (CustomerDataUC)sender;
+            bool selected = selectedCustomerUC.isSelected;
+
+            CustomerDataUC.UnselectAllControls(customerFlowLayout);
+
+            if (!selected) selectedCustomerUC.Select();
+            else if (selected) selectedCustomerUC.UnSelect();
+
+            OpenCustomerDetail(customer_list[index], selectedCustomerUC);
+        }
+        
         private void StartPythonScript(string cameraId)
         {
             // Path to the Python executable and script
@@ -133,18 +213,16 @@ namespace CRAS
 
         private void ClosePipes()
         {
-            pipeClient1.Close();
-            pipeClient2.Close();
             pipeThread1?.Abort();
-            pipeClient1?.Close();
+            pipeClient1?.Dispose();
             pipeThread2?.Abort();
-            pipeClient2?.Close();
+            pipeClient2?.Dispose();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Stop the thread and close the named pipe when the form is closing
-            StopPythonScript();
+            //StopPythonScript();
             ClosePipes();
         }
 
@@ -328,10 +406,11 @@ namespace CRAS
 
         private void populateDataGridButton_Click(object sender, EventArgs e)
         {
-            DisplayDataInDataGridView(customer_list);
+            //DisplayDataInDataGridView(customer_list);
+            PopulateCustomerFlowLayout();
         }
 
-        private redis_customer UpdateCustomerRecord(string customer_id, string column_name, string new_value)
+        private redis_customer UpdateCustomerRecord (string customer_id, string column_name, string new_value)
         {
             foreach (redis_customer customer in customer_list) 
             { 
@@ -344,19 +423,5 @@ namespace CRAS
             return null;
         }
 
-        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
-        {
-            int rowIndex = e.RowIndex;
-            int columnIndex = e.ColumnIndex;
-
-            string column_name = dataGridView1.Columns[columnIndex].Name.ToString();
-            string new_value = dataGridView1.Rows[rowIndex].Cells[columnIndex].Value.ToString();
-            string customer_id = dataGridView1.Rows[rowIndex].Cells["customer_id"].Value.ToString();
-            string key = dataGridView1.Rows[rowIndex].Cells["key"].Value.ToString();
-
-            UpdateCustomerRecord(customer_id, column_name, new_value);
-            redis_utilities.UpdateRedisRecord(key, column_name, new_value, redisConnection);
-
-        }
     }
 }

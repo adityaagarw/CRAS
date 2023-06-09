@@ -107,6 +107,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomerDataUC.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CustomerDataUC.Designer.cs">
+      <DependentUpon>CustomerDataUC.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CustomerDetailForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CustomerDetailForm.Designer.cs">
+      <DependentUpon>CustomerDetailForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Live Status.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -132,8 +144,15 @@
     </Compile>
     <Compile Include="redis_customer.cs" />
     <Compile Include="redis_utilities.cs" />
+    <Compile Include="utilities.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="CustomerDataUC.resx">
+      <DependentUpon>CustomerDataUC.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CustomerDetailForm.resx">
+      <DependentUpon>CustomerDetailForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Live Status.resx">
       <DependentUpon>Live Status.cs</DependentUpon>
     </EmbeddedResource>

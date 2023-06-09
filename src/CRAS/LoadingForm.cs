@@ -16,5 +16,16 @@ namespace CRAS
         {
             InitializeComponent();
         }
+
+        public Label GetLoadingLabel()
+        {
+            Label label = loadingLabel;
+            return label;
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
