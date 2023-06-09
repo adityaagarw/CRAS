@@ -1,13 +1,8 @@
 import argparse
 import configparser
 import cv2
-import time
-import threading
 import os
 import io
-import queue
-import signal
-import sys
 import numpy as np
 import multiprocessing
 from datetime import datetime
