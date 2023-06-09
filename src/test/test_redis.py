@@ -45,6 +45,18 @@ def delete_all_records(inmem_db):
 
     print("Successfully deleted ", count, " visit records")
 
+    keys = inmem_db.connection.keys('store_inmem_db:*')
+
+    count = 0
+    for key in keys:
+        record = inmem_db.connection.hgetall(key)
+        cust_id = record.get(b'store_id').decode()
+        print(cust_id) 
+        inmem_db.delete_record(cust_id, type='visit')
+        count += 1
+
+    print("Successfully deleted ", count, " store records")
+
 def display_inmem_redis_db(inmem_db, encoding='utf-8'):
 
     # Retrieve all keys in the database

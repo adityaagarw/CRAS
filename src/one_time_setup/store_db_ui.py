@@ -1,116 +1,79 @@
-import sys
+import tkinter as tk
 import json
-from PySide2.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, QTextEdit, QPushButton, QVBoxLayout
 
-class MainForm(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Store Form")
-        self.resize(400, 300)
+def submit_form():
+    store_name = store_name_input.get()
+    store_location = store_location_input.get()
+    entry_cameras = int(entry_cameras_input.get())
+    billing_cameras = int(billing_cameras_input.get())
+    exit_cameras = int(exit_cameras_input.get())
+    entry_camera_list = entry_camera_list_input.get("1.0", tk.END).split('\n')
+    entry_camera_list = [item for item in entry_camera_list if item]
+    billing_camera_list = billing_camera_list_input.get("1.0", tk.END).split('\n')
+    billing_camera_list = [item for item in billing_camera_list if item]
+    exit_camera_list = exit_camera_list_input.get("1.0", tk.END).split('\n')
+    exit_camera_list = [item for item in exit_camera_list if item]
+    form_data = {
+        "Store Name": store_name,
+        "Store Location": store_location,
+        "Number of entry cameras": entry_cameras,
+        "Number of billing cameras": billing_cameras,
+        "Number of exit cameras": exit_cameras,
+        "Entry camera list": entry_camera_list,
+        "Billing camera list": billing_camera_list,
+        "Exit camera list": exit_camera_list
+    }
 
-        self.store_name_label = QLabel("Store Name:")
-        self.store_name_input = QLineEdit()
+    json_data = json.dumps(form_data)
+    print(json_data)  # Print the form data structure to the standard output
+    root.destroy()  # Exit the program
 
-        self.store_location_label = QLabel("Store Location:")
-        self.store_location_input = QLineEdit()
+root = tk.Tk()
+root.title("Store Form")
+root.geometry("200x600")
 
-        self.entry_cameras_label = QLabel("Number of entry cameras:")
-        self.entry_cameras_input = QLineEdit()
+store_name_label = tk.Label(root, text="Store Name:")
+store_name_input = tk.Entry(root)
 
-        self.billing_cameras_label = QLabel("Number of billing cameras:")
-        self.billing_cameras_input = QLineEdit()
+store_location_label = tk.Label(root, text="Store Location:")
+store_location_input = tk.Entry(root)
 
-        self.exit_cameras_label = QLabel("Number of exit cameras:")
-        self.exit_cameras_input = QLineEdit()
+entry_cameras_label = tk.Label(root, text="Number of entry cameras:")
+entry_cameras_input = tk.Entry(root)
 
-        self.entry_camera_list_label = QLabel("Entry camera list:")
-        self.entry_camera_list_input = QTextEdit()
+billing_cameras_label = tk.Label(root, text="Number of billing cameras:")
+billing_cameras_input = tk.Entry(root)
 
-        self.billing_camera_list_label = QLabel("Billing camera list:")
-        self.billing_camera_list_input = QTextEdit()
+exit_cameras_label = tk.Label(root, text="Number of exit cameras:")
+exit_cameras_input = tk.Entry(root)
 
-        self.exit_camera_list_label = QLabel("Exit camera list:")
-        self.exit_camera_list_input = QTextEdit()
+entry_camera_list_label = tk.Label(root, text="Entry camera list:")
+entry_camera_list_input = tk.Text(root, width=15, height=5)
 
-        self.submit_button = QPushButton("Submit")
-        self.submit_button.clicked.connect(self.submit_form)
+billing_camera_list_label = tk.Label(root, text="Billing camera list:")
+billing_camera_list_input = tk.Text(root, width=15, height=5)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.store_name_label)
-        layout.addWidget(self.store_name_input)
-        layout.addWidget(self.store_location_label)
-        layout.addWidget(self.store_location_input)
-        layout.addWidget(self.entry_cameras_label)
-        layout.addWidget(self.entry_cameras_input)
-        layout.addWidget(self.billing_cameras_label)
-        layout.addWidget(self.billing_cameras_input)
-        layout.addWidget(self.exit_cameras_label)
-        layout.addWidget(self.exit_cameras_input)
-        layout.addWidget(self.entry_camera_list_label)
-        layout.addWidget(self.entry_camera_list_input)
-        layout.addWidget(self.billing_camera_list_label)
-        layout.addWidget(self.billing_camera_list_input)
-        layout.addWidget(self.exit_camera_list_label)
-        layout.addWidget(self.exit_camera_list_input)
-        layout.addWidget(self.submit_button)
+exit_camera_list_label = tk.Label(root, text="Exit camera list:")
+exit_camera_list_input = tk.Text(root, width=15, height=5)
 
-        self.setLayout(layout)
+submit_button = tk.Button(root, text="Submit", command=submit_form)
 
-    def submit_form(self):
-        store_name = self.store_name_input.text()
-        store_location = self.store_location_input.text()
-        entry_cameras = int(self.entry_cameras_input.text())
-        billing_cameras = int(self.billing_cameras_input.text())
-        exit_cameras = int(self.exit_cameras_input.text())
-        entry_camera_list = self.entry_camera_list_input.toPlainText().split('\n')
-        billing_camera_list = self.billing_camera_list_input.toPlainText().split('\n')
-        exit_camera_list = self.exit_camera_list_input.toPlainText().split('\n')
+store_name_label.pack()
+store_name_input.pack()
+store_location_label.pack()
+store_location_input.pack()
+entry_cameras_label.pack()
+entry_cameras_input.pack()
+billing_cameras_label.pack()
+billing_cameras_input.pack()
+exit_cameras_label.pack()
+exit_cameras_input.pack()
+entry_camera_list_label.pack()
+entry_camera_list_input.pack()
+billing_camera_list_label.pack()
+billing_camera_list_input.pack()
+exit_camera_list_label.pack()
+exit_camera_list_input.pack()
+submit_button.pack()
 
-        form_data = {
-            "Store Name": store_name,
-            "Store Location": store_location,
-            "Number of entry cameras": entry_cameras,
-            "Number of billing cameras": billing_cameras,
-            "Number of exit cameras": exit_cameras,
-            "Entry camera list": entry_camera_list,
-            "Billing camera list": billing_camera_list,
-            "Exit camera list": exit_camera_list
-        }
-
-        json_data = json.dumps(form_data)
-        print(json_data)  # Print the form data structure to the standard output
-        sys.exit()  # Exit the program
-
-def apply_dark_theme():
-    dark_theme = """
-        QWidget {
-            background-color: #333333;
-            color: #ffffff;
-        }
-
-        QLabel {
-            color: #ffffff;
-        }
-
-        QLineEdit, QTextEdit {
-            background-color: #282828;
-            color: #ffffff;
-        }
-
-        QPushButton {
-            background-color: #505050;
-            color: #ffffff;
-        }
-
-        /* Add more style rules as needed */
-    """
-    app.setStyleSheet(dark_theme)
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    apply_dark_theme()
-    main_window = QMainWindow()
-    form = MainForm()
-    main_window.setCentralWidget(form)
-    main_window.show()
-    sys.exit(app.exec_())
+root.mainloop()
