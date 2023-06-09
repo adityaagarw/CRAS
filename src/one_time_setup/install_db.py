@@ -15,7 +15,8 @@ def start_docker():
 
 def run_postgres_pgvector():
     client = docker.from_env()
-
+    if not client:
+        client.start()
     # Check if the PostgreSQL container exists
     existing_containers = client.containers.list(all=True, filters={'name': 'postgres-pgvector'})
     if existing_containers:
@@ -24,7 +25,7 @@ def run_postgres_pgvector():
             # Start the container if it's not running
             print("Starting existing postgres container")
             container.start()
-            time.sleep(20)
+            time.sleep(60)
         else:
             print('PostgreSQL container is already running.')
             return

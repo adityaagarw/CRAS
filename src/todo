@@ -16,8 +16,10 @@
 -> Performance tests with 10k faces
 -> Map cameras properly
 -> Remove prints and add logs
+-> Bug: shutdown_system needs some time to recognize before killing
+-> Increase numprocesses dynamically
+-> add code to install pip programs to orchestrator
 
 In order:
--> Yaw etc
--> Resolve exit issues. Should be able to gracefully exit the program including all pipes and queues. Stop script
 -> Pre-set location
+-> Redis pub welcome new customer

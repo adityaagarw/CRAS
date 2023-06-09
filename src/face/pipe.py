@@ -7,8 +7,10 @@ from face.face import Rectangle
 
 class FacePipe:
     def __init__(self, camera):
-        self.pipe_name = r'\\.\pipe\webcam_feed' + str(camera)
-        #self.pipe_name =r'.\\cam_feed' + str(camera)
+        if platform.system() == "Windows":
+            self.pipe_name = r'\\.\pipe\webcam_feed' + str(camera)
+        else:
+            self.pipe_name =r'.\\cam_feed' + str(camera)
 
     def create_named_pipe(self):
         if platform.system() == "Windows":
@@ -40,6 +42,7 @@ class FacePipe:
                 # Write the frame to the named pipe
                 win32file.WriteFile(pipe, img_encoded.tobytes())
             except pywintypes.error as e:
+                print("Pipe broken, creating new pipe")
                 self.destroy_pipe(pipe)
                 pipe = self.create_named_pipe()
         else:
@@ -47,6 +50,7 @@ class FacePipe:
 
     def destroy_pipe(self, pipe):
         if platform.system() == "Windows":
+            win32pipe.DisconnectNamedPipe(pipe)
             win32file.CloseHandle(pipe)
         else:
             pipe.close()

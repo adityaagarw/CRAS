@@ -23,6 +23,7 @@ from face.pipe import FacePipe
 from utils.utils import Utils
 from config.params import Parameters
 from db.database import *
+from db.redis_pubsub import *
 
 QUEUE_MAX_SIZE = 100000
 SEARCH_QUEUE_SIZE = 100000
@@ -53,8 +54,9 @@ def get_face_image_encoding(r, parameters, face, frame):
 def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
     new_id = Utils.generate_unique_id()
     face_img = get_face_image(face_pixels)
-    #current_location = Utils.get_location()
-
+    current_location = in_mem_db.fetch_store_location()
+    store_id = in_mem_db.fetch_store_id()
+    time_now = str(datetime.now())
     face_encoding_bytes = face_encoding.tobytes()
 
     # Reconstruct bytes as follows:
@@ -75,26 +77,47 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
         remarks = "New Customer",
         loyalty_level = "",
         num_visits = 1,
-        last_location = "",
+        last_location = current_location,
         location_list = "",
         category = "",
-        creation_date = str(datetime.now()),
+        creation_date = time_now,
         group_id = "",
-        entry_time = str(datetime.now()),
+        incomplete = 1,
+        entry_time = time_now,
         billed = 0,
         exited = 0,
         visit_time = "",
         exit_time = ""
     )
 
-    in_mem_db.insert_record(new_customer_record)  
+    new_visit_record = InMemVisit(
+        customer_id = str(new_id),
+        visit_id = str(Utils.generate_unique_id()),
+        store_id = str(store_id),
+        entry_time = time_now,
+        exit_time = "",
+        billed = 0,
+        bill_amount = 0,
+        time_spent = "",
+        visit_remark = "New customer",
+        customer_rating = "",
+        customer_feedback = "",
+        incomplete = 1
+    )
+
+    in_mem_db.insert_record(new_customer_record)
+    in_mem_db.insert_record(new_visit_record, type="visit")
 
     print("Welcome new customer")
+    in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.NewCustomer.value)
     return(new_customer_record)
 
 def insert_existing_record_inmem(new_record, record, in_mem_db):
     # Delete exisitng record
     in_mem_db.delete_record(new_record.customer_id)
+
+    existing_visit_id = in_mem_db.fetch_visit_id(new_record.customer_id)
+    in_mem_db.delete_record(new_record.customer_id, type="visit")
 
     # Insert exisitng record to in-mem   #DEBUG will face problems later
     existing_customer_record = InMemCustomer(
@@ -116,13 +139,32 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
         category=record[15],
         creation_date=record[16],
         group_id=record[17],
+        incomplete=1,
         entry_time=str(new_record.entry_time),
-        billed=str(new_record.entry_time),
+        billed=0,
         exited=0,
-        visit_time=None,
-        exit_time=None
+        visit_time="",
+        exit_time=""
     )
+
+    modified_visit_record = InMemVisit(
+        customer_id=record[0],
+        visit_id=existing_visit_id,
+        store_id=in_mem_db.fetch_store_id(),
+        entry_time=str(new_record.entry_time),
+        exit_time="",
+        billed=0,
+        bill_amount=0,
+        time_spent="",
+        visit_remark="",
+        customer_rating="",
+        customer_feedback="",
+        incomplete=1
+    )
+
     in_mem_db.insert_record(existing_customer_record)
+    in_mem_db.insert_record(modified_visit_record, type="visit")
+    in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.ExisitingCustomer.value)
 
 def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
     # Get all customer records from the in-memory Redis database
@@ -246,20 +288,20 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
             yaw, pitch, roll = r.calculate_yaw_pitch_roll(frame, face, p)
             if abs(yaw) > float(parameters.yaw_threshold) or abs(pitch) < float(parameters.pitch_threshold):
                 continue
-            start_time = time.perf_counter()
+            #start_time = time.perf_counter()
             face_encoding, face_pixels = get_face_image_encoding(r, parameters, face, frame)
             if face_encoding is None:
                 continue
-            elapsed_time = time.perf_counter() - start_time
-            print("Elapsed time:", elapsed_time, "seconds")
+            #elapsed_time = time.perf_counter() - start_time
+            #print("Elapsed time:", elapsed_time, "seconds")
             record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
 
             if not record_from_mem:
                 # Create a record < Assign an ID < treat as new
-                start_time = time.perf_counter()
+                #start_time = time.perf_counter()
                 new_record = insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db)
-                elapsed_time = time.perf_counter() - start_time
-                print("INSERTION elapsed time:", elapsed_time, "seconds")
+                #elapsed_time = time.perf_counter() - start_time
+                #print("INSERTION elapsed time:", elapsed_time, "seconds")
 
                 # Add new record id and face encoding to search queue for local db search
                 send_faces_to_search_queue(new_record, face_encoding, search_q)
@@ -359,20 +401,11 @@ def build_parameters(file):
                             args['model_dir'])
     return parameters
 
-# Handle interrupt signal
-def signal_handler(sig, frame):
-    print("Caught exit signal")
-    camfeed_break_flag.set()
-    time.sleep(2)
-    sys.exit(0)
-
 def write_entry_pid():
     with open("entry_pid", "w") as f:
         f.write(str(os.getpid()))
 
 if __name__ == "__main__":
-
-    signal.signal(signal.SIGBREAK, signal_handler)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-camera", type=int, help="Camera number for entry", required = True)

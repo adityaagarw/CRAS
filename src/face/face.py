@@ -67,7 +67,7 @@ class Detection:
         if parameters.detection == "Frontal":
             self.detector = dlib.get_frontal_face_detector()
         elif parameters.detection == "CNN":
-            model_file = parameters.model_dir + "/mmod_human_face_detector.dat"
+            model_file = parameters.model_dir + "\\mmod_human_face_detector.dat"
             self.detector = dlib.cnn_face_detection_model_v1(model_file)
         else:
             self.detector = None
@@ -78,7 +78,7 @@ class Detection:
 
 class Predictor:
     def __init__(self, parameters):
-        model_file = parameters.model_dir + "/shape_predictor_68_face_landmarks.dat"
+        model_file = parameters.model_dir + "\\shape_predictor_68_face_landmarks.dat"
         self.shape = dlib.shape_predictor(model_file)
 
     def get_shape(self, frame, face_rect):
@@ -88,7 +88,7 @@ class Recognition:
     def __init__(self, parameters):
         self.parameters = parameters
         if parameters.library == "DLIB":
-            model_file = parameters.model_dir + "/dlib_face_recognition_resnet_model_v1.dat"
+            model_file = parameters.model_dir + "\\dlib_face_recognition_resnet_model_v1.dat"
             self.encode = dlib.face_recognition_model_v1(model_file)
         elif parameters.library == "VGG":
             self.encode = VGGFace(model=parameters.model, include_top=False, \
@@ -187,20 +187,20 @@ class Recognition:
                                     (landmarks.part(54).x, landmarks.part(54).y)      # Right mouth corner
                                 ], dtype="double")
 
-        landmarks_arr = []
-        for i in range(0, 68):
-            x = landmarks.part(i).x
-            y = landmarks.part(i).y
-            landmarks_arr.append([x, y])
+        #landmarks_arr = []
+        #for i in range(0, 68):
+        #    x = landmarks.part(i).x
+        #    y = landmarks.part(i).y
+        #    landmarks_arr.append([x, y])
 
         # Loop through each landmark
-        for landmark in landmarks_arr:
+        #for landmark in landmarks_arr:
             # Draw a circle at the landmark position
-            center = tuple(landmark)
-            radius = 1
-            color = (0, 255, 0)
-            thickness = -1
-            cv2.circle(frame, center, radius, color, thickness)
+        #    center = tuple(landmark)
+        #    radius = 1
+        #    color = (0, 255, 0)
+        #    thickness = -1
+        #    cv2.circle(frame, center, radius, color, thickness)
 
         # 3D model points.
         model_points = np.array([
@@ -236,9 +236,9 @@ class Recognition:
         imgpts, _ = cv2.projectPoints(axis_points, rotation_vector, translation_vector, camera_matrix, dist_coeffs)
 
         # Draw the axis lines
-        cv2.line(frame, (int(image_points[0][0]), int(image_points[0][1])), (int(imgpts[0][0][0]), int(imgpts[0][0][1])), (255, 0, 0), 2)  # X-axis line (blue)
-        cv2.line(frame, (int(image_points[0][0]), int(image_points[0][1])), (int(imgpts[1][0][0]), int(imgpts[1][0][1])), (0, 255, 0), 2)  # Y-axis line (green)
-        cv2.line(frame, (int(image_points[0][0]), int(image_points[0][1])), (int(imgpts[2][0][0]), int(imgpts[2][0][1])), (0, 0, 255), 2)  # Z-axis line (red)
+        #cv2.line(frame, (int(image_points[0][0]), int(image_points[0][1])), (int(imgpts[0][0][0]), int(imgpts[0][0][1])), (255, 0, 0), 2)  # X-axis line (blue)
+        #cv2.line(frame, (int(image_points[0][0]), int(image_points[0][1])), (int(imgpts[1][0][0]), int(imgpts[1][0][1])), (0, 255, 0), 2)  # Y-axis line (green)
+        #cv2.line(frame, (int(image_points[0][0]), int(image_points[0][1])), (int(imgpts[2][0][0]), int(imgpts[2][0][1])), (0, 0, 255), 2)  # Z-axis line (red)
 
         # Calculate Euler angles
         rmat, jac = cv2.Rodrigues(rotation_vector)

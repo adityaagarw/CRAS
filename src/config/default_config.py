@@ -1,5 +1,15 @@
 import os
+import shutil
 import platform
+
+def get_python_command():
+    python_commands = ['python3', 'python', 'py']
+
+    for command in python_commands:
+        if shutil.which(command) is not None:
+            return command
+
+    raise EnvironmentError('Python command not found in your system')
 
 def get_model_dir():
     current = os.getcwd()
@@ -10,9 +20,9 @@ def get_model_dir():
 
     goto_path_dirs = current.split(split_char)
     if platform.system() == "Windows":
-        goto_path = '\\'.join(goto_path_dirs[:-1]) + "\\models"
+        goto_path = '\\'.join(goto_path_dirs[:-1]) + "\\src\\models"
     else:
-        goto_path = '/'.join(goto_path_dirs[:-1]) + "/models"
+        goto_path = '/'.join(goto_path_dirs[:-1]) + "/src/models"
 
     return goto_path
 
@@ -26,7 +36,7 @@ default_detection_method = "Frontal"
 default_sim_method = "Cosine"
 default_recognition_library = "VGG"
 default_model = 'resnet50'
-default_threshold = 0.7
+default_threshold = 0.65
 default_yaw_threshold = 30
 default_pitch_threshold = 170
 default_debug_method = 1
@@ -48,5 +58,5 @@ command = " -detection " + default_detection_method + \
           " -video_path " + "\"" + default_video_path + "\"" + \
           " -model_dir " + "\"" + default_model_dir + "\""
 
-command = "python3 config/build_config.py" + command
+command = get_python_command() + " config/build_config.py" + command
 os.system(command)
