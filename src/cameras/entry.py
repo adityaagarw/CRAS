@@ -109,7 +109,8 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
     in_mem_db.insert_record(new_visit_record, type="visit")
 
     print("Welcome new customer")
-    in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.NewCustomer.value)
+    message = BackendMessage.NewCustomer.value + ":" + str(new_id)
+    in_mem_db.connection.publish(Channel.Backend.value, message)
     return(new_customer_record)
 
 def insert_existing_record_inmem(new_record, record, in_mem_db):
@@ -164,7 +165,8 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
 
     in_mem_db.insert_record(existing_customer_record)
     in_mem_db.insert_record(modified_visit_record, type="visit")
-    in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.ExisitingCustomer.value)
+    message = BackendMessage.ExisitingCustomer.value + ":" + str(record[0])
+    in_mem_db.connection.publish(Channel.Backend.value, message)
 
 def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
     # Get all customer records from the in-memory Redis database
