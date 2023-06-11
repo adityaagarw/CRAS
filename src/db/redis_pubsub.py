@@ -20,6 +20,8 @@ class BackendStatus(Enum):
 
 class BackendMessage(Enum):
     NewCustomer = "NewCustomer"
-    ExisitingCustomer = "ExisitingCustomer"
+    UpdateCustomer = "UpdateCustomer"
+    TempCustomer = "TempCustomer"
+    DeleteCustomer = "DeleteCustomer"
     Employee = "Employee"
 

@@ -25,25 +25,24 @@ SEARCH_QUEUE_SIZE = 100000
 NUM_CONSUMER_PROCESSES = 1
 NUM_SEARCH_PROCESSES = 1
 
-def get_face_image(face_pixels):
-    face_8bit = np.clip(face_pixels, 0, 255).astype(np.uint8)
-    face_image = Image.fromarray(face_8bit)
+def get_face_image(face_pixels, target_size=(160, 160)):
+    #face_8bit = np.clip(face_pixels, 0, 255).astype(np.uint8)
+    #face_image = Image.fromarray(face_8bit)
+    face_pixels_rgb = cv2.cvtColor(face_pixels, cv2.COLOR_BGR2RGB)
+    face_image = Image.fromarray(face_pixels_rgb)
+    face_image = face_image.resize(target_size)
     img_bytes = io.BytesIO()
     face_image.save(img_bytes, format='PNG')
     img_data = img_bytes.getvalue()
     return img_data
 
-def detect_faces_in_frame(detector, parameters, frame):
+def detect_faces_in_frame(detector, frame):
     faces = detector.detect(frame, 1)
-
     return faces
 
-def get_face_image_encoding(r, parameters, face, frame):
-    rect = Rectangle(face, parameters)
-    x, y, width, height = rect.get_coordinates()
+def get_face_image_encoding(r, face, frame):
+    face_pixels = r.get_face_pixels_for_image(face, frame)
     embedding = r.get_encodings(face, frame)
-    face_pixels = r.get_face_pixels(face, frame)
-
     return embedding, face_pixels
 
 def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
@@ -160,7 +159,7 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
 
     in_mem_db.insert_record(existing_customer_record)
     in_mem_db.insert_record(modified_visit_record, type="visit")
-    message = BackendMessage.ExisitingCustomer.value + ":" + str(record[0])
+    message = BackendMessage.UpdateCustomer.value + ":" + str(record[0]) + "," + BackendMessage.TempCustomer.value + ":" + str(new_record.customer_id)
     in_mem_db.connection.publish(Channel.Backend.value, message)
 
 def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
@@ -206,7 +205,7 @@ def get_face_record_from_localdb(face_encoding, threshold, local_db):
 def pipe_stream_process(camera, parameters, pipe_q, camfeed_break_flag):
     fp = FacePipe(camera)
     
-    pipe = fp.create_named_pipe()
+    fp.create_named_pipe()
 
     while True:
         if camfeed_break_flag is True:
@@ -218,9 +217,13 @@ def pipe_stream_process(camera, parameters, pipe_q, camfeed_break_flag):
         except:
             continue
 
-        fp.send_faces_to_pipe(parameters, faces, frame, pipe)
+        try:
+            fp.send_faces_to_pipe(parameters, faces, frame)
+        except:
+            print("Problem sending faces to pipe, continuing")
+            continue
 
-    fp.destroy_pipe(pipe)
+    fp.destroy_pipe()
 
 def search_face_data(parameters, search_q, camfeed_break_flag):
     local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
@@ -282,11 +285,17 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
 
         # For each face, first see if it exists in mem otherwise try and fetch it from localdb
         for face in faces:
+            # Constraints start
             yaw, pitch, roll = r.calculate_yaw_pitch_roll(frame, face, p)
             if abs(yaw) > float(parameters.yaw_threshold) or abs(pitch) < float(parameters.pitch_threshold):
                 continue
+            area = (face.right() - face.left()) * (face.bottom() - face.top())
+            if area < float(parameters.area_threshold):
+                continue
+            # Constraints end
+
             #start_time = time.perf_counter()
-            face_encoding, face_pixels = get_face_image_encoding(r, parameters, face, frame)
+            face_encoding, face_pixels = get_face_image_encoding(r, face, frame)
             if face_encoding is None:
                 continue
             #elapsed_time = time.perf_counter() - start_time
@@ -298,7 +307,7 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
                 #start_time = time.perf_counter()
                 new_record = insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db)
                 #elapsed_time = time.perf_counter() - start_time
-                #print("INSERTION elapsed time:", elapsed_time, "seconds")
+                #print("Insertion elapsed time:", elapsed_time, "seconds")
 
                 # Add new record id and face encoding to search queue for local db search
                 send_faces_to_search_queue(new_record, face_encoding, search_q)
@@ -352,7 +361,7 @@ def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
         if camfeed_break_flag is True:
             break
 
-        faces = detect_faces_in_frame(detector, parameters, frame)
+        faces = detect_faces_in_frame(detector, frame)
         if not faces:
             continue
 
@@ -387,6 +396,7 @@ def build_parameters(file):
                             args['threshold'], \
                             args['yaw_threshold'], \
                             args['pitch_threshold'], \
+                            args['area_threshold'], \
                             args['sim_method'], \
                             args['debug_mode'], \
                             args['username'], \

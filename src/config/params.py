@@ -1,11 +1,12 @@
 class Parameters:
-    def __init__(self, detection, library, model, threshold, yaw_threshold, pitch_threshold, sim_method, debug_mode, username, password, db_link, db_name, input_type, video_path, model_dir):
+    def __init__(self, detection, library, model, threshold, yaw_threshold, pitch_threshold, area_threshold, sim_method, debug_mode, username, password, db_link, db_name, input_type, video_path, model_dir):
         self.detection = detection
         self.library = library
         self.model = model
         self.threshold = threshold
         self.yaw_threshold = yaw_threshold
         self.pitch_threshold = pitch_threshold
+        self.area_threshold = area_threshold
         self.sim_method = sim_method
         self.debug_mode = debug_mode
         self.username = username

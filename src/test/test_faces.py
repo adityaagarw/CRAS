@@ -106,11 +106,13 @@ def start_cam_test(parameters):
                 embedding, _ = get_face_image_encoding(r, parameters, face, frame)
                 sim_score = sim.get_cosine_similarity(default_face_encoding, embedding)
                 yaw, pitch, roll = calculate_yaw_pitch_roll(frame, rect.get_rectangle(), p)
+                area = (face.right() - face.left()) * (face.bottom() - face.top())
                 cv2.rectangle(frame, (x, y), (x+width, y+height), (0, 255, 0), 2)
                 cv2.putText(frame, str(sim_score), (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
                 cv2.putText(frame, "Roll: " + str(roll), (x, y-20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
                 cv2.putText(frame, "Yaw: " + str(yaw), (x, y-35), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
                 cv2.putText(frame, "Pitch: " + str(pitch), (x, y-50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                cv2.putText(frame, "Area: " + str(area), (x, y-65), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
         cv2.imshow('test_recognition', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -139,6 +141,7 @@ def build_parameters(file):
                             args['threshold'], \
                             args['yaw_threshold'], \
                             args['pitch_threshold'], \
+                            args['area_threshold'], \
                             args['sim_method'], \
                             args['debug_mode'], \
                             args['username'], \

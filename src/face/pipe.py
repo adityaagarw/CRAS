@@ -14,7 +14,7 @@ class FacePipe:
 
     def create_named_pipe(self):
         if platform.system() == "Windows":
-            pipe = win32pipe.CreateNamedPipe(
+            self.pipe = win32pipe.CreateNamedPipe(
                 self.pipe_name,
                 win32pipe.PIPE_ACCESS_OUTBOUND,
                 win32pipe.PIPE_TYPE_BYTE | win32pipe.PIPE_WAIT,
@@ -22,14 +22,13 @@ class FacePipe:
                 0,
                 None
             )
-            win32pipe.ConnectNamedPipe(pipe, None)
+            win32pipe.ConnectNamedPipe(self.pipe, None)
         else:
             if not os.path.exists(self.pipe_name):
                 os.mkfifo(self.pipe_name)
-            pipe = os.open(self.pipe_name, os.O_WRONLY)
-        return pipe
+            self.pipe = os.open(self.pipe_name, os.O_WRONLY)
 
-    def send_faces_to_pipe(self, parameters, faces, frame, pipe):
+    def send_faces_to_pipe(self, parameters, faces, frame):
         for face in faces:
             rect = Rectangle(face, parameters)
             x, y, width, height = rect.get_coordinates()        
@@ -40,17 +39,18 @@ class FacePipe:
         if platform.system() == "Windows":
             try:
                 # Write the frame to the named pipe
-                win32file.WriteFile(pipe, img_encoded.tobytes())
+                win32file.WriteFile(self.pipe, img_encoded.tobytes())
             except pywintypes.error as e:
                 print("Pipe broken, creating new pipe")
-                self.destroy_pipe(pipe)
-                pipe = self.create_named_pipe()
+                self.destroy_pipe()
+                self.create_named_pipe()
         else:
-            os.write(pipe, img_encoded.tobytes())
+            os.write(self.pipe, img_encoded.tobytes())
 
-    def destroy_pipe(self, pipe):
+    def destroy_pipe(self):
         if platform.system() == "Windows":
-            win32pipe.DisconnectNamedPipe(pipe)
-            win32file.CloseHandle(pipe)
+            win32pipe.DisconnectNamedPipe(self.pipe)
+            win32file.CloseHandle(self.pipe)
+            self.pipe = None
         else:
-            pipe.close()
+            self.pipe.close()

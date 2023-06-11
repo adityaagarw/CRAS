@@ -58,6 +58,8 @@ def build_parameters(file):
                             args['model'], \
                             args['threshold'], \
                             args['yaw_threshold'], \
+                            args['pitch_threshold'], \
+                            args['area_threshold'], \
                             args['sim_method'], \
                             args['debug_mode'], \
                             args['username'], \

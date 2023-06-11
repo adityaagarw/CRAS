@@ -123,6 +123,10 @@ class Recognition:
 
         return encoding
 
+    def get_face_pixels_for_image(self, face, frame):
+        rect = Rectangle(face, self.parameters)
+        return frame[rect.y-25:rect.y+rect.height+5, rect.x-5:rect.x+rect.width+5]
+
     def get_face_pixels(self, face, frame):
         rect = Rectangle(face, self.parameters)
         return frame[rect.y:rect.y+rect.height, rect.x:rect.x+rect.width]
