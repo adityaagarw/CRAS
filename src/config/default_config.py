@@ -40,6 +40,7 @@ default_threshold = 0.65
 default_yaw_threshold = 30
 default_pitch_threshold = 170
 default_area_threshold = 10000
+default_billing_cam_time = 5
 default_debug_method = 1
 default_input_type = "video" # Change to camera
 
@@ -50,6 +51,7 @@ command = " -detection " + default_detection_method + \
           " -yaw_threshold " + str(default_yaw_threshold) + \
           " -pitch_threshold " + str(default_pitch_threshold) + \
           " -area_threshold " + str(default_area_threshold) + \
+          " -billing_cam_time " + str(default_billing_cam_time) + \
           " -sim_method " + default_sim_method + \
           " -debug_mode " + str(default_debug_method) + \
           " -username " + default_username + \

@@ -60,6 +60,7 @@ def build_parameters(file):
                             args['yaw_threshold'], \
                             args['pitch_threshold'], \
                             args['area_threshold'], \
+                            args['billing_cam_time'], \
                             args['sim_method'], \
                             args['debug_mode'], \
                             args['username'], \

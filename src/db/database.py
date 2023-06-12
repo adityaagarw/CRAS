@@ -474,6 +474,8 @@ class InMemoryRedisDB(Database):
                 pipe.hmset(f'store_inmem_db:{record.store_id}', vars(record))
             elif type == 'visit':
                 pipe.hmset(f'visit_inmem_db:{record.customer_id}', vars(record)) # Every visit in memory is identified by customer id
+            elif type == 'cust_id_list':
+                pipe.lpush('cust_id_list', record)
             pipe.execute()
 
     def update_record(self, record, type='customer'):

@@ -211,7 +211,7 @@ def pipe_stream_process(camera, parameters, pipe_q, camfeed_break_flag):
         if camfeed_break_flag is True:
             break
         try:
-            obj = pipe_q.get(timeout = 1)
+            obj = pipe_q.get()
             faces = obj[0] # Faces
             frame = obj[1] # Frame
         except:
@@ -247,7 +247,7 @@ def search_face_data(parameters, search_q, camfeed_break_flag):
             break
  
         try:
-            obj = search_q.get(timeout = 1)
+            obj = search_q.get()
             record = obj[0] # Faces
             face_encoding = obj[1] # Frame
         except:
@@ -277,7 +277,7 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
             print("Camera feed stopped ending message queue consumer")
             break
         try:
-            obj = q.get(timeout = 1)
+            obj = q.get()
             faces = obj[0] # Faces
             frame = obj[1] # Frame
         except:
@@ -397,6 +397,7 @@ def build_parameters(file):
                             args['yaw_threshold'], \
                             args['pitch_threshold'], \
                             args['area_threshold'], \
+                            args['billing_cam_time'], \
                             args['sim_method'], \
                             args['debug_mode'], \
                             args['username'], \

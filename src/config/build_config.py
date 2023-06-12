@@ -13,6 +13,7 @@ def build_configuration_file(p):
     config.set('general', 'yaw_threshold', str(p.yaw_threshold))
     config.set('general', 'pitch_threshold', str(p.pitch_threshold))
     config.set('general', 'area_threshold', str(p.area_threshold))
+    config.set('general', 'billing_cam_time', str(p.billing_cam_time))
     config.set('general', 'sim_method', p.sim_method)
     config.set('general', 'debug_mode',str(p.debug_mode))
     config.set('general', 'username', p.username)
@@ -36,6 +37,7 @@ if __name__ == "__main__":
     parser.add_argument("-yaw_threshold", type=int, help="Specify the yaw threshold for face", required = True)
     parser.add_argument("-pitch_threshold", type=int, help="Specify the pitch threshold for face", required = True)
     parser.add_argument("-area_threshold", type=int, help="Specify the area threshold for face", required = True)
+    parser.add_argument("-billing_cam_time", type=int, help="Specify the time for billing camera", required = True)
     parser.add_argument("-sim_method", type=str, help="Specify the similarity comparision method", required = True)
     parser.add_argument("-debug_mode", type=int, help="Specify whether to run the app in debug mode", required = True)
     parser.add_argument("-username", type=str, help="Specify db username", required = True)
@@ -54,6 +56,7 @@ if __name__ == "__main__":
                             args.yaw_threshold, \
                             args.pitch_threshold, \
                             args.area_threshold, \
+                            args.billing_cam_time, \
                             args.sim_method, \
                             args.debug_mode, \
                             args.username, \
