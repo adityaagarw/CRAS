@@ -17,6 +17,16 @@ def display_inmem_images(inmem_db):
         cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+def display_image(inmem_db, cust_id):
+    key = "customer_inmem_db:" + cust_id
+    record = inmem_db.connection.hgetall(key)
+    img_bytes = record.get(b'image')
+    image = Image.open(io.BytesIO(img_bytes))
+    image_arr = np.array(image)
+    cv2.imshow("Customer", image_arr)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 def delete_inmem_record(inmem_db, record_id):
     inmem_db.delete_record(record_id)
 
@@ -94,7 +104,8 @@ if __name__ == "__main__":
     parser.add_argument("-delete", type=str, help="Delete a particular record", required = False)
     parser.add_argument("-print", type=str, help="Print the whole db", required=False, default="no")
     parser.add_argument("-delete_all_records", type=str, help="Delete all records", required=False, default="no") 
-    parser.add_argument("-display_all_images", type=str, help="Display all images", required=False, default="no") 
+    parser.add_argument("-display_all_images", type=str, help="Display all images", required=False, default="no")
+    parser.add_argument("-display_image", type=str, help="Display image", required=False, default=None)
     args = parser.parse_args()
     if args.print == "yes":
         display_inmem_redis_db(inmem_db)
@@ -107,5 +118,8 @@ if __name__ == "__main__":
 
     if args.display_all_images == "yes":
         display_inmem_images(inmem_db)
+
+    if args.display_image is not None:
+        display_image(inmem_db, args.display_image)
 
     inmem_db.connection.close()

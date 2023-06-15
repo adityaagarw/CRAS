@@ -52,7 +52,6 @@ class LocalCustomer:
         self.category = category
         self.creation_date = creation_date
         self.group_id = group_id
-        self.incomplete = incomplete
 
 class LocalEmployee:
     def __init__(self, name, phone_number, face_image, face_encoding):

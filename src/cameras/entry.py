@@ -109,11 +109,12 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
 
 def insert_existing_record_inmem(new_record, record, in_mem_db):
     # Delete exisitng record
-    in_mem_db.delete_record(new_record.customer_id)
+    in_mem_db.delete_record(new_record.get(b'customer_id').decode())
 
     existing_visit_id = in_mem_db.fetch_visit_id(new_record.customer_id)
-    in_mem_db.delete_record(new_record.customer_id, type="visit")
+    in_mem_db.delete_record(new_record.get(b'customer_id').decode(), type="visit")
 
+    entry_time = new_record.entry_time
     # Insert exisitng record to in-mem   #DEBUG will face problems later
     existing_customer_record = InMemCustomer(
         customer_id=record[0],
@@ -324,7 +325,7 @@ def send_faces_to_queue(faces, frame, q):
     item = (faces, frame)
     q.put(item)
     # Concerning if it keeps rising
-    print("Queue size:", q.qsize())
+    print("Entry Queue size:", q.qsize())
 
 # Start entry camera
 def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
@@ -334,14 +335,14 @@ def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
     detector = Detection(parameters)
 
     stream_process = Process(target = pipe_stream_process, args = (camera, parameters, pipe_q, stop,))
-    stream_process.name = "Camera_stream"
+    stream_process.name = "Camera_stream_entry"
     stream_process.start()
 
     num_consumers = NUM_CONSUMER_PROCESSES
     consumers = []
     for _ in range(num_consumers):
         consumer_process = Process(target = consume_face_data, args = (parameters, q, search_q, stop,))
-        consumer_process.name = "Frame_iterator"
+        consumer_process.name = "Frame_iterator_entry"
         consumer_process.start()
         consumers.append(consumer_process)
 
@@ -349,7 +350,7 @@ def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
     search_processes = []
     for _ in range(num_search_process):
         search_process = Process(target = search_face_data, args = (parameters, search_q, stop,))
-        search_process.name = "Face_search"
+        search_process.name = "Face_search_entry"
         search_process.start()
         search_processes.append(search_process)
 

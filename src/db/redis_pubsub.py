@@ -27,6 +27,8 @@ class BackendMessage(Enum):
     DeleteCustomer = "DeleteCustomer"
     BillingCustomer = "BillingCustomer"
     Employee = "Employee"
+    EndBilling = "EndBilling"
 
 class FrontendMessage(Enum):
     StartBilling = "StartBilling"
+    

@@ -83,7 +83,7 @@ def find_and_publish_records(in_mem_db, faces, frame, r, p, parameters):
             if cust_id not in cust_id_list:
                 in_mem_db.connection.lpush('cust_id_list', cust_id)
                 # Publish the customer record to the backend channel
-                message = BackendMessage.BillingCustomer.value + ":" + str(cust_id)
+                message = BackendMessage.BillingCustomer.value + ":" + str(cust_id.decode())
                 in_mem_db.connection.publish(Channel.Billing.value, message)
 
 def get_billing_frames(cam_time):
@@ -94,7 +94,7 @@ def capture_and_publish(in_mem_db, cap, detector, r, p, parameters):
     billing_frames_counter = 0
     frame_count = 0
     while billing_frames_counter <= billing_frames:
-        
+
         if frame_count % 10 != 0: # Only capture every 10th frame
             billing_frames_counter += 1
             frame_count += 1
@@ -118,6 +118,7 @@ def capture_and_publish(in_mem_db, cap, detector, r, p, parameters):
 
     # Clear customer id list
     in_mem_db.connection.ltrim('cust_id_list', 1, 0)
+    in_mem_db.publish(Channel.Billing.value, BackendMessage.EndBilling.value)
 
 # Start entry camera
 def start_billing_cam(parameters, camera, stop_event):
