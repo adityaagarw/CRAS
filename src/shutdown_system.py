@@ -34,12 +34,12 @@ def delete_exit_pid():
 if __name__ == "__main__":
     entry_pid = read_entry_pid()
     billing_pid = read_billing_pid()
-    #exit_pid = read_exit_pid()
+    exit_pid = read_exit_pid()
 
     # Kill the process using psutil
     entry_p = psutil.Process(entry_pid)
     billing_pid = psutil.Process(billing_pid)
-    #exit_pid = psutil.Process(exit_pid)
+    exit_pid = psutil.Process(exit_pid)
 
     for p in entry_p.children(recursive=True):
         p.terminate()
@@ -51,9 +51,9 @@ if __name__ == "__main__":
 
     billing_pid.terminate()
     
-    #for p in exit_pid.children(recursive=True):
-    #    p.terminate()
+    for p in exit_pid.children(recursive=True):
+        p.terminate()
 
     delete_entry_pid()
     delete_billing_pid()
-    #delete_exit_pid()
+    delete_exit_pid()

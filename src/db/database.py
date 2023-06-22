@@ -113,7 +113,7 @@ class LocalPostgresDB(Database):
             phone_number VARCHAR(20),
             encoding vector(2048),
             image BYTEA,
-            return_customer BOOLEAN DEFAULT FALSE,
+            return_customer INTEGER DEFAULT 0,
             last_visit TIMESTAMP,
             average_time_spent INTERVAL,
             average_purchase NUMERIC(10, 2),
@@ -165,21 +165,23 @@ class LocalPostgresDB(Database):
             store_id UUID,
             entry_time TIMESTAMP,
             exit_time TIMESTAMP,
-            billed BOOLEAN,
+            billed INTEGER DEFAULT 0,
             bill_amount NUMERIC(10, 2),
             time_spent INTERVAL,
             visit_remark TEXT,
             customer_rating INTEGER,
             customer_feedback INTEGER,
-            incomplete BOOLEAN
+            incomplete INTEGER DEFAULT 1
         )"""
+        self.cursor.execute(create_table_query)
+        self.connection.commit()
 
-    def insert_customer_record(self, record):
+    def insert_customer_record_old(self, record):
         with self.connection.cursor() as cursor:
             insert_query = """
             INSERT INTO local_customer_db (
-                customer_id, name, phone_number, encoding, image, return_customer, last_visit, 
-                average_time_spent, average_purchase, maximum_purchase, remarks, 
+                customer_id, name, phone_number, encoding, image, return_customer, last_visit,
+                average_time_spent, average_purchase, maximum_purchase, remarks,
                 loyalty_level, num_visits, last_location, location_list, category, creation_date, group_id
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -193,7 +195,50 @@ class LocalPostgresDB(Database):
             ))
             self.connection.commit()
 
-    def insert_employee_record(self, record):
+    def insert_customer_record(self, record):
+        fields = [
+            'customer_id', 'name', 'phone_number', 'encoding', 'image',
+            'return_customer', 'last_visit', 'average_time_spent',
+            'average_purchase', 'maximum_purchase', 'remarks',
+            'loyalty_level', 'num_visits', 'last_location',
+            'location_list', 'category', 'creation_date', 'group_id'
+        ]
+
+        with self.connection.cursor() as cursor:
+            insert_query = """
+            INSERT INTO local_customer_db ({})
+            VALUES ({})
+            """.format(','.join(fields), ','.join(['%s']*len(fields)))
+
+            values = []
+            for field in fields:
+                value = getattr(record, field)
+                values.append(value if value != "" else None)
+            
+            cursor.execute(insert_query, tuple(values))
+            self.connection.commit()
+            print(insert_query)
+
+    def print_insert_query(self, record):
+        insert_query = """
+        INSERT INTO local_customer_db (
+            customer_id, name, phone_number, encoding, image, return_customer, last_visit,
+            average_time_spent, average_purchase, maximum_purchase, remarks,
+            loyalty_level, num_visits, last_location, location_list, category, creation_date, group_id
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        query_parameters = (
+            record.customer_id, record.name, record.phone_number, record.encoding, record.image,
+            record.return_customer, record.last_visit, record.average_time_spent,
+            record.average_purchase, record.maximum_purchase, record.remarks,
+            record.loyalty_level, record.num_visits, record.last_location,
+            record.location_list, record.category, record.creation_date, record.group_id
+        )
+
+        print("SQL Query:", self.cursor.mogrify(insert_query, query_parameters))
+
+    def insert_employee_record_old(self, record):
         insert_query = """
         INSERT INTO local_employee_db (
             employee_id, name, phone_number, face_image, face_encoding
@@ -204,6 +249,26 @@ class LocalPostgresDB(Database):
             record.employee_id, record.name, record.phone_number, record.face_image, record.face_encoding
         ))
         self.connection.commit()
+
+    def insert_employee_record(self, record):
+        fields = [
+            'employee_id', 'name', 'phone_number', 'face_image', 'face_encoding'
+        ]
+
+        with self.connection.cursor() as cursor:
+            insert_query = """
+            INSERT INTO local_employee_db ({})
+            VALUES ({})
+            """.format(','.join(fields), ','.join(['%s']*len(fields)))
+
+            values = []
+            for field in fields:
+                value = getattr(record, field)
+                values.append(value if value != "" else None)
+            
+            cursor.execute(insert_query, tuple(values))
+            self.connection.commit()
+            print(insert_query)
 
     def insert_store_record(self, record):
         insert_query = """
@@ -219,7 +284,7 @@ class LocalPostgresDB(Database):
         ))
         self.connection.commit()
 
-    def insert_visit_record(self, record):
+    def insert_visit_record_old(self, record):
         insert_query = """
         INSERT INTO local_visit_db (
             customer_id, visit_id, store_id, entry_time, exit_time, billed, bill_amount, time_spent, visit_remark,
@@ -233,6 +298,27 @@ class LocalPostgresDB(Database):
             record.customer_feedback, record.incomplete
         ))
         self.connection.commit()
+
+    def insert_visit_record(self, record):
+        fields = [
+            'customer_id', 'visit_id', 'store_id', 'entry_time', 'exit_time', 'billed', 'bill_amount',
+            'time_spent', 'visit_remark', 'customer_rating', 'customer_feedback', 'incomplete'
+        ]
+
+        with self.connection.cursor() as cursor:
+            insert_query = """
+            INSERT INTO local_visit_db ({})
+            VALUES ({})
+            """.format(','.join(fields), ','.join(['%s']*len(fields)))
+
+            values = []
+            for field in fields:
+                value = getattr(record, field)
+                values.append(value if value != "" else None)
+            
+            cursor.execute(insert_query, tuple(values))
+            self.connection.commit()
+            print(insert_query)
 
     def update_customer_record(self, record):
         with self.connection.cursor() as cursor:
@@ -457,6 +543,16 @@ class InMemVisit:
         self.customer_feedback = customer_feedback
         self.incomplete = incomplete
 
+class InMemIncomplete:
+    def __init__(self, customer_id, encoding):
+        self.customer_id = customer_id
+        self.encoding = encoding
+
+class InMemExited:
+    def __init__(self, customer_id, encoding):
+        self.customer_id = customer_id
+        self.encoding = encoding
+
 # Class for the in-memory Redis database
 class InMemoryRedisDB(Database):
     def __init__(self, host, port):
@@ -475,6 +571,10 @@ class InMemoryRedisDB(Database):
                 pipe.hmset(f'visit_inmem_db:{record.customer_id}', vars(record)) # Every visit in memory is identified by customer id
             elif type == 'cust_id_list':
                 pipe.lpush('cust_id_list', record)
+            elif type == 'incomplete':
+                pipe.hmset(f'incomplete_inmem_db:{record.customer_id}', vars(record))
+            elif type == 'exited':
+                pipe.hmset(f'exited_inmem_db:{record.customer_id}', vars(record))
             pipe.execute()
 
     def update_record(self, record, type='customer'):
@@ -487,6 +587,10 @@ class InMemoryRedisDB(Database):
                 pipe.hmset(f'store_inmem_db:{record.store_id}', vars(record))
             elif type == 'visit':
                 pipe.hmset(f'visit_inmem_db:{record.customer_id}', vars(record))
+            elif type == 'incomplete':
+                pipe.hmset(f'incomplete_inmem_db:{record.customer_id}', vars(record))
+            elif type == 'exited':
+                pipe.hmset(f'exited_inmem_db:{record.customer_id}', vars(record))
             pipe.execute()
 
     def delete_record(self, record_id, type='customer'):
@@ -499,6 +603,10 @@ class InMemoryRedisDB(Database):
             self.connection.delete(f'store_inmem_db:{record_id}')
         elif type == 'visit':
             self.connection.delete(f'visit_inmem_db:{record_id}')
+        elif type == 'incomplete':
+            self.connection.delete(f'incomplete_inmem_db:{record_id}')
+        elif type == 'exited':
+            self.connection.delete(f'exited_inmem_db:{record_id}')
 
     def fetch_customer_records(self, customer_id):
         record = self.connection.hgetall(f'customer_inmem_db:{customer_id}')
@@ -625,7 +733,6 @@ class MapInMemtoLocal:
             incomplete=inmem_visit.incomplete
         )
         self.local_db.insert_record(local_visit)
-            
 
 
 

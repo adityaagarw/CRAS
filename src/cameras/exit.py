@@ -3,9 +3,10 @@ import configparser
 import cv2
 import os
 import io
+import threading
 import numpy as np
 import multiprocessing
-from datetime import datetime
+from datetime import datetime, timedelta
 from PIL import Image
 from multiprocessing import Process
 from multiprocessing import Manager
@@ -24,6 +25,24 @@ QUEUE_MAX_SIZE = 100000
 SEARCH_QUEUE_SIZE = 100000
 NUM_CONSUMER_PROCESSES = 1
 NUM_SEARCH_PROCESSES = 1
+EXIT_EXPIRY_TIME = 10
+
+class PicklableTimer(threading.Thread):
+    def __init__(self, interval, function, args=None, kwargs=None):
+        super().__init__()
+        self.interval = interval
+        self.function = function
+        self.args = args or ()
+        self.kwargs = kwargs or ()
+        self.finished = multiprocessing.Event()
+
+    def run(self):
+        self.finished.wait(self.interval)
+        if not self.finished.is_set():
+            self.function(*self.args, **self.kwargs)
+
+    def cancel(self):
+        self.finished.set()
 
 def get_face_image(face_pixels, target_size=(160, 160)):
     #face_8bit = np.clip(face_pixels, 0, 255).astype(np.uint8)
@@ -45,123 +64,94 @@ def get_face_image_encoding(r, face, frame):
     embedding = r.get_encodings(face, frame)
     return embedding, face_pixels
 
-def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
+def insert_record_to_incomplete_mem(face_encoding, inmem_db):
+    new_record = InMemIncomplete(
+        customer_id = str(Utils.generate_unique_id()),
+        encoding = face_encoding.tobytes()
+    )
+    inmem_db.insert_record(new_record, type="incomplete")
+
+def insert_record_to_exited_mem(face_encoding, inmem_db):
+    new_record = InMemExited(
+        customer_id = str(Utils.generate_unique_id()),
+        encoding = face_encoding.tobytes()
+    )
+    inmem_db.insert_record(new_record, type="exited")
+#################################################################################
+def create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_db, local_db):
     new_id = Utils.generate_unique_id()
     face_img = get_face_image(face_pixels)
     current_location = in_mem_db.fetch_store_location()
     store_id = in_mem_db.fetch_store_id()
     time_now = str(datetime.now())
     face_encoding_bytes = face_encoding.tobytes()
+    loc_list = "{" + str(current_location) + "}"
 
-    # Reconstruct bytes as follows:
-    #face_encoding = np.frombuffer(face_encoding_bytes, dtype=np.float64)
-    #face_img = np.frombuffer(face_img_bytes, dtype=np.uint8)
+    encoding = np.frombuffer(face_encoding_bytes, dtype=np.float32).tolist()
 
-    new_customer_record = InMemCustomer(
+    new_customer_record = LocalCustomer(
         customer_id = str(new_id),
         name = "",
         phone_number = "",
-        encoding = face_encoding_bytes,
+        encoding = encoding,
         image = face_img,
-        return_customer = 0,
+        return_customer = "0",
         last_visit = "",
         average_time_spent = "",
         average_purchase = "",
         maximum_purchase = "",
         remarks = "New Customer",
         loyalty_level = "",
-        num_visits = 1,
-        last_location = current_location,
+        num_visits = "1",
+        last_location = loc_list,
         location_list = "",
         category = "",
-        creation_date = time_now,
+        creation_date = str(time_now),
         group_id = "",
-        incomplete = 1,
-        entry_time = time_now,
-        billed = 0,
-        exited = 0,
-        visit_time = "",
-        exit_time = ""
     )
 
-    new_visit_record = InMemVisit(
+    new_visit_record = LocalVisit(
         customer_id = str(new_id),
         visit_id = str(Utils.generate_unique_id()),
         store_id = str(store_id),
-        entry_time = time_now,
-        exit_time = "",
-        billed = 0,
-        bill_amount = 0,
+        entry_time = "",
+        exit_time = str(time_now),
+        billed = "0",
+        bill_amount = "0",
         time_spent = "",
-        visit_remark = "New customer",
+        visit_remark = "New incomplete customer",
         customer_rating = "",
         customer_feedback = "",
-        incomplete = 1
+        incomplete = "1"
     )
 
-    in_mem_db.insert_record(new_customer_record)
-    in_mem_db.insert_record(new_visit_record, type="visit")
+    local_db.insert_customer_record(new_customer_record)
+    local_db.insert_visit_record(new_visit_record)
+    print("New customer record created and inserted to local db")
 
-    print("Welcome new customer")
-    message = BackendMessage.NewCustomer.value + ":" + str(new_id)
-    in_mem_db.connection.publish(Channel.Backend.value, message)
-    return(new_customer_record)
-
-def insert_existing_record_inmem(new_record, record, in_mem_db):
+def insert_existing_record_to_visit(record, in_mem_db, local_db):
     # Delete exisitng record
-    in_mem_db.delete_record(new_record.customer_id)
 
-    existing_visit_id = in_mem_db.fetch_visit_id(new_record.customer_id)
-    in_mem_db.delete_record(new_record.customer_id, type="visit")
+    customer_id = record[0]
+    exit_time = str(datetime.now())
 
-    # Insert exisitng record to in-mem   #DEBUG will face problems later
-    existing_customer_record = InMemCustomer(
-        customer_id=record[0],
-        name=record[1],
-        phone_number=record[2],
-        encoding=record[3],
-        image=record[4],
-        return_customer=1,
-        last_visit=record[6],
-        average_time_spent=record[7],
-        average_purchase=record[8],
-        maximum_purchase=record[9],
-        remarks=record[10],
-        loyalty_level=record[11],
-        num_visits=record[12],
-        last_location=record[13],
-        location_list=record[14],
-        category=record[15],
-        creation_date=record[16],
-        group_id=record[17],
-        incomplete=1,
-        entry_time=str(new_record.entry_time),
-        billed=0,
-        exited=0,
-        visit_time="",
-        exit_time=""
+    new_visit_record = LocalVisit(
+        customer_id = customer_id,
+        visit_id = str(Utils.generate_unique_id()),
+        store_id = str(in_mem_db.fetch_store_id()),
+        entry_time = "",
+        exit_time = exit_time,
+        billed = "0",
+        bill_amount = "0",
+        time_spent = "",
+        visit_remark = "Incomplete visit",
+        customer_rating = "",
+        customer_feedback = "",
+        incomplete = "1"
     )
-
-    modified_visit_record = InMemVisit(
-        customer_id=record[0],
-        visit_id=existing_visit_id,
-        store_id=in_mem_db.fetch_store_id(),
-        entry_time=str(new_record.entry_time),
-        exit_time="",
-        billed=0,
-        bill_amount=0,
-        time_spent="",
-        visit_remark="",
-        customer_rating="",
-        customer_feedback="",
-        incomplete=1
-    )
-
-    in_mem_db.insert_record(existing_customer_record)
-    in_mem_db.insert_record(modified_visit_record, type="visit")
-    message = BackendMessage.UpdateCustomer.value + ":" + str(record[0]) + "," + BackendMessage.TempCustomer.value + ":" + str(new_record.customer_id)
-    in_mem_db.connection.publish(Channel.Backend.value, message)
-
+    local_db.insert_visit_record(new_visit_record)
+    print("Customer not found in memory but found in local db, recording visit")
+#################################################################################
 def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
     # Get all customer records from the in-memory Redis database
     records = in_mem_db.connection.keys('customer_inmem_db:*')
@@ -191,33 +181,245 @@ def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
 
     return closest_record
 
+def get_face_record_from_incomplete_mem(face_encoding, threshold, in_mem_db):
+    records = in_mem_db.connection.keys('incomplete_inmem_db:*')
+
+    # Initialize variables to track the closest record and similarity
+    closest_record = None
+    closest_similarity = -1.0
+
+    # Iterate over each record
+    for record_key in records:
+        # Retrieve the face encoding from the record
+        record_data = in_mem_db.connection.hgetall(record_key)
+        record_encoding_bytes = record_data.get(b'encoding')
+
+        # Convert the face encodings to numpy arrays
+        face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
+        
+        record_encoding_np = np.frombuffer(record_encoding_bytes, dtype=np.float32)
+
+        # Calculate the cosine similarity between the face encodings
+        similarity = cosine_similarity(face_encoding_np.reshape(1, -1), record_encoding_np.reshape(1, -1))
+
+        # Check if the similarity exceeds the threshold and is closer than the previous closest
+        if similarity > float(threshold) and similarity > closest_similarity:
+            closest_record = record_data
+            closest_similarity = similarity
+
+    return closest_record
+
+def get_face_record_from_exited_mem(face_encoding, threshold, in_mem_db):
+    records = in_mem_db.connection.keys('exited_inmem_db:*')
+
+    # Initialize variables to track the closest record and similarity
+    closest_record = None
+    closest_similarity = -1.0
+
+    # Iterate over each record
+    for record_key in records:
+        # Retrieve the face encoding from the record
+        record_data = in_mem_db.connection.hgetall(record_key)
+        record_encoding_bytes = record_data.get(b'encoding')
+
+        # Convert the face encodings to numpy arrays
+        face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
+        
+        record_encoding_np = np.frombuffer(record_encoding_bytes, dtype=np.float32)
+
+        # Calculate the cosine similarity between the face encodings
+        similarity = cosine_similarity(face_encoding_np.reshape(1, -1), record_encoding_np.reshape(1, -1))
+
+        # Check if the similarity exceeds the threshold and is closer than the previous closest
+        if similarity > float(threshold) and similarity > closest_similarity:
+            closest_record = record_data
+            closest_similarity = similarity
+
+    return closest_record
+
+def commit_record(customer_id):
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
+
+    in_mem_db.connect()
+    local_db.connect()
+
+    pubsub = in_mem_db.connection.pubsub()
+
+    customer_record = in_mem_db.connection.hgetall("customer_inmem_db:" + str(customer_id))
+    visit_record = in_mem_db.connection.hgetall("visit_inmem_db:" + str(customer_id))
+    if customer_record and visit_record:
+        face_encoding = np.frombuffer(customer_record.get(b'encoding'), dtype=np.float32).tolist()
+        ins_customer_record = LocalCustomer(
+            customer_id = customer_record.get(b'customer_id').decode(),
+            name = customer_record.get(b'name').decode(),
+            phone_number = customer_record.get(b'phone_number').decode(),
+            encoding = face_encoding,
+            image = customer_record.get(b'image'),
+            return_customer = int(customer_record.get(b'return_customer').decode()),
+            last_visit = customer_record.get(b'last_visit').decode(),
+            average_time_spent = customer_record.get(b'average_time_spent').decode(),
+            average_purchase = customer_record.get(b'average_purchase').decode(),
+            maximum_purchase = customer_record.get(b'maximum_purchase').decode(),
+            remarks = customer_record.get(b'remarks').decode(),
+            loyalty_level = customer_record.get(b'loyalty_level').decode(),
+            num_visits = int(customer_record.get(b'num_visits').decode()),
+            last_location = customer_record.get(b'last_location').decode(),
+            location_list = customer_record.get(b'location_list').decode(),
+            category = customer_record.get(b'category').decode(),
+            creation_date = customer_record.get(b'creation_date').decode(),
+            group_id = customer_record.get(b'group_id').decode(),
+        )
+
+        if (ins_customer_record.average_purchase == ""):
+            ins_customer_record.average_purchase = "0"
+
+        if (ins_customer_record.maximum_purchase == ""):
+            ins_customer_record.maximum_purchase = "0"
+
+        ins_visit_record = LocalVisit(
+            customer_id = visit_record.get(b'customer_id').decode(),
+            visit_id = visit_record.get(b'visit_id').decode(),
+            store_id = visit_record.get(b'store_id').decode(),
+            entry_time = visit_record.get(b'entry_time').decode(),
+            exit_time = visit_record.get(b'exit_time').decode(),
+            billed = int(visit_record.get(b'billed').decode()),
+            bill_amount = visit_record.get(b'bill_amount').decode(),
+            time_spent = visit_record.get(b'time_spent').decode(),
+            visit_remark = visit_record.get(b'visit_remark').decode(),
+            customer_rating = visit_record.get(b'customer_rating').decode(),
+            customer_feedback = visit_record.get(b'customer_feedback').decode(),
+            incomplete = int(visit_record.get(b'incomplete').decode())
+        )
+        local_db.insert_customer_record(ins_customer_record)
+        local_db.insert_visit_record(ins_visit_record)
+        in_mem_db.delete_record("customer_inmem_db:" + str(customer_id))
+        in_mem_db.delete_record("visit_inmem_db:" + str(customer_id), type="visit")
+        in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.DeleteCustomer.value + ":" + str(customer_id))
+
+    in_mem_db.disconnect()
+    local_db.disconnect()
+
+def start_expiry_timer(customer_id):
+    timer = threading.Timer(EXIT_EXPIRY_TIME, commit_record, args=(customer_id,)) #DEBUG increase time
+    timer.start()
+    return timer
+
 def update_record_inmem(record, in_mem_db):
+
+    date_format = "%Y-%m-%d %H:%M:%S.%f"
+    base_datetime = datetime(1900, 1, 1)
+    exit_time = datetime.now()
+    entry_time = datetime.strptime(record.get(b'entry_time').decode(), date_format)
+
+    time_spent = exit_time - entry_time
+    num_visits = int(record.get(b'num_visits').decode())
+    customer_id = str(record.get(b'customer_id').decode())
+
+    # Update number of visits
+    updated_num_visits = num_visits + 1
+
+    # Update average time spent
+    old_avg_time_spent = record.get(b'average_time_spent').decode()
+    if old_avg_time_spent == "":
+        updated_avg_time_spent = str(time_spent)
+    else:
+        # Convert existing avg time to datetime
+        o_time = datetime.strptime(old_avg_time_spent, "%H:%M:%S.%f")
+        existing_interval = o_time - base_datetime
+        existing_interval_seconds = existing_interval.total_seconds()
+        
+        exisitng_total_seconds = existing_interval_seconds * num_visits
+
+        total_time = exisitng_total_seconds + time_spent.total_seconds()
+
+        updated_avg_time_spent_seconds = (total_time) / updated_num_visits
+        delta = timedelta(seconds=updated_avg_time_spent_seconds)
+        result_datetime = base_datetime + delta
+        updated_avg_time_spent = result_datetime.strftime("%H:%M:%S.%f")
+
+    # Update location list and last location
+    current_location = str(in_mem_db.fetch_store_location())
+    updated_last_location = current_location
+    if record.get(b'location_list').decode() == "":
+        updated_location_list = "{" + current_location + "}"
+    else:
+        location_list_string = record.get(b'location_list').decode().strip("{}")
+        location_list_string = location_list_string + "," + current_location
+        updated_location_list = "{" + location_list_string + "}"
+    
+    print(updated_location_list)
+    print(updated_avg_time_spent)
+
+    name = record.get(b'name').decode()
+    phone_number = record.get(b'phone_number').decode()
+    encoding = record.get(b'encoding')
+    image = record.get(b'image')
+    return_customer = record.get(b'return_customer').decode()
+    average_purchase = record.get(b'average_purchase').decode()
+    maximum_purchase = record.get(b'maximum_purchase').decode()
+    remarks = record.get(b'remarks').decode()
+    loyalty_level = record.get(b'loyalty_level').decode()
+    category = record.get(b'category').decode()
+    creation_date = record.get(b'creation_date').decode()
+    group_id = record.get(b'group_id').decode()
+    billed = record.get(b'billed').decode()
+
     new_customer_record = InMemCustomer(
-        customer_id = str(record.customer_id),
-        name = "",
-        phone_number = "",
-        encoding = face_encoding_bytes,
-        image = face_img,
-        return_customer = 0,
-        last_visit = "",
-        average_time_spent = "",
-        average_purchase = "",
-        maximum_purchase = "",
-        remarks = "New Customer",
-        loyalty_level = "",
-        num_visits = 1,
-        last_location = current_location,
-        location_list = "",
-        category = "",
-        creation_date = time_now,
-        group_id = "",
-        incomplete = 1,
-        entry_time = time_now,
-        billed = 0,
-        exited = 0,
-        visit_time = "",
-        exit_time = ""
+        customer_id = customer_id,
+        name = name,
+        phone_number = phone_number,
+        encoding = encoding,
+        image = image,
+        return_customer = return_customer,
+        last_visit = str(exit_time),
+        average_time_spent = updated_avg_time_spent,
+        average_purchase = average_purchase,
+        maximum_purchase = maximum_purchase,
+        remarks = remarks,
+        loyalty_level = loyalty_level,
+        num_visits = str(updated_num_visits),
+        last_location = str(updated_last_location),
+        location_list = updated_location_list,
+        category = category,
+        creation_date = creation_date,
+        group_id = group_id,
+        incomplete = "0",
+        entry_time = str(entry_time),
+        billed = billed,
+        exited = "1",
+        visit_time = str(time_spent),
+        exit_time = str(exit_time)
     )
+
+    vrecord = in_mem_db.connection.hgetall("visit_inmem_db:" + customer_id)
+    visit_id = str(vrecord.get(b'visit_id').decode())
+    v_entry_time = vrecord.get(b'entry_time').decode()
+    v_billed = vrecord.get(b'billed').decode()
+    v_bill_amount = vrecord.get(b'bill_amount').decode()
+    v_visit_remark = vrecord.get(b'visit_remark').decode()
+    v_customer_rating = vrecord.get(b'customer_rating').decode()
+    v_customer_feedback = vrecord.get(b'customer_feedback').decode()
+
+    new_visit_record = InMemVisit(
+        customer_id = customer_id,
+        visit_id = visit_id,
+        store_id = str(in_mem_db.fetch_store_id()),
+        entry_time = v_entry_time,
+        exit_time = str(exit_time),
+        billed = v_billed,
+        bill_amount = v_bill_amount,
+        time_spent = str(time_spent),
+        visit_remark = v_visit_remark,
+        customer_rating = v_customer_rating,
+        customer_feedback = v_customer_feedback,
+        incomplete = "0"
+    )
+    in_mem_db.delete_record(customer_id, type="customer")
+    in_mem_db.delete_record(customer_id, type="visit")
+    in_mem_db.insert_record(new_customer_record)
+    in_mem_db.insert_record(new_visit_record, type="visit")
+    return new_customer_record.customer_id
 
 def get_face_record_from_localdb(face_encoding, threshold, local_db):
     # Query to get nearest similarity face record
@@ -276,8 +478,8 @@ def search_face_data(parameters, search_q, camfeed_break_flag):
  
         try:
             obj = search_q.get()
-            record = obj[0] # Faces
-            face_encoding = obj[1] # Frame
+            face_encoding = obj[0]
+            face_pixels = obj[1]
         except:
             continue
 
@@ -286,7 +488,33 @@ def search_face_data(parameters, search_q, camfeed_break_flag):
         if record_from_localdb:
             # Overwrite everything
             # Delete new record and add existing record
-            insert_existing_record_inmem(record, record_from_localdb, in_mem_db)
+            insert_existing_record_to_visit(record_from_localdb, in_mem_db, local_db)
+        elif not record_from_localdb:
+            create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_db, local_db)
+
+def dequeue_messages(in_mem_db):
+    messages = []
+    while True:
+        message = in_mem_db.connection.lpop("CancelQueue")
+        if message:
+            messages.append(message.decode())
+        else:
+            break
+    return messages
+
+def cancel_timer(timer_dict):
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    in_mem_db.connect()
+    p = in_mem_db.connection.pubsub()
+    p.subscribe(Channel.CancelTimer.value)
+
+    messages = dequeue_messages(in_mem_db)
+    for message in messages:
+        timer = timer_dict.get(message)
+        if timer:
+            timer.cancel()
+            timer_dict.pop(message)
+            print("Timer cancelled for customer: ", message)
 
 def consume_face_data(parameters, q, search_q, camfeed_break_flag):
     # DB objects
@@ -298,9 +526,19 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
     else:
         print("Connected to redis db: 1")
 
+    timer_dict = {}
+
     r = Recognition(parameters)
     p = Predictor(parameters)
     while True:
+        messages = dequeue_messages(in_mem_db)
+        for message in messages:
+            timer = timer_dict.get(message)
+            if timer:
+                timer.cancel()
+                timer_dict.pop(message)
+                print("Timer cancelled for customer: ", message)
+
         if camfeed_break_flag is True:
             print("Camera feed stopped ending message queue consumer")
             break
@@ -329,19 +567,22 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
             record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
 
             if record_from_mem:
-                update_record_inmem(record_from_mem, in_mem_db)
-                start_expiry_timer(record_from_mem, in_mem_db)
+                record_from_exited_mem = get_face_record_from_exited_mem(face_encoding, parameters.threshold, in_mem_db)
+                if not record_from_exited_mem:
+                    id = update_record_inmem(record_from_mem, in_mem_db)
+                    timer = start_expiry_timer(id)
+                    timer_dict[id] = timer
+                    insert_record_to_exited_mem(face_encoding, in_mem_db)
 
             elif not record_from_mem:
-                # Create a record < Assign an ID < treat as new
-               
-            #    new_record = insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db)
-
+                record_from_incomplete_mem = get_face_record_from_incomplete_mem(face_encoding, parameters.threshold, in_mem_db)
                 # Add new record id and face encoding to search queue for local db search
-                send_faces_to_search_queue(new_record, face_encoding, search_q)
+                if not record_from_incomplete_mem:
+                    insert_record_to_incomplete_mem(face_encoding, in_mem_db)
+                    send_faces_to_search_queue(face_encoding, face_pixels, search_q)
 
-def send_faces_to_search_queue(record, face_encoding, search_q):
-    item = (record, face_encoding)
+def send_faces_to_search_queue(face_encoding, face_pixels, search_q):
+    item = (face_encoding, face_pixels)
     search_q.put(item)
 
 def send_faces_to_pipe_queue(faces, frame, pipe_q):
