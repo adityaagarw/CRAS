@@ -11,9 +11,20 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Data.SqlClient;
+using TableDependency.SqlClient.Base;
+using System.Security.Cryptography;
+using TableDependency.SqlClient;
+using TableDependency.SqlClient.Base.EventArgs;
 
 namespace CRAS
 {
+    public enum POSDB
+    {
+        SQL,
+        MongoDB,
+        PostGreSQL
+    }
     public partial class MainForm : Form
     {
         private Thread pipeThread1;
@@ -24,115 +35,164 @@ namespace CRAS
         private Process pythonProcess2;
         public static ConnectionMultiplexer redisConnection;
         public static IDatabase redisDB;
-        BindingList<redis_customer> customer_list;
+        public static BindingList<redis_customer> customer_list;
         CustomerDataUC selectedCustomerUC;
         public static LoadingForm loadingForm;
+        private int customer_list_count = 0;
+        private int exited_customers_count = 0;
+        private static int streaming = 0;
+        private SqlConnection connection;
+        private SqlCommand command;
+        private SqlTableDependency<bill_details> sqlDependency;
+        public static POSDB posdb = CRAS.POSDB.SQL;
+        public static string POSSERVER = "Junior\\SQLExpress";
+        public static string POSDB = "PantHouse_GRetail";
+        public static string POSUID = "sa";
+        public static string POSPWD = "aa";
+        public static BindingList<bill_details> bills = new BindingList<bill_details>();
+        public static int bill_scanning = 0;
+        public static BindingList<redis_customer> exited_customers = new BindingList<redis_customer>();
+
+
         public MainForm()
         {
             InitializeComponent();
+            InitializeSQLNotification();
         }
-
-        /*private ConnectionMultiplexer EstablishRedisConnection()
-        {
-            // Keep trying to establish a connection until successful
-            while (redisConnection == null || !redisConnection.IsConnected)
-            {
-                try
-                {
-                    redisConnection = redis_utilities.ConnectToRedis("127.0.0.1");
-                }
-                catch (RedisConnectionException)
-                {
-                    // Connection failed, wait for a while before retrying
-                    Thread.Sleep(1000);
-                }
-            }
-        }*/
 
         private void ShowLoadingForm()
         {
             loadingForm = new LoadingForm();
             Application.Run(loadingForm);
         }
+
+       
         private void MainForm_Load(object sender, EventArgs e)
         {
-            //StartPythonScript("0");
-
-            //StartPythonScript("1");
-
-            //loadingForm.Show();
-
-            //redisConnection = redis_utilities.ConnectToRedis("127.0.0.1");
             Thread loadingThread = new Thread(ShowLoadingForm);
             loadingThread.Start();
+
+            scanStatusLabel.Text = "Scan Completed";
 
             redisConnection = redis_utilities.ConnectToRedis("127.0.0.1", "6379");
             redisDB = redisConnection.GetDatabase();
 
-            loadingForm.Invoke(new Action(() => loadingForm.Close()));
-
             customer_list = redis_utilities.ReadAllDataFromRedis(redisConnection);
+            //customer_list = customer_list.OrderByDescending(customer => customer.entry_time).ToList();
             customer_list = utilities.OrderBy(customer_list, "entry_time", "DESC");
 
-            
-            InitialiseSubscribers();
+            customer_list_count = customer_list.Count();
+
+            pubsub_utilities.InitialiseSubscribers("Backend");
+            pubsub_utilities.InitialiseSubscribers("Billing", this);
+
 
             //Add ListChanged Listener to customer_list
             customer_list.ListChanged += Customer_list_ListChanged;
-            PopulateCustomerFlowLayout();
+            exited_customers.ListChanged += Exited_customers_ListChanged;
+            bills.ListChanged += Bills_ListChanged;
+
+            PopulateCustomerFlowLayout(customer_list);
+
+            loadingForm.Invoke(new Action(() => loadingForm.Close()));
+
+            displayComboBox.Items.Add("In-Store Customers");
+            displayComboBox.Items.Add("Exited Customers");
+            displayComboBox.SelectedIndex = 0;
         }
 
-        private void InitialiseSubscribers()
+        private void Exited_customers_ListChanged(object sender, ListChangedEventArgs e)
         {
-            ISubscriber newCustomerSub = redisConnection.GetSubscriber();
-            ISubscriber existingCustomerSub = redisConnection.GetSubscriber();
-            ISubscriber employeeSub = redisConnection.GetSubscriber();
+            int new_records = exited_customers.Count - exited_customers_count;
 
-            newCustomerSub.Subscribe("Backend", (channel, message) => Console.WriteLine(message));
+            if(new_records > 0)
+            {
+
+                for (int i = 0; i < new_records; i++)
+                {
+                    InsertCustomerInLayout(exitedCustomerFLP, customer_list[i], i);
+                }
+            }
+            //throw new NotImplementedException();
+        }
+
+        private void Bills_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            BillingForm billingForm = GetBillingFormIfOpen();
+
+            if(billingForm != null)
+            {
+                BindingList<redis_customer> customers = billingForm.current_bill.identified_customers;
+                if (billingForm.identifiedFacesFLP.Controls.Count != customers.Count)
+                {
+                    billingForm.InsertIdentifiedCustomer(customers[customers.Count-1]);
+                }
+            }
+            //throw new NotImplementedException();
         }
 
         private void Customer_list_ListChanged(object sender, ListChangedEventArgs e)
         {
-            PopulateCustomerFlowLayout();
+            //PopulateCustomerFlowLayout();
+            int new_records = customer_list.Count - customer_list_count;
+
+            if (new_records > 0)
+            {
+                for (int i = 0; i < new_records; i++)
+                {
+                    InsertCustomerInLayout(customerFlowLayout, customer_list[i], i);
+                }
+            }
+
+            else if(new_records < 0)
+            {
+
+            }
+            customer_list_count = customer_list.Count();
             //throw new NotImplementedException();
         }
 
-        public void PopulateCustomerFlowLayout()
+        public void InsertCustomerInLayout(FlowLayoutPanel panel, redis_customer customer, int index = -1)
         {
-            customerFlowLayout.Controls.Clear();
-            customerFlowLayout.FlowDirection = FlowDirection.TopDown;
-            customerFlowLayout.AutoScroll = true;
+            CustomerDataUC customerData = new CustomerDataUC();
 
-            foreach (var customer in customer_list)
+            customerData.ControlDoubleClicked += UserControl_ControlDoubleClicked;
+            customerData.SetImage(customer.image);
+            customerData.SetLabel("label1", "Name: ", customer.name);
+            customerData.SetLabel("label2", "Phone: ", customer.phone_number);
+            customerData.SetLabel("label3", "Returning: ", customer.return_customer);
+            customerData.SetLabel("label4", "Category: ", customer.category);
+            customerData.SetLabel("label5", "Last Visit: ", customer.last_visit);
+            customerData.SetLabel("label6", "Entry Time: ", customer.entry_time.ToShortTimeString());
+
+            if (index > -1)
             {
-                CustomerDataUC customerData = new CustomerDataUC();
-
-                customerData.ControlDoubleClicked += UserControl_ControlDoubleClicked;
-                customerData.SetImage(customer.image);
-                customerData.SetLabel("label1", "Name: ", customer.name);
-                customerData.SetLabel("label2", "Phone: ", customer.phone_number);
-                customerData.SetLabel("label3", "Returning: ", customer.return_customer);
-                customerData.SetLabel("label4", "Category: ", customer.category);
-                customerData.SetLabel("label5", "Last Visit: ", customer.last_visit);
-                customerData.SetLabel("label6", "Entry Time: ", customer.entry_time.ToShortTimeString());
-
-
-                customerFlowLayout.Controls.Add(customerData);
+                panel.Invoke(new Action(() => { panel.SuspendLayout(); }));
+                panel.Invoke(new Action(() => { panel.Controls.Add(customerData); }));
+                panel.Invoke(new Action(() => { panel.Controls.SetChildIndex(customerData, index); }));
+                panel.Invoke(new Action(() => { panel.ResumeLayout(); }));
             }
-        }
+            else
+                panel.Invoke(new Action(() => { panel.Controls.Add(customerData); }));
 
-        private void UserControl_ControlClicked(object sender, int index)
+            //customerFlowLayout.Controls.Add(customerData);
+        }
+        public void PopulateCustomerFlowLayout(BindingList<redis_customer> customers)
         {
-            selectedCustomerUC = (CustomerDataUC)sender;
-            bool selected = selectedCustomerUC.isSelected;
+          
+                customerFlowLayout.Invoke(new Action(() => { customerFlowLayout.Controls.Clear(); }));
+                customerFlowLayout.Invoke(new Action(() => { customerFlowLayout.FlowDirection = FlowDirection.TopDown; }));
+                customerFlowLayout.Invoke(new Action(() => { customerFlowLayout.AutoScroll = true; }));
 
-            CustomerDataUC.UnselectAllControls(customerFlowLayout);
-            
-            if (!selected) selectedCustomerUC.Select();
-            else if(selected) selectedCustomerUC.UnSelect();
+         
+                foreach (var customer in customers)
+                {
+                    InsertCustomerInLayout(customerFlowLayout, customer);
+                }
+           
         }
 
-        private void OpenCustomerDetail(redis_customer customer, CustomerDataUC customerData)
+        private void ShowCustomerDetail(redis_customer customer, CustomerDataUC customerData)
         {
             Form customerDetail = new CustomerDetailForm(customer);
             customerDetail.ShowDialog();
@@ -156,67 +216,18 @@ namespace CRAS
             if (!selected) selectedCustomerUC.Select();
             else if (selected) selectedCustomerUC.UnSelect();
 
-            OpenCustomerDetail(customer_list[index], selectedCustomerUC);
+            ShowCustomerDetail(customer_list[index], selectedCustomerUC);
         }
         
-        private void StartPythonScript(string cameraId)
-        {
-            // Path to the Python executable and script
-            string pythonPath = "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Python39_64\\python";  // Replace with the actual path to your Python executable
-            string scriptPath = "F:\\CRAS\\CRAS_Sample\\alpha\\src\\test_models.py";  // Replace with the actual path to your Python script
-
-            // Command-line arguments to pass to the Python script
-            string arguments = $"\"{scriptPath}\" {"--vidsrc " + cameraId}";
-
-            // Create a new Python process
-            Process pythonProcess = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = pythonPath,
-                    Arguments = arguments,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true
-                }
-            };
-
-            if (cameraId == "0")
-            {
-                pythonProcess1 = pythonProcess;
-                pythonProcess1.Start();
-            }
-
-            else
-            {
-                pythonProcess2 = pythonProcess;
-                pythonProcess2.Start();
-            }
-            
-        }
-
-        private void StopPythonScript()
-        {
-            // Stop the Python process if it is running
-            if (pythonProcess1 != null && !pythonProcess1.HasExited)
-            {
-                pythonProcess1.Kill();
-                pythonProcess1.Dispose();
-            }
-
-            if (pythonProcess2 != null && !pythonProcess2.HasExited)
-            {
-                pythonProcess2.Kill();
-                pythonProcess2.Dispose();
-            }
-        }
-
+        
         private void ClosePipes()
         {
-            pipeThread1?.Abort();
+            pipeClient1?.Close();
             pipeClient1?.Dispose();
-            pipeThread2?.Abort();
+            pipeThread1?.Abort();
+            pipeClient2?.Close();
             pipeClient2?.Dispose();
+            pipeThread2?.Abort();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -224,6 +235,10 @@ namespace CRAS
             // Stop the thread and close the named pipe when the form is closing
             //StopPythonScript();
             ClosePipes();
+            sqlDependency.Stop();
+            sqlDependency.Dispose();
+            //SqlDependency.Stop(posdb_utilities.GetConnectionString(POSSERVER, POSDB, POSUID, POSPWD, posdb));
+
         }
 
         private NamedPipeClientStream StartPipe(object camera_id)
@@ -348,7 +363,7 @@ namespace CRAS
 
         private void startStopFeedButton_Click(object sender, EventArgs e)
         {
-            if (startStopFeedButton.Text.ToString().Equals("Start Live Feed"))
+            if (streaming == 0)
             {
                 //StartPythonScript("0");
                 //StartPythonScript("1");
@@ -368,13 +383,14 @@ namespace CRAS
                 cam2StatusLabel.ForeColor = Color.Green;
 
                 startStopFeedButton.Text = "Stop Live Feed";
-                
+
+                streaming = 1;
             }
 
             else
             {
                 //StopPythonScript();
-                //ClosePipes();
+                ClosePipes();
                 pictureBox1.Enabled = false; 
                 pictureBox2.Enabled = false;
 
@@ -384,6 +400,8 @@ namespace CRAS
                 cam2StatusLabel.ForeColor = Color.Red;
 
                 startStopFeedButton.Text = "Start Live Feed";
+
+                streaming = 0;
             }
         }
 
@@ -407,7 +425,7 @@ namespace CRAS
         private void populateDataGridButton_Click(object sender, EventArgs e)
         {
             //DisplayDataInDataGridView(customer_list);
-            PopulateCustomerFlowLayout();
+            PopulateCustomerFlowLayout(customer_list);
         }
 
         private redis_customer UpdateCustomerRecord (string customer_id, string column_name, string new_value)
@@ -423,5 +441,135 @@ namespace CRAS
             return null;
         }
 
+        private void billingButton_Click(object sender, EventArgs e)
+        {
+            BillingForm billingForm;
+            if (bills.Count > 0)
+            {
+                billingForm = new BillingForm(bills[bills.Count - 1]);
+            }
+            else
+            {
+                billingForm = new BillingForm();
+            }
+            billingForm.Show(this);
+            this.Hide();
+        }
+
+        public void InitializeSQLNotification()
+        {
+            string connectionString = posdb_utilities.GetConnectionString(POSSERVER, POSDB, POSUID, POSPWD, posdb);
+            string query = "SELECT * FROM [dbo].[trnSales]";
+            string service = "NewBillService";
+            string contract = "NewBillContract";
+
+
+            connection = new SqlConnection(connectionString);
+
+            // The mapper object is used to map model properties 
+            // that do not have a corresponding table column name.
+            // In case all properties of your model have same name 
+            // of table columns, you can avoid to use the mapper.
+            var mapper = new ModelToTableMapper<bill_details>();
+            mapper.AddMapping(c => c.name, "AccountName");
+            mapper.AddMapping(c => c.mobile, "MobileNo");
+            mapper.AddMapping(c => c.billNo, "VoucherNo");
+            mapper.AddMapping(c => c.billAmt, "NetAmt");
+            mapper.AddMapping(c => c.returnAmt, "ReturnAmt");
+            mapper.AddMapping(c => c.qty, "TotalQty");
+
+            // Here - as second parameter - we pass table name: 
+            // this is necessary only if the model name is different from table name 
+            // (in our case we have Customer vs Customers). 
+            // If needed, you can also specifiy schema name.
+            sqlDependency = new SqlTableDependency<bill_details>(connectionString, "trnSales", mapper: mapper); 
+            
+            sqlDependency.OnChanged += Changed;
+            sqlDependency.Start();
+
+            Console.WriteLine("Started SQL Listener");
+        }
+        public void Changed(object sender, RecordChangedEventArgs<bill_details> e)
+        {
+            var changedEntity = e.Entity;
+
+            Console.WriteLine("DML operation: " + e.ChangeType);
+            changedEntity.Print();
+            bills.Add(changedEntity);
+
+            pubsub_utilities.PublishMessage("Frontend", "StartBilling");
+            bill_scanning = 1;
+            Invoke(new Action(() => { scanStatusLabel.Text = "Scanning"; }));
+
+        }
+
+        public Form GetChildFormIfAny(string formName)
+        {
+            foreach(Form form in MdiChildren)
+            {
+                if(form.Name == formName)
+                {
+                    return form;
+                }
+            }
+            return null;
+        }
+
+        public BillingForm GetBillingFormIfOpen()
+        {
+            BillingForm billingForm = Application.OpenForms.OfType<BillingForm>().FirstOrDefault();
+
+            return billingForm;
+        }
+        private void scanStatusLabel_TextChanged(object sender, EventArgs e)
+        {
+            if(scanStatusLabel.Text == "Scanning")
+            {
+                bill_scanning = 1;
+                BillingForm billingForm = GetBillingFormIfOpen();
+                if (billingForm != null)
+                {
+                    Console.WriteLine("Billing form button disabled!");
+                    billingForm.rescanButton.Enabled = false;
+                    billingForm.rescanButton.BackColor = Color.DarkGray;
+                    billingForm.scanStatus.Text = "Scanning";
+                    billingForm.scanStatus.ForeColor = Color.DarkGreen;
+                    billingForm.previousButton.Enabled = false;
+                    billingForm.nextButton.Enabled = false;
+                }
+            }
+            else if (scanStatusLabel.Text == "Scan Completed")
+            {
+                bill_scanning = 0;
+                BillingForm billingForm = GetBillingFormIfOpen();
+                if (billingForm != null)
+                {
+                    billingForm.rescanButton.Enabled = true;
+                    billingForm.rescanButton.BackColor = Color.White;
+                    billingForm.scanStatus.Text = "Scan Completed";
+                    billingForm.scanStatus.ForeColor = Color.Gray;
+                    //billingForm.previousButton.Enabled = true;
+                    //billingForm.nextButton.Enabled = true;
+
+                    billingForm.total_bills = bills.Count;
+                    billingForm.SetNavigationButtons();
+                }
+            }
+        }
+
+        private void displayComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if(displayComboBox.SelectedIndex == 1)
+            {
+                customerFlowLayout.Hide();
+                exitedCustomerFLP.Show();
+            }
+
+            if(displayComboBox.SelectedIndex == 0)
+            {
+                customerFlowLayout.Show();
+                exitedCustomerFLP.Hide();
+            }
+        }
     }
 }

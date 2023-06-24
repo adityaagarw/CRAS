@@ -47,9 +47,10 @@ namespace CRAS
 
             FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
 
+            int index = 0;
             foreach (FilterInfo device in videoDevices)
             {
-                webCamListBox.Items.Add(device.Name);
+                webCamListBox.Items.Add(device.Name + " Index: " + index++ );
             }
 
         }

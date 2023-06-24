@@ -63,9 +63,49 @@ namespace CRAS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Billing {
+            get {
+                object obj = ResourceManager.GetObject("Billing", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap refresh_icon_614x460 {
             get {
                 object obj = ResourceManager.GetObject("refresh-icon-614x460", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap StarHover {
+            get {
+                object obj = ResourceManager.GetObject("StarHover", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap StarSelected {
+            get {
+                object obj = ResourceManager.GetObject("StarSelected", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap StarUnselected {
+            get {
+                object obj = ResourceManager.GetObject("StarUnselected", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

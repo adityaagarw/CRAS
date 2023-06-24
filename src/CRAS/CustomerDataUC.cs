@@ -27,6 +27,7 @@ namespace CRAS
         private void CustomerDataUC_Load(object sender, EventArgs e)
         {
             isSelected = false;
+            customerPictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
         }
 
         public void SetImage(byte[] image) 

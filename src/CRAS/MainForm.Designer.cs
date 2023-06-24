@@ -34,11 +34,16 @@
             this.cam2StatusLabel = new System.Windows.Forms.Label();
             this.startStopFeedButton = new System.Windows.Forms.Button();
             this.statusButton = new System.Windows.Forms.Button();
-            this.populateDataGridButton = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
+            this.customerFlowLayout = new System.Windows.Forms.FlowLayoutPanel();
+            this.billingButton = new System.Windows.Forms.Button();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.customerFlowLayout = new System.Windows.Forms.FlowLayoutPanel();
+            this.scanStatusLabel = new System.Windows.Forms.Label();
+            this.displayComboBox = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.exitedCustomerFLP = new System.Windows.Forms.FlowLayoutPanel();
+            this.customerFlowLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
@@ -107,26 +112,27 @@
             this.statusButton.UseVisualStyleBackColor = true;
             this.statusButton.Click += new System.EventHandler(this.statusButton_Click);
             // 
-            // populateDataGridButton
+            // customerFlowLayout
             // 
-            this.populateDataGridButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.populateDataGridButton.Location = new System.Drawing.Point(769, 9);
-            this.populateDataGridButton.Name = "populateDataGridButton";
-            this.populateDataGridButton.Size = new System.Drawing.Size(177, 47);
-            this.populateDataGridButton.TabIndex = 9;
-            this.populateDataGridButton.Text = "Populate Data Grid";
-            this.populateDataGridButton.UseVisualStyleBackColor = true;
-            this.populateDataGridButton.Click += new System.EventHandler(this.populateDataGridButton_Click);
+            this.customerFlowLayout.Controls.Add(this.exitedCustomerFLP);
+            this.customerFlowLayout.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.customerFlowLayout.Location = new System.Drawing.Point(581, 62);
+            this.customerFlowLayout.Name = "customerFlowLayout";
+            this.customerFlowLayout.Size = new System.Drawing.Size(778, 670);
+            this.customerFlowLayout.TabIndex = 11;
+            this.customerFlowLayout.WrapContents = false;
             // 
-            // label3
+            // billingButton
             // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(578, 40);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(136, 16);
-            this.label3.TabIndex = 10;
-            this.label3.Text = "In-store Customers";
+            this.billingButton.BackgroundImage = global::CRAS.Properties.Resources.Billing;
+            this.billingButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.billingButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.billingButton.Location = new System.Drawing.Point(1300, 738);
+            this.billingButton.Name = "billingButton";
+            this.billingButton.Size = new System.Drawing.Size(59, 46);
+            this.billingButton.TabIndex = 12;
+            this.billingButton.UseVisualStyleBackColor = true;
+            this.billingButton.Click += new System.EventHandler(this.billingButton_Click);
             // 
             // pictureBox2
             // 
@@ -146,14 +152,52 @@
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
             // 
-            // customerFlowLayout
+            // scanStatusLabel
             // 
-            this.customerFlowLayout.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.customerFlowLayout.Location = new System.Drawing.Point(581, 62);
-            this.customerFlowLayout.Name = "customerFlowLayout";
-            this.customerFlowLayout.Size = new System.Drawing.Size(778, 670);
-            this.customerFlowLayout.TabIndex = 11;
-            this.customerFlowLayout.WrapContents = false;
+            this.scanStatusLabel.AutoSize = true;
+            this.scanStatusLabel.Location = new System.Drawing.Point(1117, 753);
+            this.scanStatusLabel.Name = "scanStatusLabel";
+            this.scanStatusLabel.Size = new System.Drawing.Size(63, 16);
+            this.scanStatusLabel.TabIndex = 13;
+            this.scanStatusLabel.Text = "Scanning";
+            this.scanStatusLabel.TextChanged += new System.EventHandler(this.scanStatusLabel_TextChanged);
+            // 
+            // displayComboBox
+            // 
+            this.displayComboBox.FormattingEnabled = true;
+            this.displayComboBox.Location = new System.Drawing.Point(581, 32);
+            this.displayComboBox.Name = "displayComboBox";
+            this.displayComboBox.Size = new System.Drawing.Size(196, 24);
+            this.displayComboBox.TabIndex = 14;
+            this.displayComboBox.SelectedIndexChanged += new System.EventHandler(this.displayComboBox_SelectedIndexChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(578, 749);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(160, 16);
+            this.label3.TabIndex = 15;
+            this.label3.Text = "Total Customers In-Store: ";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Location = new System.Drawing.Point(744, 749);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(15, 16);
+            this.label4.TabIndex = 16;
+            this.label4.Text = "0";
+            // 
+            // exitedCustomerFLP
+            // 
+            this.exitedCustomerFLP.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.exitedCustomerFLP.Location = new System.Drawing.Point(3, 3);
+            this.exitedCustomerFLP.Name = "exitedCustomerFLP";
+            this.exitedCustomerFLP.Size = new System.Drawing.Size(778, 670);
+            this.exitedCustomerFLP.TabIndex = 12;
+            this.exitedCustomerFLP.WrapContents = false;
             // 
             // MainForm
             // 
@@ -161,9 +205,12 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1371, 796);
-            this.Controls.Add(this.customerFlowLayout);
+            this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.populateDataGridButton);
+            this.Controls.Add(this.displayComboBox);
+            this.Controls.Add(this.scanStatusLabel);
+            this.Controls.Add(this.billingButton);
+            this.Controls.Add(this.customerFlowLayout);
             this.Controls.Add(this.statusButton);
             this.Controls.Add(this.startStopFeedButton);
             this.Controls.Add(this.cam2StatusLabel);
@@ -174,7 +221,9 @@
             this.Controls.Add(this.pictureBox1);
             this.Name = "MainForm";
             this.Text = "MainForm";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.customerFlowLayout.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
@@ -192,8 +241,12 @@
         private System.Windows.Forms.Label cam2StatusLabel;
         private System.Windows.Forms.Button startStopFeedButton;
         private System.Windows.Forms.Button statusButton;
-        private System.Windows.Forms.Button populateDataGridButton;
-        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.FlowLayoutPanel customerFlowLayout;
+        private System.Windows.Forms.Button billingButton;
+        public System.Windows.Forms.Label scanStatusLabel;
+        private System.Windows.Forms.ComboBox displayComboBox;
+        public System.Windows.Forms.Label label3;
+        public System.Windows.Forms.Label label4;
+        public System.Windows.Forms.FlowLayoutPanel exitedCustomerFLP;
     }
 }

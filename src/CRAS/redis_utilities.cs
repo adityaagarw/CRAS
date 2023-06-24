@@ -58,76 +58,60 @@ namespace CRAS
                 db.HashSet(key, data);
             }
         }
-
-        public static BindingList<redis_customer> ReadAllDataFromRedis(ConnectionMultiplexer redisConnection)
+        
+        
+        public static BindingList<redis_customer> ReadAllDataFromRedis(ConnectionMultiplexer redisConnection, string customer_id = "*")
         {
             BindingList<redis_customer> customer_list = new BindingList<redis_customer>();
 
             if (redisConnection != null)
             {
                 IServer redisServer = redisConnection.GetServer("127.0.0.1", 6379);
-
-                foreach (var key in redisServer.Keys(pattern: "customer_inmem_db:*"))
+                IDatabase db = redisConnection.GetDatabase();
+                foreach (var hashKey in redisServer.Keys(pattern: "customer_inmem_db:" + customer_id))
                 {
-                    var redisValueDict = redisConnection.GetDatabase().HashGetAll(key);
                     redis_customer customer = new redis_customer();
 
-                    customer.key = key.ToString();
-                    foreach (var entry in redisValueDict)
-                    {
-                        if (entry.Name.ToString().Equals("customer_id")) customer.customer_id = entry.Value.ToString();
-                        if (entry.Name.ToString().Equals("name")) customer.name = entry.Value.ToString();
-                        if (entry.Name.ToString().Equals("phone_number")) customer.phone_number = entry.Value.ToString();
-                        if (entry.Name.ToString().Equals("image")) customer.image = entry.Value;
-                        if (entry.Name.ToString().Equals("return_customer")) customer.return_customer = entry.Value.ToString();
-                        if (entry.Name.ToString().Equals("last_visit")) customer.last_visit = entry.Value.ToString();
-                        if (entry.Name.ToString().Equals("average_time_spent"))
-                        {
-                            float result;
-                            float.TryParse(entry.Value.ToString(), out result);
-                            customer.average_time_spent = result;
-                        }
-                        if (entry.Name.ToString().Equals("average_purchase"))
-                        {
-                            float result;
-                            float.TryParse(entry.Value.ToString(), out result);
-                            customer.average_purchase = result;
-                        }
-                        if (entry.Name.ToString().Equals("maximum_purchase"))
-                        {
-                            float result;
-                            float.TryParse(entry.Value.ToString(), out result);
-                            customer.maximum_purchase = result;
-                        }
-                        if (entry.Name.ToString().Equals("remarks")) customer.remarks = entry.Value.ToString();
-                        if (entry.Name.ToString().Equals("loyalty_level"))
-                        {
-                            int result;
-                            int.TryParse(entry.Value.ToString(), out result);
-                            customer.loyalty_level = result;
-                        }
-                        if (entry.Name.ToString().Equals("num_visits"))
-                        {
-                            int result;
-                            int.TryParse(entry.Value.ToString(), out result);
-                            customer.num_visits = result;
-                        }
-                        if (entry.Name.ToString().Equals("last_location")) customer.last_location = entry.Value.ToString();
-                        if (entry.Name.ToString().Equals("category")) customer.category = entry.Value.ToString();
-                        if (entry.Name.ToString().Equals("entry_time"))
-                        {
-                            bool valid = DateTime.TryParse(entry.Value.ToString(), out DateTime result);
-                            if(valid) customer.entry_time = result;
-                        }
-                        if (entry.Name.ToString().Equals("creation_date"))
-                        {
-                            bool valid = DateTime.TryParse(entry.Value.ToString(), out DateTime result);
-                            if (valid) customer.creation_date = result;
-                        }
-                    }
-                    customer_list.Add(customer);
+                    customer.key = hashKey.ToString();
+                    
+
+                        customer.customer_id = db.HashGet(hashKey, "customer_id").ToString();
+                        customer.name = db.HashGet(hashKey, "name").ToString();
+                        customer.phone_number = db.HashGet(hashKey, "phone_number").ToString();
+                        customer.image = db.HashGet(hashKey, "image");
+                        customer.return_customer = db.HashGet(hashKey, "return_customer").ToString();
+                        customer.last_visit = db.HashGet(hashKey, "last_visit").ToString();
+                        
+                        float.TryParse(db.HashGet(hashKey, "average_time_spent").ToString(), out float result);
+                        customer.average_time_spent = result; result = 0;
+
+                        float.TryParse(db.HashGet(hashKey, "average_purchase").ToString(), out result);
+                        customer.average_purchase = result; result = 0;
+
+                        float.TryParse(db.HashGet(hashKey, "maximum_purchase").ToString(), out result);
+                        customer.maximum_purchase = result; result = 0;
+
+                        customer.remarks = db.HashGet(hashKey, "remarks").ToString();
+
+                        int.TryParse(db.HashGet(hashKey, "loyalty_level").ToString(), out int result_int);
+                        customer.loyalty_level = result_int; result_int = 0;
+
+                        int.TryParse(db.HashGet(hashKey, "num_visits").ToString(), out result_int);
+                        customer.num_visits = result_int; result_int = 0;
+
+                        customer.last_location = db.HashGet(hashKey, "last_location").ToString();
+                        customer.location_list = db.HashGet(hashKey, "location_list").ToString().Split(',').ToList();
+                        customer.category = db.HashGet(hashKey, "category").ToString();
+                        
+                        DateTime.TryParse(db.HashGet(hashKey, "entry_time").ToString(), out DateTime result_entryTime);
+                        customer.entry_time = result_entryTime;
+
+                        DateTime.TryParse(db.HashGet(hashKey, "creation_date").ToString(), out DateTime result_creationDate);
+                        customer.creation_date = result_creationDate;
+
                     //customer.print_record();
-                    //Console.WriteLine(customer_list);
+                    customer_list.Add(customer);
+                    
                 }
             }
             return customer_list;
