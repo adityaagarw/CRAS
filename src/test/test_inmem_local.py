@@ -26,13 +26,39 @@ def copy_and_insert_record_inmem(inmem_db):
 
     visit_time_local = timestamp2 - timestamp1
     
+    # new_record = InMemCustomer(
+    #     customer_id = "62b34c47-6a78-43ad-98b9-7deb6bccdc31",
+    #     name = "Aditya A",
+    #     phone_number = "8105002564",
+    #     encoding = record.get(b'encoding'),
+    #     image = record.get(b'image'),
+    #     return_customer = "1",
+    #     last_visit = "2023-06-10 22:49:41.793134",
+    #     average_time_spent = "01:30:00.000000",
+    #     average_purchase = "",
+    #     maximum_purchase = "",
+    #     remarks = "Return Customer",
+    #     loyalty_level = "Gold",
+    #     num_visits = "2",
+    #     last_location = "Gurgaon",
+    #     location_list = "{Gurgaon, Gurgaon}",
+    #     category = "Customer",
+    #     creation_date = "2023-06-10 22:49:41.793134",
+    #     group_id = "1234",
+    #     incomplete = "0",
+    #     entry_time = "2023-06-10 22:49:41.793134",
+    #     billed = "1",
+    #     exited = "1",
+    #     visit_time = str(visit_time_local),
+    #     exit_time = "2023-06-10 23:51:43.790000"
+    # )
     new_record = InMemCustomer(
         customer_id = "62b34c47-6a78-43ad-98b9-7deb6bccdc31",
-        name = "Aditya A",
-        phone_number = "8105002564",
+        name = "",
+        phone_number = "",
         encoding = record.get(b'encoding'),
         image = record.get(b'image'),
-        return_customer = "1",
+        return_customer = "0",
         last_visit = "2023-06-10 22:49:41.793134",
         average_time_spent = "01:30:00.000000",
         average_purchase = "",
@@ -52,7 +78,6 @@ def copy_and_insert_record_inmem(inmem_db):
         visit_time = str(visit_time_local),
         exit_time = "2023-06-10 23:51:43.790000"
     )
-
     new_visit_record = InMemVisit(
         customer_id = "62b34c47-6a78-43ad-98b9-7deb6bccdc31",
         visit_id = "cb2522ef-be59-4d34-962b-2d8ef8c48845",
@@ -264,9 +289,3 @@ if __name__ == "__main__":
     #insert_record_to_inmem_from_localdb(inmem_db, local_db)
     #copy_and_insert_record_inmem(inmem_db)
     insert_record_to_local_db_from_mem(inmem_db, local_db)
-
-
-
-
-
-

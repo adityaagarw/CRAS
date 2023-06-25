@@ -244,8 +244,6 @@ def commit_record(customer_id):
     in_mem_db.connect()
     local_db.connect()
 
-    pubsub = in_mem_db.connection.pubsub()
-
     customer_record = in_mem_db.connection.hgetall("customer_inmem_db:" + str(customer_id))
     visit_record = in_mem_db.connection.hgetall("visit_inmem_db:" + str(customer_id))
     if customer_record and visit_record:
@@ -291,7 +289,12 @@ def commit_record(customer_id):
             customer_feedback = visit_record.get(b'customer_feedback').decode(),
             incomplete = int(visit_record.get(b'incomplete').decode())
         )
-        local_db.insert_customer_record(ins_customer_record)
+
+        if (customer_record.get(b'return_customer').decode() == "1"):
+            local_db.update_customer_record(ins_customer_record)
+        else:
+            local_db.insert_customer_record(ins_customer_record)
+
         local_db.insert_visit_record(ins_visit_record)
         in_mem_db.delete_record("customer_inmem_db:" + str(customer_id))
         in_mem_db.delete_record("visit_inmem_db:" + str(customer_id), type="visit")

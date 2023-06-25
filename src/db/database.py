@@ -176,6 +176,24 @@ class LocalPostgresDB(Database):
         self.cursor.execute(create_table_query)
         self.connection.commit()
 
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS local_billing_db (
+            bill_no numeric,
+            bill_date TIMESTAMP,
+            bill_amount NUMERIC(10, 2),
+            quantity INTEGER,
+            name VARCHAR(255),
+            phone_number NUMERIC,
+            customer_id VARCHAR(255),
+            visit_id VARCHAR(255),
+            customer_list TEXT[],
+            visit_list TEXT[],
+            PRIMARY KEY (bill_no, bill_date)
+        )
+        """
+        self.cursor.execute(create_table_query)
+        self.connection.commit()
+
     def insert_customer_record_old(self, record):
         with self.connection.cursor() as cursor:
             insert_query = """
@@ -320,7 +338,7 @@ class LocalPostgresDB(Database):
             self.connection.commit()
             print(insert_query)
 
-    def update_customer_record(self, record):
+    def update_customer_record_old(self, record):
         with self.connection.cursor() as cursor:
             update_query = """
             UPDATE local_customer_db
@@ -338,6 +356,32 @@ class LocalPostgresDB(Database):
                 record.loyalty_level, record.num_visits, record.last_location,
                 record.location_list, record.category, record.customer_id, record.creation_date, record.group_id
             ))
+            self.connection.commit()
+
+    def update_customer_record(self, record):
+        fields = [
+            'name', 'phone_number', 'encoding', 'image',
+            'return_customer', 'last_visit', 'average_time_spent',
+            'average_purchase', 'maximum_purchase', 'remarks',
+            'loyalty_level', 'num_visits', 'last_location',
+            'location_list', 'category', 'creation_date', 'group_id'
+        ]
+
+        with self.connection.cursor() as cursor:
+            update_query = """
+            UPDATE local_customer_db
+            SET {}
+            WHERE customer_id = %s
+            """.format(', '.join('{} = %s'.format(f) for f in fields))
+
+            values = []
+            for field in fields:
+                value = getattr(record, field)
+                values.append(value if value != "" else None)
+
+            values.append(record.customer_id)
+
+            cursor.execute(update_query, tuple(values))
             self.connection.commit()
 
     def update_employee_record(self, record):
