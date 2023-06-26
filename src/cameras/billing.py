@@ -118,7 +118,7 @@ def capture_and_publish(in_mem_db, cap, detector, r, p, parameters):
 
     # Clear customer id list
     in_mem_db.connection.ltrim('cust_id_list', 1, 0)
-    in_mem_db.publish(Channel.Billing.value, BackendMessage.EndBilling.value)
+    in_mem_db.connection.publish(Channel.Billing.value, BackendMessage.EndBilling.value)
 
 # Start entry camera
 def start_billing_cam(parameters, camera, stop_event):
