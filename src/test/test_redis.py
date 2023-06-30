@@ -100,7 +100,7 @@ def display_inmem_redis_db(inmem_db, encoding='utf-8'):
         print(key.decode())
     # Iterate over the keys and fetch the corresponding values
     for key in keys:
-        record = inmem_db.connection.hgetall("customer_inmem_db:a0a45f40-c35c-407b-8f69-29790b711ccc")
+        record = inmem_db.connection.hgetall(key)
 
         # Print the record
         print("Key:", key.decode())
@@ -122,6 +122,24 @@ def display_inmem_redis_db(inmem_db, encoding='utf-8'):
 
     # Disconnect from the in-memory Redis database
 
+def display_one(inmem_db, key):
+    record = inmem_db.connection.hgetall(key)
+
+        # Print the record
+    print("Record:")
+    for field, value in record.items():
+        field_str = field.decode()
+
+        if field_str == 'encoding':
+            #value_str = np.frombuffer(value, dtype=np.float32).tolist()
+            value_str = "ENCODING"
+        elif field_str == 'image':
+            #value_str = np.frombuffer(value, dtype=np.uint8).tolist()
+            value_str = "IMAGE"
+        else:
+            value_str = value.decode()
+        print(f"{field_str}: {value_str}")
+
 if __name__ == "__main__":
     inmem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)  # Update with your Redis connection details
     inmem_db.connect()
@@ -129,6 +147,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-delete", type=str, help="Delete a particular record", required = False)
     parser.add_argument("-print", type=str, help="Print the whole db", required=False, default="no")
+    parser.add_argument("-print_one", type=str, help="Print one record", required=False, default=None)
     parser.add_argument("-delete_all_records", type=str, help="Delete all records", required=False, default="no") 
     parser.add_argument("-display_all_images", type=str, help="Display all images", required=False, default="no")
     parser.add_argument("-display_image", type=str, help="Display image", required=False, default=None)
@@ -147,5 +166,8 @@ if __name__ == "__main__":
 
     if args.display_image is not None:
         display_image(inmem_db, args.display_image)
+
+    if args.print_one is not None:
+        display_one(inmem_db, args.print_one)
 
     inmem_db.connection.close()
