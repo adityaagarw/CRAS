@@ -526,11 +526,11 @@ def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
             break
 
         faces = detect_faces_in_frame(detector, frame)
-        if not faces:
-            continue
 
         # Send faces to pipe_queue for streaming
         send_faces_to_pipe_queue(faces, frame, pipe_q)
+        if not faces:
+            continue
         # Send faces to main queue for detection
         send_faces_to_queue(faces, frame, q)
 

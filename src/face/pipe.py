@@ -29,10 +29,11 @@ class FacePipe:
             self.pipe = os.open(self.pipe_name, os.O_WRONLY)
 
     def send_faces_to_pipe(self, parameters, faces, frame):
-        for face in faces:
-            rect = Rectangle(face, parameters)
-            x, y, width, height = rect.get_coordinates()        
-            cv2.rectangle(frame, (x, y), (x+width, y+height), (0, 255, 0), 2)
+        if faces:
+            for face in faces:
+                rect = Rectangle(face, parameters)
+                x, y, width, height = rect.get_coordinates()        
+                cv2.rectangle(frame, (x, y), (x+width, y+height), (0, 255, 0), 2)
 
         _, img_encoded = cv2.imencode('.jpg', frame)
 
