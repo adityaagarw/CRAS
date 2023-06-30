@@ -96,9 +96,11 @@ def display_inmem_redis_db(inmem_db, encoding='utf-8'):
     # Retrieve all keys in the database
     keys = inmem_db.connection.keys('*')
 
+    for key in keys:
+        print(key.decode())
     # Iterate over the keys and fetch the corresponding values
     for key in keys:
-        record = inmem_db.connection.hgetall(key)
+        record = inmem_db.connection.hgetall("customer_inmem_db:a0a45f40-c35c-407b-8f69-29790b711ccc")
 
         # Print the record
         print("Key:", key.decode())

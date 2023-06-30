@@ -117,7 +117,10 @@ def create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_d
         entry_time = "",
         exit_time = str(time_now),
         billed = "0",
+        bill_no = "",
+        bill_date = "",
         bill_amount = "0",
+        return_amount = "0",
         time_spent = "",
         visit_remark = "New incomplete customer",
         customer_rating = "",
@@ -142,7 +145,10 @@ def insert_existing_record_to_visit(record, in_mem_db, local_db):
         entry_time = "",
         exit_time = exit_time,
         billed = "0",
+        bill_no = "",
+        bill_date = "",
         bill_amount = "0",
+        return_amount = "0",
         time_spent = "",
         visit_remark = "Incomplete visit",
         customer_rating = "",
@@ -282,7 +288,10 @@ def commit_record(customer_id):
             entry_time = visit_record.get(b'entry_time').decode(),
             exit_time = visit_record.get(b'exit_time').decode(),
             billed = int(visit_record.get(b'billed').decode()),
+            bill_no = visit_record.get(b'bill_no').decode(),
+            bill_date = visit_record.get(b'bill_date').decode(),
             bill_amount = visit_record.get(b'bill_amount').decode(),
+            return_amount = visit_record.get(b'return_amount').decode(),
             time_spent = visit_record.get(b'time_spent').decode(),
             visit_remark = visit_record.get(b'visit_remark').decode(),
             customer_rating = visit_record.get(b'customer_rating').decode(),
@@ -366,7 +375,6 @@ def update_record_inmem(record, in_mem_db):
     category = record.get(b'category').decode()
     creation_date = record.get(b'creation_date').decode()
     group_id = record.get(b'group_id').decode()
-    billed = record.get(b'billed').decode()
 
     new_customer_record = InMemCustomer(
         customer_id = customer_id,
@@ -389,7 +397,6 @@ def update_record_inmem(record, in_mem_db):
         group_id = group_id,
         incomplete = "0",
         entry_time = str(entry_time),
-        billed = billed,
         exited = "1",
         visit_time = str(time_spent),
         exit_time = str(exit_time)
@@ -399,7 +406,10 @@ def update_record_inmem(record, in_mem_db):
     visit_id = str(vrecord.get(b'visit_id').decode())
     v_entry_time = vrecord.get(b'entry_time').decode()
     v_billed = vrecord.get(b'billed').decode()
+    v_bill_no = vrecord.get(b'bill_no').decode()
+    v_bill_date = vrecord.get(b'bill_date').decode()
     v_bill_amount = vrecord.get(b'bill_amount').decode()
+    v_return_amount = vrecord.get(b'return_amount').decode()
     v_visit_remark = vrecord.get(b'visit_remark').decode()
     v_customer_rating = vrecord.get(b'customer_rating').decode()
     v_customer_feedback = vrecord.get(b'customer_feedback').decode()
@@ -411,7 +421,10 @@ def update_record_inmem(record, in_mem_db):
         entry_time = v_entry_time,
         exit_time = str(exit_time),
         billed = v_billed,
+        bill_no = v_bill_no,
+        bill_date = v_bill_date,
         bill_amount = v_bill_amount,
+        return_amount = v_return_amount,
         time_spent = str(time_spent),
         visit_remark = v_visit_remark,
         customer_rating = v_customer_rating,
@@ -573,7 +586,7 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
                 record_from_exited_mem = get_face_record_from_exited_mem(face_encoding, parameters.threshold, in_mem_db)
                 if not record_from_exited_mem:
                     id = update_record_inmem(record_from_mem, in_mem_db)
-                    timer = start_expiry_timer(id)
+                    timer = start_expiry_timer(id) #DEBUG Remove exited entry on timer expire
                     timer_dict[id] = timer
                     insert_record_to_exited_mem(face_encoding, in_mem_db)
 

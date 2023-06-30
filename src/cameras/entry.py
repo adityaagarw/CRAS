@@ -29,6 +29,7 @@ def get_face_image(face_pixels, target_size=(160, 160)):
     #face_8bit = np.clip(face_pixels, 0, 255).astype(np.uint8)
     #face_image = Image.fromarray(face_8bit)
     face_pixels_rgb = cv2.cvtColor(face_pixels, cv2.COLOR_BGR2RGB)
+    
     face_image = Image.fromarray(face_pixels_rgb)
     face_image = face_image.resize(target_size)
     img_bytes = io.BytesIO()
@@ -46,7 +47,7 @@ def get_face_image_encoding(r, face, frame):
     return embedding, face_pixels
 
 def update_exit_entry_customer(in_mem_db, customer_id):
-    record = in_mem_db.connection.hgetall("inmem_customer_db:" + customer_id)
+    record = in_mem_db.connection.hgetall("customer_inmem_db:" + customer_id)
     date_format = "%Y-%m-%d %H:%M:%S.%f"
     base_datetime = datetime(1900, 1, 1)
     exit_time = datetime.now()
@@ -55,7 +56,6 @@ def update_exit_entry_customer(in_mem_db, customer_id):
     time_spent = exit_time - entry_time
     num_visits = int(record.get(b'num_visits').decode())
     customer_id = str(record.get(b'customer_id').decode())
-    print("CUSTOMER ID: ", customer_id)
 
     # Update number of visits
     updated_num_visits = num_visits - 1
@@ -63,34 +63,22 @@ def update_exit_entry_customer(in_mem_db, customer_id):
     # Update average time spent
     old_avg_time_spent = record.get(b'average_time_spent').decode()
     if updated_num_visits == 0:
-        print("IF CASE")
         updated_avg_time_spent = ""
-        print("IF CASE END")
     else:
-        print("ELSE CASE")
         # Convert existing avg time to datetime
-        print("OLD AVG TIME SPENT: " + old_avg_time_spent)
         o_time = datetime.strptime(old_avg_time_spent, "%H:%M:%S.%f")
         existing_interval = o_time - base_datetime
-        print("INTERVAL: " + str(existing_interval))
         existing_interval_seconds = existing_interval.total_seconds()
-        print("INTERVAL SECONDS: " + str(existing_interval_seconds))
         
         exisitng_total_seconds = existing_interval_seconds * num_visits
-        print("TOTAL SECONDS: " + str(exisitng_total_seconds))
 
         total_time = exisitng_total_seconds - time_spent.total_seconds()
-        print("TOTAL TIME: " + str(total_time))
 
         updated_avg_time_spent_seconds = (total_time) / updated_num_visits
         delta = timedelta(seconds=updated_avg_time_spent_seconds)
         result_datetime = base_datetime + delta
         updated_avg_time_spent = result_datetime.strftime("%H:%M:%S.%f")
-        print("UPDATED AVG TIME SPENT: " + str(updated_avg_time_spent))
 
-        print("ELSE CASE END")
-
-    print("CALC START")
     # Update location list and last location
     current_location = str(in_mem_db.fetch_store_location())
     updated_last_location = current_location
@@ -102,13 +90,10 @@ def update_exit_entry_customer(in_mem_db, customer_id):
         location_list_string = ",".join(location_list_string_list)
         updated_location_list = "{" + location_list_string + "}"
     
-    print("CALC END")
-
     print(updated_location_list)
     print(updated_avg_time_spent)
 
 
-    print("ABCDHELLO")
     name = record.get(b'name').decode()
     phone_number = record.get(b'phone_number').decode()
     encoding = record.get(b'encoding')
@@ -121,7 +106,6 @@ def update_exit_entry_customer(in_mem_db, customer_id):
     category = record.get(b'category').decode()
     creation_date = record.get(b'creation_date').decode()
     group_id = record.get(b'group_id').decode()
-    billed = record.get(b'billed').decode()
 
     new_customer_record = InMemCustomer(
         customer_id = customer_id,
@@ -144,18 +128,19 @@ def update_exit_entry_customer(in_mem_db, customer_id):
         group_id = group_id,
         incomplete = "0",
         entry_time = str(entry_time),
-        billed = billed,
         exited = "0",
         visit_time = "",
         exit_time = ""
     )
 
-    print("RECORD END")
     vrecord = in_mem_db.connection.hgetall("visit_inmem_db:" + customer_id)
     visit_id = str(vrecord.get(b'visit_id').decode())
     v_entry_time = vrecord.get(b'entry_time').decode()
     v_billed = vrecord.get(b'billed').decode()
+    v_bill_no = vrecord.get(b'bill_no').decode()
+    v_bill_date = vrecord.get(b'bill_date').decode()
     v_bill_amount = vrecord.get(b'bill_amount').decode()
+    v_return_amount = vrecord.get(b'return_amount').decode()
     v_visit_remark = vrecord.get(b'visit_remark').decode()
     v_customer_rating = vrecord.get(b'customer_rating').decode()
     v_customer_feedback = vrecord.get(b'customer_feedback').decode()
@@ -167,19 +152,20 @@ def update_exit_entry_customer(in_mem_db, customer_id):
         entry_time = v_entry_time,
         exit_time = str(exit_time),
         billed = v_billed,
+        bill_no = v_bill_no,
+        bill_date = v_bill_date,
         bill_amount = v_bill_amount,
+        return_amount = v_return_amount,
         time_spent = "",
         visit_remark = v_visit_remark,
         customer_rating = v_customer_rating,
         customer_feedback = v_customer_feedback,
         incomplete = "0"
     )
-    print("VISIT END")
     in_mem_db.delete_record(customer_id, type="customer")
     in_mem_db.delete_record(customer_id, type="visit")
     in_mem_db.insert_record(new_customer_record)
     in_mem_db.insert_record(new_visit_record, type="visit")
-    print("INSERT END")
     return new_customer_record.customer_id
 
 def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
@@ -215,7 +201,6 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
         group_id = "",
         incomplete = "1",
         entry_time = time_now,
-        billed = "0",
         exited = "0",
         visit_time = "",
         exit_time = ""
@@ -228,7 +213,10 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
         entry_time = time_now,
         exit_time = "",
         billed = "0",
+        bill_no = "",
+        bill_date = "",
         bill_amount = "0",
+        return_amount = "0",
         time_spent = "",
         visit_remark = "New customer",
         customer_rating = "",
@@ -296,7 +284,6 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
         group_id = str(group_id),
         incomplete="1",
         entry_time=str(entry_time),
-        billed="0",
         exited="0",
         visit_time="",
         exit_time=""
@@ -309,7 +296,10 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
         entry_time=str(new_record.entry_time),
         exit_time="",
         billed="0",
+        bill_no="",
+        bill_date="",
         bill_amount="0",
+        return_amount="0",
         time_spent="",
         visit_remark="",
         customer_rating="",

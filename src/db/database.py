@@ -74,7 +74,7 @@ class LocalStore:
         self.exit_cam = exit_cam
 
 class LocalVisit:
-    def __init__(self, customer_id, visit_id, store_id, entry_time, exit_time, billed, bill_amount, time_spent, 
+    def __init__(self, customer_id, visit_id, store_id, entry_time, exit_time, billed, bill_no, bill_date, bill_amount, return_amount, time_spent, 
                  visit_remark, customer_rating, customer_feedback, incomplete):
         self.store_id = store_id
         self.customer_id = customer_id
@@ -82,7 +82,10 @@ class LocalVisit:
         self.entry_time = entry_time
         self.exit_time = exit_time
         self.billed = billed
+        self.bill_no = bill_no
+        self.bill_date = bill_date
         self.bill_amount = bill_amount
+        self.return_amount = return_amount
         self.time_spent = time_spent
         self.visit_remark = visit_remark
         self.customer_rating = customer_rating
@@ -166,7 +169,10 @@ class LocalPostgresDB(Database):
             entry_time TIMESTAMP,
             exit_time TIMESTAMP,
             billed INTEGER DEFAULT 0,
+            bill_no VARCHAR(255),
+            bill_date TIMESTAMP,
             bill_amount NUMERIC(10, 2),
+            return_amount NUMERIC(10, 2),
             time_spent INTERVAL,
             visit_remark TEXT,
             customer_rating INTEGER,
@@ -181,6 +187,7 @@ class LocalPostgresDB(Database):
             bill_no numeric,
             bill_date TIMESTAMP,
             bill_amount NUMERIC(10, 2),
+            return_amount NUMERIC(10, 2),
             quantity INTEGER,
             name VARCHAR(255),
             phone_number NUMERIC,
@@ -539,7 +546,6 @@ class InMemCustomer:
         #############################
         self.incomplete = incomplete
         self.entry_time = entry_time
-        self.billed = billed
         self.exited = exited
         self.visit_time = visit_time
         self.exit_time = exit_time
@@ -572,7 +578,7 @@ class InMemStore:
         self.exit_cam = exit_cam
 
 class InMemVisit:
-    def __init__(self, customer_id, visit_id, store_id, entry_time, exit_time, billed, bill_amount, time_spent, 
+    def __init__(self, customer_id, visit_id, store_id, entry_time, exit_time, billed, bill_no, bill_date, bill_amount, return_amount, time_spent, 
                  visit_remark, customer_rating, customer_feedback, incomplete):
         self.store_id = store_id
         self.customer_id = customer_id
@@ -580,7 +586,10 @@ class InMemVisit:
         self.entry_time = entry_time
         self.exit_time = exit_time
         self.billed = billed
+        self.bill_no = bill_no
+        self.bill_date = bill_date
         self.bill_amount = bill_amount
+        self.return_amount = return_amount
         self.time_spent = time_spent
         self.visit_remark = visit_remark
         self.customer_rating = customer_rating
