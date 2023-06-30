@@ -6,6 +6,7 @@ import os
 import json
 import subprocess
 import shutil
+import psutil
 
 from utils.utils import Utils
 from db.database import *
@@ -136,8 +137,35 @@ def start_ui():
 if __name__ == "__main__":
     # Check if program is already running
     if os.path.isfile("entry_pid"):
-        print("Program already running")
-        exit(1)
+        # Check if process exists and is running
+        with open("entry_pid", "r") as f:
+            pid = f.read()
+            pid = int(pid)
+            if psutil.pid_exists(pid):
+                print("Entry Program already running")
+                exit(1)
+            else:
+                os.remove("entry_pid")
+    if os.path.isfile("billing_pid"):
+        # Check if process exists and is running
+        with open("billing_pid", "r") as f:
+            pid = f.read()
+            pid = int(pid)
+            if psutil.pid_exists(pid):
+                print("Billing Program already running")
+                exit(1)
+            else:
+                os.remove("billing_pid")
+    if os.path.isfile("exit_pid"):
+        # Check if process exists and is running
+        with open("exit_pid", "r") as f:
+            pid = f.read()
+            pid = int(pid)
+            if psutil.pid_exists(pid):
+                print("Exit Program already running")
+                exit(1)
+            else:
+                os.remove("exit_pid")
 
     get_camera_ids()
     build_config()

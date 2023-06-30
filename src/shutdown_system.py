@@ -37,23 +37,50 @@ if __name__ == "__main__":
     exit_pid = read_exit_pid()
 
     # Kill the process using psutil
-    entry_p = psutil.Process(entry_pid)
-    billing_pid = psutil.Process(billing_pid)
-    exit_pid = psutil.Process(exit_pid)
+    try:
+        entry_p = psutil.Process(entry_pid)
+    except:
+        entry_p = None
+        
+    try:
+        billing_pid = psutil.Process(billing_pid)
+    except:
+        billing_pid = None
 
-    for p in entry_p.children(recursive=True):
-        p.terminate()
+    try:
+        exit_pid = psutil.Process(exit_pid)
+    except:
+        exit_pid = None
 
-    entry_p.terminate()
-
-    for p in billing_pid.children(recursive=True):
-        p.terminate()
-
-    billing_pid.terminate()
+    # Check if entry_p is running
+    if entry_p and entry_p.is_running():
+        print("Shutting down entry program")
+        for p in entry_p.children(recursive=True):
+            p.terminate()
+        entry_p.terminate()
+        delete_entry_pid()
+    else:
+        print("Entry program already shut down")
+        os.remove("entry_pid")
     
-    for p in exit_pid.children(recursive=True):
-        p.terminate()
-
-    delete_entry_pid()
-    delete_billing_pid()
-    delete_exit_pid()
+    # Check if billing_pid is running
+    if billing_pid and billing_pid.is_running():
+        print("Shutting down billing program")
+        for p in billing_pid.children(recursive=True):
+            p.terminate()
+        billing_pid.terminate()
+        delete_billing_pid()
+    else:
+        print("Billing program already shut down")
+        os.remove("billing_pid")
+    
+    # Check if exit_pid is running
+    if exit_pid and exit_pid.is_running():
+        print("Shutting down exit program")
+        for p in exit_pid.children(recursive=True):
+            p.terminate()
+        exit_pid.terminate()
+        delete_exit_pid()
+    else:
+        print("Exit program already shut down")
+        os.remove("exit_pid")
