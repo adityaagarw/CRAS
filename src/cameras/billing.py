@@ -55,7 +55,7 @@ def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
 
     return closest_record
 
-def find_and_publish_records(in_mem_db, faces, frame, r, p, parameters):
+def find_and_publish_records(in_mem_db, faces, frame, r, p, parameters, type):
 
     # For each face, first see if it exists in mem
     for face in faces:
@@ -83,13 +83,17 @@ def find_and_publish_records(in_mem_db, faces, frame, r, p, parameters):
             if cust_id not in cust_id_list:
                 in_mem_db.connection.lpush('cust_id_list', cust_id)
                 # Publish the customer record to the backend channel
-                message = BackendMessage.BillingCustomer.value + ":" + str(cust_id.decode())
-                in_mem_db.connection.publish(Channel.Billing.value, message)
+                if type == "Billing":
+                    message = BackendMessage.BillingCustomer.value + ":" + str(cust_id.decode())
+                    in_mem_db.connection.publish(Channel.Billing.value, message)
+                if type == "Rescan":
+                    message = BackendMessage.RescanCustomer.value + ":" + str(cust_id.decode())
+                    in_mem_db.connection.publish(Channel.Billing.value, message)
 
 def get_billing_frames(cam_time):
     return int(cam_time) * CAMERA_FPS
 
-def capture_and_publish(in_mem_db, cap, detector, r, p, parameters):
+def capture_and_publish(in_mem_db, cap, detector, r, p, parameters, type):
     billing_frames = get_billing_frames(parameters.billing_cam_time)
     billing_frames_counter = 0
     frame_count = 0
@@ -114,11 +118,16 @@ def capture_and_publish(in_mem_db, cap, detector, r, p, parameters):
             continue
         # Send faces to queue
         
-        find_and_publish_records(in_mem_db, faces, frame, r, p, parameters)
+        find_and_publish_records(in_mem_db, faces, frame, r, p, parameters, type)
 
     # Clear customer id list
     in_mem_db.connection.ltrim('cust_id_list', 1, 0)
-    in_mem_db.connection.publish(Channel.Billing.value, BackendMessage.EndBilling.value)
+
+    if type == "Billing":
+        in_mem_db.connection.publish(Channel.Billing.value, BackendMessage.EndBilling.value)
+    if type == "Rescan":
+        in_mem_db.connection.publish(Channel.Billing.value, BackendMessage.EndRescan.value)
+
 
 # Start entry camera
 def start_billing_cam(parameters, camera, stop_event):
@@ -147,7 +156,9 @@ def start_billing_cam(parameters, camera, stop_event):
                 if isinstance(data, bytes):
                     data = data.decode('utf-8')
                 if data == FrontendMessage.StartBilling.value:
-                    capture_and_publish(in_mem_db, cap, detector, recognition, prediction, parameters)
+                    capture_and_publish(in_mem_db, cap, detector, recognition, prediction, parameters, "Billing")
+                if data == FrontendMessage.StartRescan.value:
+                    capture_and_publish(in_mem_db, cap, detector, recognition, prediction, parameters, "Rescan")
 
     cap.release()
     cv2.destroyAllWindows()

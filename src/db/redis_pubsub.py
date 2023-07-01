@@ -27,11 +27,13 @@ class BackendMessage(Enum):
     TempCustomer = "TempCustomer"
     DeleteCustomer = "DeleteCustomer"
     BillingCustomer = "BillingCustomer"
+    RescanCustomer = "RescanCustomer"
     Employee = "Employee"
     EndBilling = "EndBilling"
+    EndRescan = "EndRescan"
     CancelTimer = "CancelTimer"
     CancelQueue = "CancelQueue"
 
 class FrontendMessage(Enum):
     StartBilling = "StartBilling"
-    
+    StartRescan = "StartRescan"
