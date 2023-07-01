@@ -98,11 +98,15 @@ def create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_d
         return_customer = "0",
         last_visit = "",
         average_time_spent = "",
-        average_purchase = "",
+        average_bill_value = "",
+        average_bill_per_visit = "",
+        average_bill_per_billed_visit="",
         maximum_purchase = "",
         remarks = "New Customer",
         loyalty_level = "",
+        num_bills = "",
         num_visits = "1",
+        num_billed_visits = "",
         last_location = loc_list,
         location_list = "",
         category = "",
@@ -263,11 +267,15 @@ def commit_record(customer_id):
             return_customer = int(customer_record.get(b'return_customer').decode()),
             last_visit = customer_record.get(b'last_visit').decode(),
             average_time_spent = customer_record.get(b'average_time_spent').decode(),
-            average_purchase = customer_record.get(b'average_purchase').decode(),
+            average_bill_value = customer_record.get(b'average_bill_value').decode(),
+            average_bill_per_visit = customer_record.get(b'average_bill_per_visit').decode(),
+            average_bill_per_billed_visit = customer_record.get(b'average_bill_per_billed_visit').decode(),
             maximum_purchase = customer_record.get(b'maximum_purchase').decode(),
             remarks = customer_record.get(b'remarks').decode(),
             loyalty_level = customer_record.get(b'loyalty_level').decode(),
+            num_bills = int(customer_record.get(b'num_bills').decode()),
             num_visits = int(customer_record.get(b'num_visits').decode()),
+            num_billed_visits = int(customer_record.get(b'num_billed_visits').decode()),
             last_location = customer_record.get(b'last_location').decode(),
             location_list = customer_record.get(b'location_list').decode(),
             category = customer_record.get(b'category').decode(),
@@ -275,8 +283,14 @@ def commit_record(customer_id):
             group_id = customer_record.get(b'group_id').decode(),
         )
 
-        if (ins_customer_record.average_purchase == ""):
-            ins_customer_record.average_purchase = "0"
+        if (ins_customer_record.average_bill_value == ""):
+            ins_customer_record.average_bill_value = "0"
+
+        if (ins_customer_record.average_bill_per_visit == ""):
+            ins_customer_record.average_bill_per_visit = "0"
+
+        if (ins_customer_record.average_bill_per_billed_visit == ""):
+            ins_customer_record.average_bill_per_billed_visit = "0"
 
         if (ins_customer_record.maximum_purchase == ""):
             ins_customer_record.maximum_purchase = "0"
@@ -368,9 +382,13 @@ def update_record_inmem(record, in_mem_db):
     encoding = record.get(b'encoding')
     image = record.get(b'image')
     return_customer = record.get(b'return_customer').decode()
-    average_purchase = record.get(b'average_purchase').decode()
+    average_bill_value = record.get(b'average_bill_value').decode()
+    average_bill_per_visit = record.get(b'average_bill_per_visit').decode()
+    average_bill_per_billed_visit = record.get(b'average_bill_per_billed_visit').decode()
     maximum_purchase = record.get(b'maximum_purchase').decode()
     remarks = record.get(b'remarks').decode()
+    num_bills = record.get(b'num_bills').decode()
+    num_billed_visits = record.get(b'num_billed_visits').decode() # DEBUG
     loyalty_level = record.get(b'loyalty_level').decode()
     category = record.get(b'category').decode()
     creation_date = record.get(b'creation_date').decode()
@@ -385,11 +403,15 @@ def update_record_inmem(record, in_mem_db):
         return_customer = return_customer,
         last_visit = str(exit_time),
         average_time_spent = updated_avg_time_spent,
-        average_purchase = average_purchase,
+        average_bill_value = average_bill_value,
+        average_bill_per_visit = average_bill_per_visit,
+        average_bill_per_billed_visit = average_bill_per_billed_visit,
         maximum_purchase = maximum_purchase,
         remarks = remarks,
         loyalty_level = loyalty_level,
+        num_bills = str(num_bills),
         num_visits = str(updated_num_visits),
+        num_billed_visits = str(num_billed_visits),
         last_location = str(updated_last_location),
         location_list = updated_location_list,
         category = category,

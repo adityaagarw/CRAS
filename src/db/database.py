@@ -31,8 +31,8 @@ class Database(abc.ABC):
 class LocalCustomer:
     def __init__(self, customer_id, name, phone_number, encoding, image,
                  return_customer=False, last_visit=None, average_time_spent=None,
-                 average_purchase=None, maximum_purchase=None, remarks=None,
-                 loyalty_level=None, num_visits=0, last_location=None,
+                 average_bill_value=None, average_bill_per_visit=None, average_bill_per_billed_visit = None, maximum_purchase=None, remarks=None,
+                 loyalty_level=None, num_bills=0, num_visits=0,  num_billed_visits = 0, last_location=None,
                  location_list=None, category=None, creation_date=None, group_id=None, incomplete=True):
         self.customer_id = customer_id
         self.name = name
@@ -42,11 +42,15 @@ class LocalCustomer:
         self.return_customer = return_customer
         self.last_visit = last_visit
         self.average_time_spent = average_time_spent
-        self.average_purchase = average_purchase
+        self.average_bill_value = average_bill_value
+        self.average_bill_per_visit = average_bill_per_visit
+        self.average_bill_per_billed_visit = average_bill_per_billed_visit 
         self.maximum_purchase = maximum_purchase
         self.remarks = remarks
         self.loyalty_level = loyalty_level
+        self.num_bills = num_bills
         self.num_visits = num_visits
+        self.num_billed_visits = num_billed_visits
         self.last_location = last_location
         self.location_list = location_list
         self.category = category
@@ -119,11 +123,15 @@ class LocalPostgresDB(Database):
             return_customer INTEGER DEFAULT 0,
             last_visit TIMESTAMP,
             average_time_spent INTERVAL,
-            average_purchase NUMERIC(10, 2),
+            average_bill_value NUMERIC(10, 2),
+            average_bill_per_visit NUMERIC(10,2),
+            average_bill_per_billed_visit NUMERIC(10,2),
             maximum_purchase NUMERIC(10, 2),
             remarks TEXT,
             loyalty_level VARCHAR(50),
+            num_bills INTEGER DEFAULT 0,
             num_visits INTEGER DEFAULT 0,
+            num_billed_visits INTEGER DEFAULT 0,
             last_location VARCHAR(255),
             location_list TEXT[],
             category VARCHAR(255),
@@ -520,8 +528,8 @@ class LocalPostgresDB(Database):
 class InMemCustomer:
     def __init__(self, customer_id, name, phone_number, encoding, image,
                  return_customer=False, last_visit=None, average_time_spent=None,
-                 average_purchase=None, maximum_purchase=None, remarks=None,
-                 loyalty_level=None, num_visits=0, last_location=None,
+                 average_bill_value=None, average_bill_per_visit=None, average_bill_per_billed_visit = None, maximum_purchase=None, remarks=None,
+                 loyalty_level=None, num_bills = 0, num_visits=0, num_billed_visits = 0, last_location=None,
                  location_list=None, category=None, creation_date=None, group_id=None, incomplete=None,
                  entry_time=None, billed=False, exited=None, visit_time=None, exit_time=None,
                  ):
@@ -533,11 +541,15 @@ class InMemCustomer:
         self.return_customer = return_customer
         self.last_visit = last_visit
         self.average_time_spent = average_time_spent
-        self.average_purchase = average_purchase
+        self.average_bill_value = average_bill_value
+        self.average_bill_per_visit = average_bill_per_visit
+        self.average_bill_per_billed_visit = average_bill_per_billed_visit
         self.maximum_purchase = maximum_purchase
         self.remarks = remarks
         self.loyalty_level = loyalty_level
+        self.num_bills = num_bills
         self.num_visits = num_visits
+        self.num_billed_visits = num_billed_visits
         self.last_location = last_location
         self.location_list = location_list
         self.category = category
