@@ -28,8 +28,11 @@ NUM_SEARCH_PROCESSES = 1
 def get_face_image(face_pixels, target_size=(160, 160)):
     #face_8bit = np.clip(face_pixels, 0, 255).astype(np.uint8)
     #face_image = Image.fromarray(face_8bit)
-    face_pixels_rgb = cv2.cvtColor(face_pixels, cv2.COLOR_BGR2RGB)
-    
+    try:
+        face_pixels_rgb = cv2.cvtColor(face_pixels, cv2.COLOR_BGR2RGB)
+    except:
+        face_pixels_rgb = face_pixels
+
     face_image = Image.fromarray(face_pixels_rgb)
     face_image = face_image.resize(target_size)
     img_bytes = io.BytesIO()
