@@ -33,7 +33,11 @@ def get_face_image(face_pixels, target_size=(160, 160)):
     except:
         face_pixels_rgb = face_pixels
 
-    face_image = Image.fromarray(face_pixels_rgb)
+    try:
+        face_image = Image.fromarray(face_pixels_rgb)
+    except:
+        face_image = Image.frombuffer(face_pixels_rgb)
+    
     face_image = face_image.resize(target_size)
     img_bytes = io.BytesIO()
     face_image.save(img_bytes, format='PNG')
