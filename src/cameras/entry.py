@@ -51,9 +51,9 @@ def get_face_image_encoding(r, face, frame):
 
 def update_exit_entry_customer(in_mem_db, customer_id):
     record = in_mem_db.connection.hgetall("customer_inmem_db:" + customer_id)
-    date_format = "%Y-%m-%d %H:%M:%S.%f"
+    date_format = "%Y-%m-%d %H:%M:%S"
     base_datetime = datetime(1900, 1, 1)
-    exit_time = datetime.now()
+    exit_time = datetime.strptime(datetime.now().strftime(date_format), date_format)
     entry_time = datetime.strptime(record.get(b'entry_time').decode(), date_format)
 
     time_spent = exit_time - entry_time

@@ -192,13 +192,13 @@ class LocalPostgresDB(Database):
 
         create_table_query = """
         CREATE TABLE IF NOT EXISTS local_billing_db (
-            bill_no numeric,
+            bill_no VARCHAR(255),
             bill_date TIMESTAMP,
             bill_amount NUMERIC(10, 2),
             return_amount NUMERIC(10, 2),
             quantity INTEGER,
             name VARCHAR(255),
-            phone_number NUMERIC,
+            phone_number VARCHAR(10),
             customer_id VARCHAR(255),
             visit_id VARCHAR(255),
             customer_list TEXT[],
@@ -232,8 +232,8 @@ class LocalPostgresDB(Database):
         fields = [
             'customer_id', 'name', 'phone_number', 'encoding', 'image',
             'return_customer', 'last_visit', 'average_time_spent',
-            'average_purchase', 'maximum_purchase', 'remarks',
-            'loyalty_level', 'num_visits', 'last_location',
+            'average_bill_value', 'average_bill_per_visit', 'average_bill_per_billed_visit', 'maximum_purchase', 'remarks',
+            'loyalty_level', 'num_bills', 'num_visits', 'num_billed_visits' ,'last_location',
             'location_list', 'category', 'creation_date', 'group_id'
         ]
 
@@ -377,8 +377,8 @@ class LocalPostgresDB(Database):
         fields = [
             'name', 'phone_number', 'encoding', 'image',
             'return_customer', 'last_visit', 'average_time_spent',
-            'average_purchase', 'maximum_purchase', 'remarks',
-            'loyalty_level', 'num_visits', 'last_location',
+            'average_bill_value','average_bill_per_visit', 'average_bill_per_billed_visit', 'maximum_purchase', 'remarks',
+            'loyalty_level', 'num_bills', 'num_visits', 'num_billed_visits', 'last_location',
             'location_list', 'category', 'creation_date', 'group_id'
         ]
 
