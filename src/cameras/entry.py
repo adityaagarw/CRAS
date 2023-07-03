@@ -52,11 +52,10 @@ def get_face_image_encoding(r, face, frame):
 def update_exit_entry_customer(in_mem_db, customer_id):
     record = in_mem_db.connection.hgetall("customer_inmem_db:" + customer_id)
     date_format = "%Y-%m-%d %H:%M:%S"
-    base_datetime = datetime(1900, 1, 1)
     exit_time = datetime.strptime(datetime.now().strftime(date_format), date_format)
     entry_time = datetime.strptime(record.get(b'entry_time').decode(), date_format)
 
-    time_spent = exit_time - entry_time
+    time_spent = (exit_time - entry_time).total_seconds()
     num_visits = int(record.get(b'num_visits').decode())
     customer_id = str(record.get(b'customer_id').decode())
 
@@ -69,18 +68,14 @@ def update_exit_entry_customer(in_mem_db, customer_id):
         updated_avg_time_spent = ""
     else:
         # Convert existing avg time to datetime
-        o_time = datetime.strptime(old_avg_time_spent, "%H:%M:%S.%f")
-        existing_interval = o_time - base_datetime
-        existing_interval_seconds = existing_interval.total_seconds()
+
+        existing_interval_seconds = old_avg_time_spent
         
         exisitng_total_seconds = existing_interval_seconds * num_visits
 
         total_time = exisitng_total_seconds - time_spent.total_seconds()
 
-        updated_avg_time_spent_seconds = (total_time) / updated_num_visits
-        delta = timedelta(seconds=updated_avg_time_spent_seconds)
-        result_datetime = base_datetime + delta
-        updated_avg_time_spent = result_datetime.strftime("%H:%M:%S.%f")
+        updated_avg_time_spent = (total_time) / updated_num_visits
 
     # Update location list and last location
     current_location = str(in_mem_db.fetch_store_location())
@@ -92,10 +87,6 @@ def update_exit_entry_customer(in_mem_db, customer_id):
         location_list_string_list = location_list_string_list.pop()
         location_list_string = ",".join(location_list_string_list)
         updated_location_list = "{" + location_list_string + "}"
-    
-    print(updated_location_list)
-    print(updated_avg_time_spent)
-
 
     name = record.get(b'name').decode()
     phone_number = record.get(b'phone_number').decode()
@@ -180,11 +171,12 @@ def update_exit_entry_customer(in_mem_db, customer_id):
     return new_customer_record.customer_id
 
 def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
+    date_format = "%Y-%m-%d %H:%M:%S"
     new_id = Utils.generate_unique_id()
     face_img = get_face_image(face_pixels)
     current_location = in_mem_db.fetch_store_location()
     store_id = in_mem_db.fetch_store_id()
-    time_now = str(datetime.now())
+    time_now = datetime.now().strftime(date_format)
     face_encoding_bytes = face_encoding.tobytes()
 
     # Reconstruct bytes as follows:
