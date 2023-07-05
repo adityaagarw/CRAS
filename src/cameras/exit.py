@@ -451,7 +451,7 @@ def get_face_record_from_localdb(face_encoding, threshold, local_db):
     return record
 
 def pipe_stream_process(camera, parameters, pipe_q, camfeed_break_flag):
-    fp = FacePipe(camera)
+    fp = FacePipe("exit")
     
     fp.create_named_pipe()
 
