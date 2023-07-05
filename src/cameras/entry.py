@@ -338,9 +338,8 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
     in_mem_db.delete_record(new_record.customer_id)
     in_mem_db.delete_record(new_record.customer_id, type="visit")
 
-    message = BackendMessage.UpdateCustomer.value + ":" + str(record[0]) + "," + BackendMessage.TempCustomer.value + ":" + str(new_record.customer_id)
-    in_mem_db.connection.publish(Channel.Backend.value, message)
-    message = BackendMessage.NewCustomer.value + ":" + str(customer_id)
+    # UpdateCustomer:<>,TempCustomer:<>
+    message = BackendMessage.UpdateCustomer.value + ":" + str(new_record.customer_id) + "," + str(record[0])
     in_mem_db.connection.publish(Channel.Backend.value, message)
 
 
