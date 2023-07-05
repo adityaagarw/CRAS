@@ -250,7 +250,7 @@ def commit_record(customer_id):
             image = customer_record.get(b'image'),
             return_customer = int(customer_record.get(b'return_customer').decode()),
             last_visit = customer_record.get(b'last_visit').decode(),
-            average_time_spent = customer_record.get(b'average_time_spent').decode(),
+            average_time_spent = int(float(customer_record.get(b'average_time_spent').decode())),
             average_bill_value = customer_record.get(b'average_bill_value').decode(),
             average_bill_per_visit = customer_record.get(b'average_bill_per_visit').decode(),
             average_bill_per_billed_visit = customer_record.get(b'average_bill_per_billed_visit').decode(),
@@ -290,7 +290,7 @@ def commit_record(customer_id):
             bill_date = visit_record.get(b'bill_date').decode(),
             bill_amount = visit_record.get(b'bill_amount').decode(),
             return_amount = visit_record.get(b'return_amount').decode(),
-            time_spent = visit_record.get(b'time_spent').decode(),
+            time_spent = int(float(visit_record.get(b'time_spent').decode())),
             visit_remark = visit_record.get(b'visit_remark').decode(),
             customer_rating = visit_record.get(b'customer_rating').decode(),
             customer_feedback = visit_record.get(b'customer_feedback').decode(),
@@ -303,8 +303,8 @@ def commit_record(customer_id):
             local_db.insert_customer_record(ins_customer_record)
 
         local_db.insert_visit_record(ins_visit_record)
-        in_mem_db.delete_record("customer_inmem_db:" + str(customer_id))
-        in_mem_db.delete_record("visit_inmem_db:" + str(customer_id), type="visit")
+        in_mem_db.delete_record(str(customer_id), type="customer")
+        in_mem_db.delete_record(str(customer_id), type="visit")
         in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.DeleteCustomer.value + ":" + str(customer_id))
 
     in_mem_db.disconnect()
