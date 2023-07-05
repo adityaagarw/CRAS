@@ -364,6 +364,7 @@
             this.Controls.Add(this.rescanButton);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.identifiedFacesFLP);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Name = "BillingForm";
             this.Text = "BillingForm";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.BillingForm_FormClosing);
@@ -398,6 +399,6 @@
         public System.Windows.Forms.FlowLayoutPanel identifiedFacesFLP;
         public System.Windows.Forms.Button previousButton;
         public System.Windows.Forms.Button nextButton;
-        private System.Windows.Forms.Button updateButton;
+        public System.Windows.Forms.Button updateButton;
     }
 }

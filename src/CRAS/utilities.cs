@@ -44,5 +44,52 @@ namespace CRAS
             return customer;
         }
 
+        public static visit_details GetVisitDetails(string customer_id, ref string visit_source)
+        {
+            BindingList<visit_details> visit_list = new BindingList<visit_details>();
+
+            visit_list = redis_utilities.GetVisitDetails(MainForm.redisConnection, customer_id);
+            if (visit_list.Count > 0)
+            {
+                visit_source = "memory";
+            }
+
+            else
+            {
+                visit_list = pgsql_utilities.GetVisitDetails(pgsql_utilities.ConnectToPGSQL(), customer_id);
+                if (visit_list.Count > 0)
+                {
+                    visit_source = "local";
+                }
+            }
+
+            if(visit_list.Count > 0) return visit_list[0];
+
+            return null;
+        }
+        public static redis_customer GetCustomerDetails(string customer_id, ref string customer_source)
+        {
+            BindingList<redis_customer> customer_list = new BindingList<redis_customer>();
+
+            customer_list = redis_utilities.GetCustomerDetails(MainForm.redisConnection, customer_id);
+            if (customer_list.Count > 0)
+            {
+                customer_source = "memory";
+            }
+
+            else
+            {
+                customer_list = pgsql_utilities.GetCustomerDetails(pgsql_utilities.ConnectToPGSQL(), customer_id);
+                if (customer_list.Count > 0)
+                {
+                    customer_source = "local";
+                }
+            }
+
+            if(customer_list.Count > 0) return customer_list[0];
+
+            return null;
+        }
+
     }
 }

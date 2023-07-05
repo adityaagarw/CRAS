@@ -149,6 +149,7 @@
     <Compile Include="BillingForm.Designer.cs">
       <DependentUpon>BillingForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="visit_details.cs" />
     <Compile Include="CustomerDataUC.cs">
       <SubType>UserControl</SubType>
     </Compile>

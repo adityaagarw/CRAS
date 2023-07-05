@@ -35,6 +35,7 @@
             this.startStopFeedButton = new System.Windows.Forms.Button();
             this.statusButton = new System.Windows.Forms.Button();
             this.customerFlowLayout = new System.Windows.Forms.FlowLayoutPanel();
+            this.exitedCustomerFLP = new System.Windows.Forms.FlowLayoutPanel();
             this.billingButton = new System.Windows.Forms.Button();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
@@ -42,7 +43,6 @@
             this.displayComboBox = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.exitedCustomerFLP = new System.Windows.Forms.FlowLayoutPanel();
             this.customerFlowLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -122,6 +122,16 @@
             this.customerFlowLayout.TabIndex = 11;
             this.customerFlowLayout.WrapContents = false;
             // 
+            // exitedCustomerFLP
+            // 
+            this.exitedCustomerFLP.BackColor = System.Drawing.Color.White;
+            this.exitedCustomerFLP.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.exitedCustomerFLP.Location = new System.Drawing.Point(3, 3);
+            this.exitedCustomerFLP.Name = "exitedCustomerFLP";
+            this.exitedCustomerFLP.Size = new System.Drawing.Size(778, 667);
+            this.exitedCustomerFLP.TabIndex = 12;
+            this.exitedCustomerFLP.WrapContents = false;
+            // 
             // billingButton
             // 
             this.billingButton.BackgroundImage = global::CRAS.Properties.Resources.Billing;
@@ -190,15 +200,6 @@
             this.label4.TabIndex = 16;
             this.label4.Text = "0";
             // 
-            // exitedCustomerFLP
-            // 
-            this.exitedCustomerFLP.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.exitedCustomerFLP.Location = new System.Drawing.Point(3, 3);
-            this.exitedCustomerFLP.Name = "exitedCustomerFLP";
-            this.exitedCustomerFLP.Size = new System.Drawing.Size(778, 670);
-            this.exitedCustomerFLP.TabIndex = 12;
-            this.exitedCustomerFLP.WrapContents = false;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -241,12 +242,12 @@
         private System.Windows.Forms.Label cam2StatusLabel;
         private System.Windows.Forms.Button startStopFeedButton;
         private System.Windows.Forms.Button statusButton;
-        private System.Windows.Forms.FlowLayoutPanel customerFlowLayout;
         private System.Windows.Forms.Button billingButton;
         public System.Windows.Forms.Label scanStatusLabel;
         private System.Windows.Forms.ComboBox displayComboBox;
         public System.Windows.Forms.Label label3;
         public System.Windows.Forms.Label label4;
         public System.Windows.Forms.FlowLayoutPanel exitedCustomerFLP;
+        public System.Windows.Forms.FlowLayoutPanel customerFlowLayout;
     }
 }

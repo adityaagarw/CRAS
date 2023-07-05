@@ -21,7 +21,7 @@ namespace CRAS
         public CustomerDataUC()
         {
             InitializeComponent();
-            
+
         }
 
         private void CustomerDataUC_Load(object sender, EventArgs e)
@@ -30,15 +30,16 @@ namespace CRAS
             customerPictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
         }
 
-        public void SetImage(byte[] image) 
-        { 
-            customerPictureBox.Image = utilities.BytetoImage(image);
-        }
-        public void SetLabel(string labelName, string field, string value) 
+        public void SetImage(byte[] image)
         {
-            foreach(Label label in Controls.OfType<Label>())
+            if (image !=  null) customerPictureBox.Image = utilities.BytetoImage(image);
+            else customerPictureBox.Image = null;
+        }
+        public void SetLabel(string labelName, string field, string value)
+        {
+            foreach (Label label in Controls.OfType<Label>())
             {
-                if(label.Name.Equals(labelName)) label.Text = field;
+                if (label.Name.Equals(labelName)) label.Text = field;
                 if (label.Name.Equals(labelName + "value")) label.Text = value;
             }
         }
@@ -65,7 +66,7 @@ namespace CRAS
 
         public static void UnselectAllControls(FlowLayoutPanel panel)
         {
-            foreach(CustomerDataUC customer in panel.Controls)
+            foreach (CustomerDataUC customer in panel.Controls)
             {
                 customer.UnSelect();
             }
@@ -76,6 +77,42 @@ namespace CRAS
             int index = Parent.Controls.IndexOf(this);
 
             ControlDoubleClicked?.Invoke(this, index);
+        }
+
+        public void SetState(string state)
+        {
+            selectCustomerLabel.Text = state;
+        }
+
+        private void selectCustomerLabel_TextChanged(object sender, EventArgs e)
+        {
+            if(selectCustomerLabel.Text.ToLower().Equals("customer selected!"))
+            {
+                //selectCustomerLabel.Text = "Customer Selected!";
+                
+                List<Control> controls = Controls.Cast<Control>().ToList();
+                
+                foreach(Control control in controls)
+                {
+                    control.Show();
+                }
+
+                selectCustomerLabel.Hide();
+            }
+
+            else if (selectCustomerLabel.Text.ToLower().Equals("please select a customer!"))
+            {
+                //selectCustomerLabel.Text = "Please select a Customer!";
+
+                List<Control> controls = Controls.Cast<Control>().ToList();
+
+                foreach (Control control in controls)
+                {
+                    control.Hide();
+                }
+
+                selectCustomerLabel.Show();
+            }
         }
     }
 }

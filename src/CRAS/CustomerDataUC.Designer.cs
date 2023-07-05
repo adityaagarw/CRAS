@@ -41,6 +41,7 @@
             this.label4value = new System.Windows.Forms.Label();
             this.label5value = new System.Windows.Forms.Label();
             this.label6value = new System.Windows.Forms.Label();
+            this.selectCustomerLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.customerPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -178,6 +179,17 @@
             this.label6value.TabIndex = 12;
             this.label6value.Text = "label9";
             // 
+            // selectCustomerLabel
+            // 
+            this.selectCustomerLabel.AutoSize = true;
+            this.selectCustomerLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.selectCustomerLabel.Location = new System.Drawing.Point(229, 60);
+            this.selectCustomerLabel.Name = "selectCustomerLabel";
+            this.selectCustomerLabel.Size = new System.Drawing.Size(318, 29);
+            this.selectCustomerLabel.TabIndex = 13;
+            this.selectCustomerLabel.Text = "Please select a Customer!";
+            this.selectCustomerLabel.TextChanged += new System.EventHandler(this.selectCustomerLabel_TextChanged);
+            // 
             // CustomerDataUC
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -185,6 +197,7 @@
             this.BackColor = System.Drawing.Color.White;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.Controls.Add(this.selectCustomerLabel);
             this.Controls.Add(this.label6value);
             this.Controls.Add(this.label5value);
             this.Controls.Add(this.label4value);
@@ -223,5 +236,6 @@
         private System.Windows.Forms.Label label4value;
         private System.Windows.Forms.Label label5value;
         private System.Windows.Forms.Label label6value;
+        public System.Windows.Forms.Label selectCustomerLabel;
     }
 }

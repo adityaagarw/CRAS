@@ -60,7 +60,7 @@ namespace CRAS
         }
         
         
-        public static BindingList<redis_customer> ReadAllDataFromRedis(ConnectionMultiplexer redisConnection, string customer_id = "*")
+        public static BindingList<redis_customer> GetCustomerDetails(ConnectionMultiplexer redisConnection, string customer_id = "*")
         {
             BindingList<redis_customer> customer_list = new BindingList<redis_customer>();
 
@@ -75,39 +75,69 @@ namespace CRAS
                     customer.key = hashKey.ToString();
                     
 
-                        customer.customer_id = db.HashGet(hashKey, "customer_id").ToString();
-                        customer.name = db.HashGet(hashKey, "name").ToString();
-                        customer.phone_number = db.HashGet(hashKey, "phone_number").ToString();
-                        customer.image = db.HashGet(hashKey, "image");
-                        customer.return_customer = db.HashGet(hashKey, "return_customer").ToString();
-                        customer.last_visit = db.HashGet(hashKey, "last_visit").ToString();
+                    customer.customer_id = db.HashGet(hashKey, "customer_id").ToString();
+    
+                    customer.name = db.HashGet(hashKey, "name").ToString();
+                    customer.phone_number = db.HashGet(hashKey, "phone_number").ToString();
+                    customer.image = db.HashGet(hashKey, "image");
+                    customer.return_customer = db.HashGet(hashKey, "return_customer").ToString();
+                    
+                    DateTime.TryParse(db.HashGet(hashKey, "last_visit").ToString(), out DateTime result_lastVisit);
+                    customer.last_visit = result_lastVisit;
+
+                    int.TryParse(db.HashGet(hashKey, "average_time_spent").ToString(), out int resultInt);
+                    customer.average_time_spent = resultInt; resultInt = 0;
+
+                    float.TryParse(db.HashGet(hashKey, "average_bill_value").ToString(), out float result);
+                    customer.average_bill_value = result; result = 0;
+
+                    float.TryParse(db.HashGet(hashKey, "average_bill_per_visit").ToString(), out result);
+                    customer.average_bill_per_visit = result; result = 0; 
+                    
+                    float.TryParse(db.HashGet(hashKey, "average_bill_per_billed_visit").ToString(), out result);
+                    customer.average_bill_per_billed_visit = result; result = 0;
+
+                    float.TryParse(db.HashGet(hashKey, "maximum_purchase").ToString(), out result);
+                    customer.maximum_purchase = result; result = 0;
+
+                    customer.remarks = db.HashGet(hashKey, "remarks").ToString();
+
+                    customer.loyalty_level = db.HashGet(hashKey, "loyalty_level").ToString();
+
+                    int.TryParse(db.HashGet(hashKey, "num_bills").ToString(), out int result_int);
+                    customer.num_bills = result_int; result_int = 0;
+
+                    int.TryParse(db.HashGet(hashKey, "num_visits").ToString(), out result_int);
+                    customer.num_visits = result_int; result_int = 0;
+                    
+                    int.TryParse(db.HashGet(hashKey, "num_billed_visits").ToString(), out result_int);
+                    customer.num_billed_visits = result_int; result_int = 0;
+
+                    customer.last_location = db.HashGet(hashKey, "last_location").ToString();
+                    customer.location_list = db.HashGet(hashKey, "location_list").ToString().Split(',').ToList();
+                    customer.category = db.HashGet(hashKey, "category").ToString();
                         
-                        float.TryParse(db.HashGet(hashKey, "average_time_spent").ToString(), out float result);
-                        customer.average_time_spent = result; result = 0;
+                    DateTime.TryParse(db.HashGet(hashKey, "entry_time").ToString(), out DateTime result_entryTime);
+                    customer.entry_time = result_entryTime;
 
-                        float.TryParse(db.HashGet(hashKey, "average_purchase").ToString(), out result);
-                        customer.average_purchase = result; result = 0;
+                    DateTime.TryParse(db.HashGet(hashKey, "creation_date").ToString(), out DateTime result_creationDate);
+                    customer.creation_date = result_creationDate;
 
-                        float.TryParse(db.HashGet(hashKey, "maximum_purchase").ToString(), out result);
-                        customer.maximum_purchase = result; result = 0;
+                    int.TryParse(db.HashGet(hashKey, "group_id").ToString(), out result_int);
+                    customer.group_id = result_int; result_int = 0;
 
-                        customer.remarks = db.HashGet(hashKey, "remarks").ToString();
+                    int.TryParse(db.HashGet(hashKey, "incomplete").ToString(), out result_int);
+                    customer.incomplete = result_int; result_int = 0;
 
-                        int.TryParse(db.HashGet(hashKey, "loyalty_level").ToString(), out int result_int);
-                        customer.loyalty_level = result_int; result_int = 0;
+                    int.TryParse(db.HashGet(hashKey, "exited").ToString(), out result_int);
+                    customer.exited = result_int; result_int = 0;
 
-                        int.TryParse(db.HashGet(hashKey, "num_visits").ToString(), out result_int);
-                        customer.num_visits = result_int; result_int = 0;
+                    DateTime.TryParse(db.HashGet(hashKey, "visit_time").ToString(), out DateTime result_visitTime);
+                    customer.visit_time = result_visitTime;
 
-                        customer.last_location = db.HashGet(hashKey, "last_location").ToString();
-                        customer.location_list = db.HashGet(hashKey, "location_list").ToString().Split(',').ToList();
-                        customer.category = db.HashGet(hashKey, "category").ToString();
-                        
-                        DateTime.TryParse(db.HashGet(hashKey, "entry_time").ToString(), out DateTime result_entryTime);
-                        customer.entry_time = result_entryTime;
+                    DateTime.TryParse(db.HashGet(hashKey, "exit_time").ToString(), out DateTime result_exitTime);
+                    customer.exit_time = result_exitTime;
 
-                        DateTime.TryParse(db.HashGet(hashKey, "creation_date").ToString(), out DateTime result_creationDate);
-                        customer.creation_date = result_creationDate;
 
                     //customer.print_record();
                     customer_list.Add(customer);
@@ -115,6 +145,106 @@ namespace CRAS
                 }
             }
             return customer_list;
+        }
+
+        public static BindingList<visit_details> GetVisitDetails(ConnectionMultiplexer redisConnection, string customer_id = "*")
+        {
+            BindingList<visit_details> visits = new BindingList<visit_details>();
+
+            if (redisConnection != null)
+            {
+                visit_details visit = new visit_details();
+                IServer redisServer = redisConnection.GetServer("127.0.0.1", 6379);
+                IDatabase db = redisConnection.GetDatabase();
+                foreach (var hashKey in redisServer.Keys(pattern: "visit_inmem_db:" + customer_id))
+                {
+                    visit.key = hashKey.ToString();
+
+                    visit.store_id = db.HashGet(hashKey, "store_id").ToString();
+                    visit.customer_id = db.HashGet(hashKey, "customer_id").ToString();
+                    visit.visit_id = db.HashGet(hashKey, "visit_id").ToString();
+
+                    DateTime.TryParse(db.HashGet(hashKey, "entry_time").ToString(), out DateTime result_entryTime);
+                    visit.entry_time = result_entryTime;
+                    DateTime.TryParse(db.HashGet(hashKey, "exit_time").ToString(), out DateTime result_exitTime);
+                    visit.exit_time = result_exitTime;
+
+                    int.TryParse(db.HashGet(hashKey, "billed").ToString(), out int result_int);
+                    visit.billed = result_int; result_int = 0;
+
+                    visit.bill_no = db.HashGet(hashKey, "bill_no").ToString();
+                    
+                    DateTime.TryParse(db.HashGet(hashKey, "bill_date").ToString(), out DateTime result_billDate);
+                    visit.bill_date = result_billDate;
+
+                    int.TryParse(db.HashGet(hashKey, "bill_amount").ToString(), out result_int);
+                    visit.bill_amount = result_int; result_int = 0;
+
+                    int.TryParse(db.HashGet(hashKey, "return_amount").ToString(), out result_int);
+                    visit.return_amount = result_int; result_int = 0;
+
+                    int.TryParse(db.HashGet(hashKey, "time_spent").ToString(), out int result_timespent);
+                    visit.time_spent = result_timespent;
+
+                    visit.visit_remark = db.HashGet(hashKey, "visit_remark").ToString();
+
+                    int.TryParse(db.HashGet(hashKey, "customer_rating").ToString(), out result_int);
+                    visit.customer_rating = result_int; result_int = 0;
+
+                    int.TryParse(db.HashGet(hashKey, "customer_feedback").ToString(), out result_int);
+                    visit.customer_feedback = result_int; result_int = 0;
+
+                    int.TryParse(db.HashGet(hashKey, "incomplete").ToString(), out result_int);
+                    visit.incomplete = result_int; result_int = 0;
+
+                    //visit.Print();
+                    visits.Add(visit);
+
+                }
+            }
+            return visits;
+        }
+
+        public static void UpdateVisitDetails(ConnectionMultiplexer redisConnection, visit_details visit)
+        {
+            if (redisConnection != null)
+            {
+                visit.Print();
+
+                IServer redisServer = redisConnection.GetServer("127.0.0.1", 6379);
+
+                IDatabase db = redisConnection.GetDatabase();
+
+                string key = visit.key;
+
+                HashEntry[] visitData = visit.getHashEntry();
+
+                db.HashSet(key, visitData);
+
+                Console.WriteLine("Updated visit in Redis");
+                
+            }
+        }
+
+        public static void UpdateCustomerDetails(ConnectionMultiplexer redisConnection, redis_customer customer)
+        {
+            if (redisConnection != null)
+            {
+                //customer.Print();
+
+                IServer redisServer = redisConnection.GetServer("127.0.0.1", 6379);
+
+                IDatabase db = redisConnection.GetDatabase();
+
+                string key = customer.key;
+
+                HashEntry[] customerData = customer.getHashEntry();
+
+                db.HashSet(key, customerData);
+
+                Console.WriteLine("Updated Customer in Redis");
+
+            }
         }
     }
 }

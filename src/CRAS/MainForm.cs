@@ -16,6 +16,7 @@ using TableDependency.SqlClient.Base;
 using System.Security.Cryptography;
 using TableDependency.SqlClient;
 using TableDependency.SqlClient.Base.EventArgs;
+using Npgsql;
 
 namespace CRAS
 {
@@ -50,8 +51,11 @@ namespace CRAS
         public static string POSUID = "sa";
         public static string POSPWD = "aa";
         public static BindingList<bill_details> bills = new BindingList<bill_details>();
+        public static BindingList<visit_details> visits = new BindingList<visit_details>();
+
         public static int bill_scanning = 0;
         public static BindingList<redis_customer> exited_customers = new BindingList<redis_customer>();
+        public static NpgsqlConnection pgsql_connection;
 
 
         public MainForm()
@@ -72,25 +76,33 @@ namespace CRAS
             Thread loadingThread = new Thread(ShowLoadingForm);
             loadingThread.Start();
 
+            exitedCustomerFLP.Parent = customerFlowLayout.Parent;
+            exitedCustomerFLP.Location = customerFlowLayout.Location;
             scanStatusLabel.Text = "Scan Completed";
 
             redisConnection = redis_utilities.ConnectToRedis("127.0.0.1", "6379");
             redisDB = redisConnection.GetDatabase();
 
-            customer_list = redis_utilities.ReadAllDataFromRedis(redisConnection);
+            customer_list = redis_utilities.GetCustomerDetails(redisConnection);
             //customer_list = customer_list.OrderByDescending(customer => customer.entry_time).ToList();
             customer_list = utilities.OrderBy(customer_list, "entry_time", "DESC");
 
             customer_list_count = customer_list.Count();
 
-            pubsub_utilities.InitialiseSubscribers("Backend");
+            pubsub_utilities.InitialiseSubscribers("Backend", this);
             pubsub_utilities.InitialiseSubscribers("Billing", this);
 
+            pgsql_connection = pgsql_utilities.ConnectToPGSQL();
+            pgsql_connection.Open();
+            Console.WriteLine("PGSQL Connected to Server Version: " + pgsql_connection.ServerVersion.ToString());
+            pgsql_connection.Close();
 
             //Add ListChanged Listener to customer_list
             customer_list.ListChanged += Customer_list_ListChanged;
             exited_customers.ListChanged += Exited_customers_ListChanged;
+            bills = pgsql_utilities.GetBillDetails(pgsql_connection, "", "", 10);
             bills.ListChanged += Bills_ListChanged;
+
 
             PopulateCustomerFlowLayout(customer_list);
 
@@ -105,36 +117,80 @@ namespace CRAS
         {
             int new_records = exited_customers.Count - exited_customers_count;
 
-            if(new_records > 0)
+            if (new_records > 0)
             {
 
                 for (int i = 0; i < new_records; i++)
                 {
-                    InsertCustomerInLayout(exitedCustomerFLP, customer_list[i], i);
+                    InsertCustomerInLayout(exitedCustomerFLP, exited_customers[exited_customers_count + i], i);
+                    Console.WriteLine("Customer added to Exited List! New Records: " + exited_customers[exited_customers_count + i].customer_id);
+
                 }
+                exited_customers_count = exited_customers.Count;
             }
             //throw new NotImplementedException();
         }
 
         private void Bills_ListChanged(object sender, ListChangedEventArgs e)
         {
+
+            Console.WriteLine("Bill List Change Triggered");
             BillingForm billingForm = GetBillingFormIfOpen();
 
             if(billingForm != null)
             {
-                BindingList<redis_customer> customers = billingForm.current_bill.identified_customers;
-                if (billingForm.identifiedFacesFLP.Controls.Count != customers.Count)
+                Console.WriteLine("Billing form open: " + billingForm.Name);
+                //billingForm.updateButton.Enabled = true;
+
+                if (billingForm.current_bill == null)
                 {
-                    billingForm.InsertIdentifiedCustomer(customers[customers.Count-1]);
+                    billingForm.current_bill = bills[bills.Count - 1];
+                    billingForm.Invoke(new Action(() => { billingForm.PopulateBillDetails(billingForm.current_bill); }));
+
+                    
                 }
+
+                BindingList<redis_customer> customers = billingForm.current_bill.identified_customers;
+                if (billingForm.identifiedFacesFLP.Controls.Count > 0)
+                //if (customers.Count > 0)
+                {
+                    Console.WriteLine("Inserting identified customer to FLP at index " + billingForm.identifiedFacesFLP.Controls.Count);
+                    if (billingForm.identifiedFacesFLP.Controls.Count != customers.Count)
+                    {
+                        //billingForm.InsertIdentifiedCustomer(customers[customers.Count - 1]);
+                        billingForm.Invoke(new Action(() => { billingForm.InitializeCustomerFLP(billingForm.current_bill); }));
+
+                    }
+                }
+                else
+                {
+                    if (customers != null)
+                    {
+                        Console.WriteLine("Inserting identified customer to FLP at index 0");
+                        //billingForm.InsertIdentifiedCustomer(customers[0]);
+                        billingForm.Invoke(new Action (() => { billingForm.InitializeCustomerFLP(billingForm.current_bill); }));
+
+                    }
+                    else Console.WriteLine("Bill Changed but no customer present");
+
+                }
+
+            }
+
+            else
+            {
+                Console.WriteLine("Billing Form Not Open!");
             }
             //throw new NotImplementedException();
         }
 
         private void Customer_list_ListChanged(object sender, ListChangedEventArgs e)
         {
+            Console.WriteLine("List changed!!!!!!! " + e.ListChangedType);
             //PopulateCustomerFlowLayout();
             int new_records = customer_list.Count - customer_list_count;
+
+            Console.WriteLine("New Record: " +  new_records);
 
             if (new_records > 0)
             {
@@ -144,9 +200,13 @@ namespace CRAS
                 }
             }
 
-            else if(new_records < 0)
-            {
-
+            else if (new_records<0)            
+            {    
+                /*for (int i = 0; i < -1*new_records; i++)
+                {
+                    //InsertCustomerInLayout(customerFlowLayout, customer_list[i], i);
+                    Console.WriteLine("Remove Customer: " + customer_list[e.NewIndex].customer_id + " from in-Store list!");
+                }*/
             }
             customer_list_count = customer_list.Count();
             //throw new NotImplementedException();
@@ -162,8 +222,9 @@ namespace CRAS
             customerData.SetLabel("label2", "Phone: ", customer.phone_number);
             customerData.SetLabel("label3", "Returning: ", customer.return_customer);
             customerData.SetLabel("label4", "Category: ", customer.category);
-            customerData.SetLabel("label5", "Last Visit: ", customer.last_visit);
+            customerData.SetLabel("label5", "Last Visit: ", customer.last_visit.ToString("dd-MM-yyyy HH:mm:ss"));
             customerData.SetLabel("label6", "Entry Time: ", customer.entry_time.ToShortTimeString());
+            customerData.selectCustomerLabel.Hide();
 
             if (index > -1)
             {
@@ -377,7 +438,7 @@ namespace CRAS
 
 
                 pipeThread2 = new Thread(ReceiveFrames);
-                pipeThread2.Start("1");
+                pipeThread2.Start("2");
 
                 cam2StatusLabel.Text = "active";
                 cam2StatusLabel.ForeColor = Color.Green;
@@ -473,6 +534,7 @@ namespace CRAS
             var mapper = new ModelToTableMapper<bill_details>();
             mapper.AddMapping(c => c.name, "AccountName");
             mapper.AddMapping(c => c.mobile, "MobileNo");
+            mapper.AddMapping(c => c.billDate, "AddDate");
             mapper.AddMapping(c => c.billNo, "VoucherNo");
             mapper.AddMapping(c => c.billAmt, "NetAmt");
             mapper.AddMapping(c => c.returnAmt, "ReturnAmt");
@@ -494,14 +556,26 @@ namespace CRAS
             var changedEntity = e.Entity;
 
             Console.WriteLine("DML operation: " + e.ChangeType);
+            
+            changedEntity.billAmtInt = int.Parse(changedEntity.billAmt.Split('.')[0]);
+            changedEntity.returnAmtInt = int.Parse(changedEntity.returnAmt.Split('.')[0]);
+            changedEntity.qtyInt = int.Parse(changedEntity.qty.Split('.')[0]);
+            changedEntity.billAmt = changedEntity.billAmt.Split('.')[0];
+            changedEntity.returnAmt = changedEntity.returnAmt.Split('.')[0];
+            changedEntity.qty = changedEntity.qty.Split('.')[0];
             changedEntity.Print();
-            bills.Add(changedEntity);
 
-            pubsub_utilities.PublishMessage("Frontend", "StartBilling");
-            bill_scanning = 1;
-            Invoke(new Action(() => { scanStatusLabel.Text = "Scanning"; }));
+            if (e.ChangeType == TableDependency.SqlClient.Base.Enums.ChangeType.Insert)
+            {
+                changedEntity.identified_customers.ListChanged += Bills_ListChanged;
+                bills.Add(changedEntity);
 
+                pubsub_utilities.PublishMessage("Frontend", "StartBilling");
+                bill_scanning = 1;
+                Invoke(new Action(() => { scanStatusLabel.Text = "Scanning"; }));
+            }
         }
+
 
         public Form GetChildFormIfAny(string formName)
         {
@@ -515,7 +589,7 @@ namespace CRAS
             return null;
         }
 
-        public BillingForm GetBillingFormIfOpen()
+        public static BillingForm GetBillingFormIfOpen()
         {
             BillingForm billingForm = Application.OpenForms.OfType<BillingForm>().FirstOrDefault();
 
@@ -553,6 +627,7 @@ namespace CRAS
 
                     billingForm.total_bills = bills.Count;
                     billingForm.SetNavigationButtons();
+
                 }
             }
         }

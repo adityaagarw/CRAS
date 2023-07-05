@@ -34,9 +34,9 @@ namespace CRAS
             pictureBox1.Image = utilities.BytetoImage(customer.image);
             nameTextBox.Text = customer.name;
             mobileTextBox.Text = customer.phone_number;
-            lastVisitTextBox.Text = customer.last_visit;
+            lastVisitTextBox.Text = customer.last_visit.ToString("dd-MM-yyyy HH:mm:ss");
             avgTimeTextBox.Text = customer.average_time_spent.ToString();
-            avgPurchaseTextBox.Text = customer.average_purchase.ToString();
+            avgPurchaseTextBox.Text = customer.average_bill_value.ToString();
             maxPurchasetextBox.Text = customer.maximum_purchase.ToString();
             remarksTextBox.Text = customer.remarks;
             memberSinceLabel.Text = customer.creation_date.ToShortDateString();

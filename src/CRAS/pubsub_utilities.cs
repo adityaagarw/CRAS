@@ -17,8 +17,12 @@ namespace CRAS
         public static void NewCustomerIdentified(string customer_id)
         {
             redis_customer customer;
+            visit_details visit;
 
-            customer = redis_utilities.ReadAllDataFromRedis(MainForm.redisConnection, customer_id)[0];
+            customer = redis_utilities.GetCustomerDetails(MainForm.redisConnection, customer_id)[0];
+            visit = redis_utilities.GetVisitDetails(MainForm.redisConnection, customer_id)[0];
+
+            MainForm.visits.Insert(0, visit);
             MainForm.customer_list.Insert(0, customer);
             
         }
@@ -44,19 +48,36 @@ namespace CRAS
         {
             redis_customer customer;
             customer = GetCustomerFromInMem(customer_id);
-            if (customer != null && MainForm.bills.Count>0)
+            if (customer != null && MainForm.bills.Count > 0)
             {
                 MainForm.bills[MainForm.bills.Count - 1].AddCustomer(customer);
                 //BillingForm.identified_customers.Add(customer);
             }
+
+        }
+        public static void ReScanCustomerIdentified(string customer_id)
+        {
+            redis_customer customer;
+            customer = GetCustomerFromInMem(customer_id);
+            if (customer != null && MainForm.bills.Count > 0)
+            {
+                //MainForm.bills[MainForm.bills.Count - 1].AddCustomer(customer);
+                MainForm.bills[BillingForm.current_bill_index].AddCustomer(customer);
+                //BillingForm.identified_customers.Add(customer);
+            }
+
         }
 
-        public static void CustomerExited(string customer_id)
+        public static void CustomerExited(string customer_id, MainForm mainForm = null)
         {
             redis_customer customer;
             customer = GetCustomerFromInMem(customer_id);
             MainForm.exited_customers.Add(customer);
-            //MainForm.customer_list.Remove(customer);
+            int index = MainForm.customer_list.IndexOf(customer);
+            MainForm.customer_list.Remove(customer);
+            if (mainForm != null) mainForm.Invoke(new Action(() => mainForm.customerFlowLayout.Controls.RemoveAt(index)));
+           
+            
         }
 
         public static void PublishMessage(string channelName, string message)
@@ -92,25 +113,50 @@ namespace CRAS
                     Console.WriteLine("Existing Customer Entered! Customer Id:" + customer_id + " Temp id: " + temp_customer_id);
 
                 }
-                if(messageReceived.StartsWith("BillingCustomer"))
+                if (messageReceived.StartsWith("BillingCustomer"))
                 {
                     customer_id = messageReceived.Split(':')[1];
                     Console.WriteLine("Billing Customer Identified:" + customer_id);
                     BillingCustomerIdentified(customer_id);
-
                 }
+
+                if (messageReceived.StartsWith("RescanCustomer"))
+                {
+                    customer_id = messageReceived.Split(':')[1];
+                    Console.WriteLine("Rescan Customer Identified:" + customer_id);
+                    ReScanCustomerIdentified(customer_id);
+                }
+
                 if (messageReceived.StartsWith("EndBilling"))
                 {
                     Console.WriteLine("Billing Stream Ended!");
                     MainForm.bill_scanning = 0;
                     mainForm.Invoke(new Action(() => { mainForm.scanStatusLabel.Text = "Scan Completed"; }));
+                    pgsql_utilities.InsertBillDetails(MainForm.pgsql_connection, MainForm.bills[MainForm.bills.Count -1]);
+                    //In case Bill Exists, then update instead of Insert
+                    //billingForm.scanStatus.ForeColor = Color.Gray;
+                }
+                if (messageReceived.StartsWith("EndRescan"))
+                {
+                    Console.WriteLine("Rescan Stream Ended!");
+                    MainForm.bill_scanning = 0;
+                    BillingForm billingForm = MainForm.GetBillingFormIfOpen();
+                if (billingForm != null)
+                {
+                    billingForm.Invoke(new Action(() => { billingForm.scanStatus.Text = "Scan Completed"; }));
+                    pgsql_utilities.UpdateBillDetails(MainForm.pgsql_connection, billingForm.current_bill);
+                    billingForm.Invoke(new Action(() => {billingForm.FormBorderStyle = FormBorderStyle.FixedToolWindow; }));
+
+                    }
+                    if (mainForm != null) mainForm.Invoke(new Action(() => { mainForm.scanStatusLabel.Text = "Scan Completed"; }));
+                    //In case Bill Exists, then update instead of Insert
                     //billingForm.scanStatus.ForeColor = Color.Gray;
                 }
                 if (messageReceived.StartsWith("DeleteCustomer"))
                 {
                     customer_id = messageReceived.Split(':')[1];
                     Console.WriteLine("Customer Exited: " + customer_id);
-                    CustomerExited(customer_id);
+                    CustomerExited(customer_id, mainForm);
                 }
                 if (messageReceived.StartsWith("Employee"))
                 {
