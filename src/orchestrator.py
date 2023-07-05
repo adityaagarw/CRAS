@@ -118,6 +118,14 @@ def check_create_db():
 
     return 0
 
+def write_status(status):
+    with open("status", "w") as f:
+        f.write(str(status))
+
+def start_status_check():
+    # Start status check
+    subprocess.Popen([get_python_command(), 'status_check.py'])
+
 # Start cameras - Producer 
 def start_cameras():
     # Start entry camera
@@ -167,6 +175,8 @@ if __name__ == "__main__":
             else:
                 os.remove("exit_pid")
 
+    write_status(0)
+    start_status_check()
     get_camera_ids()
     build_config()
     ret = start_docker()

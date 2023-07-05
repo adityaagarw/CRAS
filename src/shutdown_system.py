@@ -2,21 +2,33 @@ import os
 import psutil
 
 def read_entry_pid():
-    # Read the PID from the file
-    with open("entry_pid", "r") as f:
-        pid = int(f.read())
+    try:
+        # Read the PID from the file
+        with open("entry_pid", "r") as f:
+            pid = int(f.read())
+    except:
+        print("Entry program not running!")
+        exit(1)
     return pid
 
 def read_billing_pid():
-    # Read the PID from the file
-    with open("billing_pid", "r") as f:
-        pid = int(f.read())
+    try:
+        # Read the PID from the file
+        with open("billing_pid", "r") as f:
+            pid = int(f.read())
+    except:
+        print("Billing program not running!")
+        exit(1)
     return pid
 
 def read_exit_pid():
     # Read the PID from the file
-    with open("exit_pid", "r") as f:
-        pid = int(f.read())
+    try:
+        with open("exit_pid", "r") as f:
+            pid = int(f.read())
+    except:
+        print("Exit program not running!")
+        exit(1)
     return pid
 
 def delete_entry_pid():
@@ -32,6 +44,10 @@ def delete_exit_pid():
     os.remove("exit_pid")
 
 if __name__ == "__main__":
+
+    with open("status", "w") as f:
+        f.write("2")
+
     entry_pid = read_entry_pid()
     billing_pid = read_billing_pid()
     exit_pid = read_exit_pid()

@@ -33,10 +33,11 @@ def get_face_image(face_pixels, target_size=(160, 160)):
     except:
         face_pixels_rgb = face_pixels
 
+    #if len(face_pixels_rgb.shape) not in [2, 3] or (len(face_pixels_rgb.shape) == 3 and face_pixels_rgb.shape[2] not in [3, 4]):
     try:
         face_image = Image.fromarray(face_pixels_rgb)
     except:
-        face_image = Image.frombuffer(face_pixels_rgb)
+        return None
     
     face_image = face_image.resize(target_size)
     img_bytes = io.BytesIO()
@@ -178,6 +179,10 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
     date_format = "%Y-%m-%d %H:%M:%S"
     new_id = Utils.generate_unique_id()
     face_img = get_face_image(face_pixels)
+    if not face_img:
+        print("Empty face image.")
+        face_img = np.zeros((1,1), dtype=np.uint8)
+
     current_location = in_mem_db.fetch_store_location()
     store_id = in_mem_db.fetch_store_id()
     time_now = datetime.now().strftime(date_format)
@@ -335,6 +340,9 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
 
     message = BackendMessage.UpdateCustomer.value + ":" + str(record[0]) + "," + BackendMessage.TempCustomer.value + ":" + str(new_record.customer_id)
     in_mem_db.connection.publish(Channel.Backend.value, message)
+    message = BackendMessage.NewCustomer.value + ":" + str(customer_id)
+    in_mem_db.connection.publish(Channel.Backend.value, message)
+
 
 def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
     # Get all customer records from the in-memory Redis database

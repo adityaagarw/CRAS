@@ -438,6 +438,8 @@ def update_record_inmem(record, in_mem_db):
     in_mem_db.delete_record(customer_id, type="visit")
     in_mem_db.insert_record(new_customer_record)
     in_mem_db.insert_record(new_visit_record, type="visit")
+    messsage = BackendMessage.UpdateCustomer.value + ":" + str(customer_id)
+    in_mem_db.connection.publish(Channel.Backend.value, messsage)
     return new_customer_record.customer_id
 
 def get_face_record_from_localdb(face_encoding, threshold, local_db):
