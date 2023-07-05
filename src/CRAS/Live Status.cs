@@ -28,7 +28,7 @@ namespace CRAS
             
             foreach (String pipe in listOfPipes) 
             { 
-                if(pipe.Contains("webcam_feed")) pipes.Add(pipe);
+                if(pipe.Contains("cam_")) pipes.Add(pipe);
             }
             livePipeListBox.DataSource = pipes;
             

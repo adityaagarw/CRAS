@@ -305,7 +305,7 @@ namespace CRAS
         private NamedPipeClientStream StartPipe(object camera_id)
         {
             // Connect to the named pipe
-            string pipe_name = "webcam_feed" + camera_id.ToString();
+            string pipe_name = "webcam_" + camera_id.ToString();
             Console.WriteLine("Pipe name:" + pipe_name);
 
             PipeSecurity pipeSecurity = new PipeSecurity();
@@ -353,7 +353,7 @@ namespace CRAS
         private void ReceiveFrames(object camera_id)
         {
             // Connect to the named pipe
-            string pipe_name = "webcam_feed" + camera_id.ToString();
+            string pipe_name = "cam_" + camera_id.ToString();
             Console.WriteLine("Pipe name:" + pipe_name);
 
             PipeSecurity pipeSecurity = new PipeSecurity();
@@ -365,7 +365,7 @@ namespace CRAS
 
             PictureBox pictureBox = new PictureBox();
             
-            if (camera_id.ToString().Equals("0"))
+            if (camera_id.ToString().Equals("entry"))
             {
                 pipeClient1 = new NamedPipeClientStream(".", pipe_name, PipeDirection.In, PipeOptions.Asynchronous);
                 pipeClient = pipeClient1;
@@ -431,14 +431,14 @@ namespace CRAS
 
                 // Start the separate thread to read from the named pipe
                 pipeThread1 = new Thread(ReceiveFrames);
-                pipeThread1.Start("0");
+                pipeThread1.Start("entry");
 
                 cam1StatusLabel.Text = "active";
                 cam1StatusLabel.ForeColor = Color.Green;
 
 
                 pipeThread2 = new Thread(ReceiveFrames);
-                pipeThread2.Start("2");
+                pipeThread2.Start("exit");
 
                 cam2StatusLabel.Text = "active";
                 cam2StatusLabel.ForeColor = Color.Green;
@@ -472,7 +472,7 @@ namespace CRAS
             String[] listOfPipes = System.IO.Directory.GetFiles(@"\\.\pipe\");
             foreach (String pipe in listOfPipes)
             {
-                if (pipe.Contains("webcam_feed")) pipes.Add(pipe);
+                if (pipe.Contains("webcam_")) pipes.Add(pipe);
             }
             return pipes;
         }
