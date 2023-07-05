@@ -25,7 +25,7 @@ QUEUE_MAX_SIZE = 100000
 SEARCH_QUEUE_SIZE = 100000
 NUM_CONSUMER_PROCESSES = 1
 NUM_SEARCH_PROCESSES = 1
-EXIT_EXPIRY_TIME = 10
+EXIT_EXPIRY_TIME = 15.0
 
 def get_face_image(face_pixels, target_size=(160, 160)):
     #face_8bit = np.clip(face_pixels, 0, 255).astype(np.uint8)
@@ -305,6 +305,7 @@ def commit_record(customer_id):
         local_db.insert_visit_record(ins_visit_record)
         in_mem_db.delete_record(str(customer_id), type="customer")
         in_mem_db.delete_record(str(customer_id), type="visit")
+        in_mem_db.delete_record(str(customer_id), type="exited")
         in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.DeleteCustomer.value + ":" + str(customer_id))
 
     in_mem_db.disconnect()
