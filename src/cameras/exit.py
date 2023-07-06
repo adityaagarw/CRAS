@@ -366,12 +366,14 @@ def update_record_inmem(record, in_mem_db):
     # Update location list and last location
     current_location = str(in_mem_db.fetch_store_location())
     updated_last_location = current_location
-    if record.get(b'location_list').decode() == "":
-        updated_location_list = "{" + current_location + "}"
-    else:
-        location_list_string = record.get(b'location_list').decode().strip("{}")
-        location_list_string = location_list_string + "," + current_location
-        updated_location_list = "{" + location_list_string + "}"
+    # if record.get(b'location_list').decode() == "":
+    #     updated_location_list = "{" + current_location + "}"
+
+    # else:
+    #     location_list_string = record.get(b'location_list').decode().strip("{}")
+    #     location_list_string = location_list_string + "," + current_location
+    #     updated_location_list = "{" + location_list_string + "}"
+    updated_location_list = "{" + current_location + "}"
     
     print(updated_location_list)
     print(updated_avg_time_spent)

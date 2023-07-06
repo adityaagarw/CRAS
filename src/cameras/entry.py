@@ -306,6 +306,7 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
 
     encoding_str_list = encoding.strip("[]").split()
     encoding_str = ",".join(encoding_str_list)
+
     face_encoding_np = np.fromstring(encoding_str, sep=",", dtype=np.float32)
 
     # Insert exisitng record to in-mem   #DEBUG will face problems later
