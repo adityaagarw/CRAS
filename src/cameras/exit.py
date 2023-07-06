@@ -331,13 +331,13 @@ def update_record_inmem(record, in_mem_db):
     updated_num_visits = num_visits + 1
 
     # Update average time spent
-    old_avg_time_spent = float(record.get(b'average_time_spent').decode())
+    old_avg_time_spent = record.get(b'average_time_spent').decode()
     if old_avg_time_spent == "":
         updated_avg_time_spent = str(time_spent)
     else:
         # Convert existing avg time to datetime
 
-        existing_interval_seconds = old_avg_time_spent
+        existing_interval_seconds = float(old_avg_time_spent)
         
         exisitng_total_seconds = existing_interval_seconds * num_visits
 
