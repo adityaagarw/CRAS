@@ -118,7 +118,7 @@ def create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_d
 
     local_db.insert_customer_record(new_customer_record)
     local_db.insert_visit_record(new_visit_record)
-    print("New customer record created and inserted to local db")
+    print("New customer record created and inserted to local db, customer: id: ", new_id)
 
 def insert_existing_record_to_visit(record, in_mem_db, local_db):
     # Delete exisitng record
@@ -144,7 +144,7 @@ def insert_existing_record_to_visit(record, in_mem_db, local_db):
         incomplete = "1"
     )
     local_db.insert_visit_record(new_visit_record)
-    print("Customer not found in memory but found in local db, recording visit")
+    print("Customer not found in memory but found in local db, recording visit, customer: id: ", customer_id)
 #################################################################################
 def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
     # Get all customer records from the in-memory Redis database
@@ -307,6 +307,7 @@ def commit_record(customer_id):
         in_mem_db.delete_record(str(customer_id), type="visit")
         in_mem_db.delete_record(str(customer_id), type="exited")
         in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.DeleteCustomer.value + ":" + str(customer_id))
+        print("Customer exited: ", customer_id)
 
     in_mem_db.disconnect()
     local_db.disconnect()

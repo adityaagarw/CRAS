@@ -173,6 +173,7 @@ def update_exit_entry_customer(in_mem_db, customer_id):
     in_mem_db.delete_record(customer_id, type="visit")
     in_mem_db.insert_record(new_customer_record)
     in_mem_db.insert_record(new_visit_record, type="visit")
+    print("Welcome back noob: ", customer_id)
     return new_customer_record.customer_id
 
 def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
@@ -243,7 +244,7 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
     in_mem_db.insert_record(new_customer_record)
     in_mem_db.insert_record(new_visit_record, type="visit")
 
-    print("Welcome new customer")
+    print("Welcome new customer: " + new_customer_record.customer_id)
     message = BackendMessage.NewCustomer.value + ":" + str(new_id)
     in_mem_db.connection.publish(Channel.Backend.value, message)
     return(new_customer_record)
@@ -355,7 +356,7 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
     )
 
     print("Inserting existing customer in memory")
-    print("Welcome exisitng customer")
+    print("Welcome exisitng customer: " + str(existing_customer_record.customer_id))
     in_mem_db.insert_record(existing_customer_record)
     in_mem_db.insert_record(modified_visit_record, type="visit")
     in_mem_db.delete_record(new_record.customer_id)
