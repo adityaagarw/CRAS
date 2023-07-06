@@ -3,6 +3,7 @@ import configparser
 import cv2
 import os
 import io
+import time
 import numpy as np
 import multiprocessing
 from datetime import datetime, timedelta
@@ -430,6 +431,7 @@ def pipe_stream_process(camera, parameters, pipe_q, camfeed_break_flag):
         except:
             print("Problem sending faces to pipe, continuing")
             continue
+        time.sleep(0.100)
 
     fp.destroy_pipe()
 
@@ -468,6 +470,7 @@ def search_face_data(parameters, search_q, lock, camfeed_break_flag):
             # Delete new record and add existing record
             with lock:
                 insert_existing_record_inmem(record, record_from_localdb, in_mem_db)
+        time.sleep(0.100)
 
 def enqueue_message(in_mem_db, message):
     in_mem_db.connection.rpush(BackendMessage.CancelQueue.value, message)
@@ -527,6 +530,7 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
                         continue
                     # Add new record id and face encoding to search queue for local db search
                     send_faces_to_search_queue(new_record, face_encoding, search_q)
+        time.sleep(0.100)
 
 def send_faces_to_search_queue(record, face_encoding, search_q):
     item = (record, face_encoding)
@@ -591,6 +595,7 @@ def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
             continue
         # Send faces to main queue for detection
         send_faces_to_queue(faces, frame, q)
+        time.sleep(0.100)
 
     camfeed_break_flag.set()
     

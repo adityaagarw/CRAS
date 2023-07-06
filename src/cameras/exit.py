@@ -4,6 +4,7 @@ import cv2
 import os
 import io
 import threading
+import time
 import numpy as np
 import multiprocessing
 from datetime import datetime, timedelta
@@ -493,6 +494,7 @@ def pipe_stream_process(camera, parameters, pipe_q, camfeed_break_flag):
         except:
             print("Problem sending faces to pipe, continuing")
             continue
+        time.sleep(0.100)
 
     fp.destroy_pipe()
 
@@ -532,6 +534,7 @@ def search_face_data(parameters, search_q, camfeed_break_flag):
             insert_existing_record_to_visit(record_from_localdb, in_mem_db, local_db)
         elif not record_from_localdb:
             create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_db, local_db)
+        time.sleep(0.100)
 
 def dequeue_messages(in_mem_db):
     messages = []
@@ -541,6 +544,7 @@ def dequeue_messages(in_mem_db):
             messages.append(message.decode())
         else:
             break
+        time.sleep(0.100)
     return messages
 
 def cancel_timer(timer_dict):
@@ -628,6 +632,7 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
                 if not record_from_incomplete_mem:
                     insert_record_to_incomplete_mem(face_encoding, in_mem_db)
                     send_faces_to_search_queue(face_encoding, face_pixels, search_q)
+        time.sleep(0.100)
 
 def send_faces_to_search_queue(face_encoding, face_pixels, search_q):
     item = (face_encoding, face_pixels)
@@ -687,6 +692,7 @@ def start_exit_cam(parameters, camera, q, pipe_q, search_q, stop):
             continue
         # Send faces to main queue for detection
         send_faces_to_queue(faces, frame, q)
+        time.sleep(0.100)
 
     camfeed_break_flag.set()
     
