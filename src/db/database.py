@@ -614,7 +614,7 @@ class InMemIncomplete:
         self.encoding = encoding
 
 class InMemExited:
-    def __init__(self, customer_id, encoding):
+    def __init__(self, customer_id):
         self.customer_id = customer_id
 
 # Class for the in-memory Redis database
