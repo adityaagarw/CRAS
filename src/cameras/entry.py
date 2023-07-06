@@ -183,6 +183,8 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
     if not face_img:
         print("Empty face image.")
         face_img = np.zeros((1,1), dtype=np.uint8)
+        face_img = face_img.tobytes()
+        return None
 
     current_location = in_mem_db.fetch_store_location()
     store_id = in_mem_db.fetch_store_id()
@@ -520,7 +522,8 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
                 elif not record_from_mem:
                     # Create a record < Assign an ID < treat as new
                     new_record = insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db)
-
+                    if not new_record:
+                        continue
                     # Add new record id and face encoding to search queue for local db search
                     send_faces_to_search_queue(new_record, face_encoding, search_q)
 
