@@ -54,12 +54,18 @@ def insert_record_to_incomplete_mem(face_encoding, inmem_db):
     )
     inmem_db.insert_record(new_record, type="incomplete")
 
-def insert_record_to_exited_mem(face_encoding, inmem_db):
+def insert_id_to_exited_mem(customer_id, inmem_db):
     new_record = InMemExited(
-        customer_id = str(Utils.generate_unique_id()),
-        encoding = face_encoding.tobytes()
+        customer_id = str(customer_id)
     )
     inmem_db.insert_record(new_record, type="exited")
+
+# def insert_record_to_exited_mem(face_encoding, inmem_db):
+#     new_record = InMemExited(
+#         customer_id = str(Utils.generate_unique_id()),
+#         encoding = face_encoding.tobytes()
+#     )
+#     inmem_db.insert_record(new_record, type="exited")
 #################################################################################
 def create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_db, local_db):
     date_format = "%Y-%m-%d %H:%M:%S"
@@ -203,33 +209,41 @@ def get_face_record_from_incomplete_mem(face_encoding, threshold, in_mem_db):
 
     return closest_record
 
-def get_face_record_from_exited_mem(face_encoding, threshold, in_mem_db):
-    records = in_mem_db.connection.keys('exited_inmem_db:*')
+# def get_face_record_from_exited_mem(face_encoding, threshold, in_mem_db):
+#     records = in_mem_db.connection.keys('exited_inmem_db:*')
 
-    # Initialize variables to track the closest record and similarity
-    closest_record = None
-    closest_similarity = -1.0
+#     # Initialize variables to track the closest record and similarity
+#     closest_record = None
+#     closest_similarity = -1.0
 
-    # Iterate over each record
-    for record_key in records:
-        # Retrieve the face encoding from the record
-        record_data = in_mem_db.connection.hgetall(record_key)
-        record_encoding_bytes = record_data.get(b'encoding')
+#     # Iterate over each record
+#     for record_key in records:
+#         # Retrieve the face encoding from the record
+#         record_data = in_mem_db.connection.hgetall(record_key)
+#         record_encoding_bytes = record_data.get(b'encoding')
 
-        # Convert the face encodings to numpy arrays
-        face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
+#         # Convert the face encodings to numpy arrays
+#         face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
         
-        record_encoding_np = np.frombuffer(record_encoding_bytes, dtype=np.float32)
+#         record_encoding_np = np.frombuffer(record_encoding_bytes, dtype=np.float32)
 
-        # Calculate the cosine similarity between the face encodings
-        similarity = cosine_similarity(face_encoding_np.reshape(1, -1), record_encoding_np.reshape(1, -1))
+#         # Calculate the cosine similarity between the face encodings
+#         similarity = cosine_similarity(face_encoding_np.reshape(1, -1), record_encoding_np.reshape(1, -1))
 
-        # Check if the similarity exceeds the threshold and is closer than the previous closest
-        if similarity > float(threshold) and similarity > closest_similarity:
-            closest_record = record_data
-            closest_similarity = similarity
+#         # Check if the similarity exceeds the threshold and is closer than the previous closest
+#         if similarity > float(threshold) and similarity > closest_similarity:
+#             closest_record = record_data
+#             closest_similarity = similarity
 
-    return closest_record
+#     return closest_record
+
+def get_face_id_from_exited_mem(face_id, in_mem_db):
+    record = in_mem_db.connection.hgetall("exited_inmem_db:" + str(face_id))
+    if record:
+        customer_id = record.get(b'customer_id')
+        return customer_id
+    else:
+        return None
 
 def commit_record(customer_id):
     in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
@@ -592,16 +606,19 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
             record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
 
             if record_from_mem:
-                print("Found in memory: ", str(record_from_mem.get(b'customer_id').decode()))
-                record_from_exited_mem = get_face_record_from_exited_mem(face_encoding, parameters.threshold, in_mem_db)
-                if not record_from_exited_mem:
-                    print("Updating record in memory: ", str(record_from_mem.get(b'customer_id').decode()))
+                customer_id = str(record_from_mem.get(b'customer_id').decode())
+                print("Found in memory: ", customer_id)
+                #record_from_exited_mem = get_face_record_from_exited_mem(face_encoding, parameters.threshold, in_mem_db)
+                id_from_exited_mem = get_face_id_from_exited_mem(customer_id, in_mem_db)
+                if not id_from_exited_mem:
+                    print("Updating record in memory: ", customer_id)
                     id = update_record_inmem(record_from_mem, in_mem_db)
                     timer = start_expiry_timer(id) #DEBUG Remove exited entry on timer expire
                     timer_dict[id] = timer
-                    insert_record_to_exited_mem(face_encoding, in_mem_db)
+                    #insert_record_to_exited_mem(face_encoding, in_mem_db)
+                    insert_id_to_exited_mem(customer_id, in_mem_db)
                 else:
-                    print("Found in exited memory: ", str(record_from_exited_mem.get(b'customer_id').decode()))
+                    print("Found in exited memory: ", str(id_from_exited_mem))
 
             elif not record_from_mem:
                 record_from_incomplete_mem = get_face_record_from_incomplete_mem(face_encoding, parameters.threshold, in_mem_db)
