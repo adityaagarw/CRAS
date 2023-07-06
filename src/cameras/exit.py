@@ -331,7 +331,7 @@ def update_record_inmem(record, in_mem_db):
     updated_num_visits = num_visits + 1
 
     # Update average time spent
-    old_avg_time_spent = record.get(b'average_time_spent').decode()
+    old_avg_time_spent = float(record.get(b'average_time_spent').decode())
     if old_avg_time_spent == "":
         updated_avg_time_spent = str(time_spent)
     else:

@@ -541,8 +541,8 @@ def send_faces_to_queue(faces, frame, q):
 def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
 
     # Choose source
-    #cap = cv2.VideoCapture(camera)
-    cap = cv2.VideoCapture("rtsp://crasadmin:strongpass123@192.168.2.109:554/cam/realmonitor?channel=7&subtype=0")
+    cap = cv2.VideoCapture(camera)
+    #cap = cv2.VideoCapture("rtsp://crasadmin:strongpass123@192.168.2.109:554/cam/realmonitor?channel=7&subtype=0")
     #cap = cv2.VideoCapture('rtsp://crasadmin:lol12345@192.168.2.108:554/cam/realmonitor?channel=4&subtype=0&proto=tcp')
     #cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('H', '2', '6', '4'))
 
