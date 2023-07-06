@@ -25,7 +25,7 @@ QUEUE_MAX_SIZE = 100000
 SEARCH_QUEUE_SIZE = 100000
 NUM_CONSUMER_PROCESSES = 1
 NUM_SEARCH_PROCESSES = 1
-EXIT_EXPIRY_TIME = 15.0
+EXIT_EXPIRY_TIME = 30.0
 
 def get_face_image(face_pixels, target_size=(160, 160)):
     #face_8bit = np.clip(face_pixels, 0, 255).astype(np.uint8)
@@ -306,6 +306,9 @@ def commit_record(customer_id):
         in_mem_db.delete_record(str(customer_id), type="customer")
         in_mem_db.delete_record(str(customer_id), type="visit")
         in_mem_db.delete_record(str(customer_id), type="exited")
+        exited_record = in_mem_db.connection.hgetall("exited_inmem_db:" + str(customer_id))
+        if not exited_record:
+            print("Successfully deleted and exited customer from in-memory database")
         in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.DeleteCustomer.value + ":" + str(customer_id))
         print("Customer exited: ", customer_id)
 
@@ -589,12 +592,16 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
             record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
 
             if record_from_mem:
+                print("Found in memory: ", str(record_from_mem.get(b'customer_id').decode()))
                 record_from_exited_mem = get_face_record_from_exited_mem(face_encoding, parameters.threshold, in_mem_db)
                 if not record_from_exited_mem:
+                    print("Updating record in memory: ", str(record_from_mem.get(b'customer_id').decode()))
                     id = update_record_inmem(record_from_mem, in_mem_db)
                     timer = start_expiry_timer(id) #DEBUG Remove exited entry on timer expire
                     timer_dict[id] = timer
                     insert_record_to_exited_mem(face_encoding, in_mem_db)
+                else:
+                    print("Found in exited memory: ", str(record_from_exited_mem.get(b'customer_id').decode()))
 
             elif not record_from_mem:
                 record_from_incomplete_mem = get_face_record_from_incomplete_mem(face_encoding, parameters.threshold, in_mem_db)
