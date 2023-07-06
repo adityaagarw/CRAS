@@ -312,7 +312,7 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
         phone_number = str(phone_number),
         encoding = face_encoding_np.tobytes(),
         image = image.tobytes(),
-        return_customer = str(return_customer),
+        return_customer = "1",
         last_visit = str(last_visit),
         average_time_spent = str(average_time_spent),
         average_bill_value= str(average_bill_value),
