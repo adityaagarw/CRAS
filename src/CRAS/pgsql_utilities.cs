@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -105,6 +106,49 @@ namespace CRAS
 
             return customer_list;
         }
+
+        public static DataTable GetTableData(NpgsqlConnection connection, string table_name)
+        {
+            DataTable tableData = new DataTable();
+            connection.Open();
+
+            string query = "SELECT * FROM " + table_name;
+
+            if (table_name.Equals("local_customer_db"))
+            {
+                query = "SELECT customer_id, name, phone_number, image, return_customer, last_visit, average_time_spent, average_bill_value, average_bill_per_visit, average_bill_per_billed_visit, maximum_purchase, remarks, loyalty_level, num_bills, num_visits, num_billed_visits, last_location, category FROM local_customer_db";
+            }
+            
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+
+            NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter();
+            dataAdapter.SelectCommand = command;
+            dataAdapter.Fill(tableData);
+
+            connection.Close();
+            return tableData;
+        }
+        public static List<string> GetListofTables(NpgsqlConnection connection)
+        {
+            List<string> tables = new List<string>();
+
+            connection.Open();
+            string query = "SELECT table_name from information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'";
+
+            Console.WriteLine("Get Visit details from local_db: " + query);
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+
+            NpgsqlDataReader reader = command.ExecuteReader();
+
+            while(reader.Read())
+            {
+                string table = reader.GetString(reader.GetOrdinal("table_name"));
+                tables.Add(table);
+            }
+
+            connection.Close();
+            return tables;
+        }
         public static void UpdateCustomerDetails(NpgsqlConnection connection, redis_customer customer)
         {
             connection.Open();
@@ -113,28 +157,31 @@ namespace CRAS
 
             //using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
             //{
-                /*command.Parameters.AddWithValue("name", customer.name);
-                command.Parameters.AddWithValue("phone_number", customer.phone_number);
-                command.Parameters.AddWithValue("average_bill_value", customer.average_bill_value);
-                command.Parameters.AddWithValue("average_bill_per_visit", customer.average_bill_per_visit);
-                command.Parameters.AddWithValue("average_bill_per_billed_visit", customer.average_bill_per_billed_visit);
-                command.Parameters.AddWithValue("num_bills", customer.num_bills);
-                command.Parameters.AddWithValue("num_visits", customer.num_visits);
-                command.Parameters.AddWithValue("num_billed_visits", customer.num_billed_visits);
-                command.Parameters.AddWithValue("customer_id", customer.customer_id); */
+            /*command.Parameters.AddWithValue("name", customer.name);
+            command.Parameters.AddWithValue("phone_number", customer.phone_number);
+            command.Parameters.AddWithValue("average_bill_value", customer.average_bill_value);
+            command.Parameters.AddWithValue("average_bill_per_visit", customer.average_bill_per_visit);
+            command.Parameters.AddWithValue("average_bill_per_billed_visit", customer.average_bill_per_billed_visit);
+            command.Parameters.AddWithValue("num_bills", customer.num_bills);
+            command.Parameters.AddWithValue("num_visits", customer.num_visits);
+            command.Parameters.AddWithValue("num_billed_visits", customer.num_billed_visits);
+            command.Parameters.AddWithValue("customer_id", customer.customer_id); */
 
-                /*command.Parameters.AddWithValue("name", NpgsqlDbType.Varchar, customer.name);
-                command.Parameters.AddWithValue("phone_number", NpgsqlDbType.Varchar, customer.phone_number);
-                command.Parameters.AddWithValue("average_bill_value", NpgsqlDbType.Numeric, customer.average_bill_value);
-                command.Parameters.AddWithValue("average_bill_per_visit", NpgsqlDbType.Numeric, customer.average_bill_per_visit);
-                command.Parameters.AddWithValue("average_bill_per_billed_visit", NpgsqlDbType.Numeric, customer.average_bill_per_billed_visit);
-                command.Parameters.AddWithValue("num_bills", NpgsqlDbType.Integer, customer.num_bills);
-                command.Parameters.AddWithValue("num_visits", NpgsqlDbType.Integer, customer.num_visits);
-                command.Parameters.AddWithValue("num_billed_visits", NpgsqlDbType.Integer, customer.num_billed_visits);
-                command.Parameters.AddWithValue("customer_id", NpgsqlDbType.Uuid, customer.customer_id);
-                command.ExecuteNonQuery();*/
-
-            string query = $"UPDATE local_customer_db SET name = '{customer.name}', phone_number = '{customer.phone_number}', average_bill_value = {customer.average_bill_value}, average_bill_per_visit = {customer.average_bill_per_visit}, average_bill_per_billed_visit = {customer.average_bill_per_billed_visit}, num_bills = {customer.num_bills}, num_visits = {customer.num_visits}, num_billed_visits = {customer.num_billed_visits} WHERE customer_id = '{customer.customer_id}'";
+            /*command.Parameters.AddWithValue("name", NpgsqlDbType.Varchar, customer.name);
+            command.Parameters.AddWithValue("phone_number", NpgsqlDbType.Varchar, customer.phone_number);
+            command.Parameters.AddWithValue("average_bill_value", NpgsqlDbType.Numeric, customer.average_bill_value);
+            command.Parameters.AddWithValue("average_bill_per_visit", NpgsqlDbType.Numeric, customer.average_bill_per_visit);
+            command.Parameters.AddWithValue("average_bill_per_billed_visit", NpgsqlDbType.Numeric, customer.average_bill_per_billed_visit);
+            command.Parameters.AddWithValue("num_bills", NpgsqlDbType.Integer, customer.num_bills);
+            command.Parameters.AddWithValue("num_visits", NpgsqlDbType.Integer, customer.num_visits);
+            command.Parameters.AddWithValue("num_billed_visits", NpgsqlDbType.Integer, customer.num_billed_visits);
+            command.Parameters.AddWithValue("customer_id", NpgsqlDbType.Uuid, customer.customer_id);
+            command.ExecuteNonQuery();*/
+            string visit_id = "";
+            visit_details visit = new visit_details();
+            visit = redis_utilities.GetVisitDetails(MainForm.redisConnection, customer.customer_id)[0];
+            if (visit != null) visit_id = visit.visit_id;
+            string query = $"UPDATE local_customer_db SET name = '{customer.name}', phone_number = '{customer.phone_number}', visit_id = {visit_id}, average_bill_value = {customer.average_bill_value}, average_bill_per_visit = {customer.average_bill_per_visit}, average_bill_per_billed_visit = {customer.average_bill_per_billed_visit}, num_bills = {customer.num_bills}, num_visits = {customer.num_visits}, num_billed_visits = {customer.num_billed_visits} WHERE customer_id = '{customer.customer_id}'";
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
             Console.WriteLine("Updating Customer in local_customer_db: " + query);
             command.ExecuteNonQuery();

@@ -149,6 +149,12 @@
     <Compile Include="BillingForm.Designer.cs">
       <DependentUpon>BillingForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="DBDisplayForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DBDisplayForm.Designer.cs">
+      <DependentUpon>DBDisplayForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="visit_details.cs" />
     <Compile Include="CustomerDataUC.cs">
       <SubType>UserControl</SubType>
@@ -208,6 +214,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="CustomerDetailForm.resx">
       <DependentUpon>CustomerDetailForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DBDisplayForm.resx">
+      <DependentUpon>DBDisplayForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Live Status.resx">
       <DependentUpon>Live Status.cs</DependentUpon>

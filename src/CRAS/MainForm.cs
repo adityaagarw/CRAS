@@ -76,10 +76,12 @@ namespace CRAS
             Thread loadingThread = new Thread(ShowLoadingForm);
             loadingThread.Start();
 
+            
             exitedCustomerFLP.Parent = customerFlowLayout.Parent;
             exitedCustomerFLP.Location = customerFlowLayout.Location;
             scanStatusLabel.Text = "Scan Completed";
 
+            if (loadingForm != null) loadingForm.SetLoadingLabel("Connecting To Redis!");
             redisConnection = redis_utilities.ConnectToRedis("127.0.0.1", "6379");
             redisDB = redisConnection.GetDatabase();
 
@@ -88,10 +90,13 @@ namespace CRAS
             customer_list = utilities.OrderBy(customer_list, "entry_time", "DESC");
 
             customer_list_count = customer_list.Count();
+            totalCustomersValue.Invoke(new Action(() => { totalCustomersValue.Text = customer_list_count.ToString(); }));
 
+            if(loadingForm != null) loadingForm.SetLoadingLabel("Initializing PUBSUB!");
             pubsub_utilities.InitialiseSubscribers("Backend", this);
             pubsub_utilities.InitialiseSubscribers("Billing", this);
 
+            if (loadingForm != null) loadingForm.SetLoadingLabel("Connecting to PGSQL");
             pgsql_connection = pgsql_utilities.ConnectToPGSQL();
             pgsql_connection.Open();
             Console.WriteLine("PGSQL Connected to Server Version: " + pgsql_connection.ServerVersion.ToString());
@@ -123,10 +128,11 @@ namespace CRAS
                 for (int i = 0; i < new_records; i++)
                 {
                     InsertCustomerInLayout(exitedCustomerFLP, exited_customers[exited_customers_count + i], i);
-                    Console.WriteLine("Customer added to Exited List! New Records: " + exited_customers[exited_customers_count + i].customer_id);
+                    //Console.WriteLine("Customer added to Exited List! New Records: " + exited_customers[exited_customers_count + i].customer_id);
 
                 }
                 exited_customers_count = exited_customers.Count;
+                totalExitedValue.Invoke(new Action(() => { totalExitedValue.Text = exited_customers_count.ToString(); }));
             }
             //throw new NotImplementedException();
         }
@@ -134,14 +140,10 @@ namespace CRAS
         private void Bills_ListChanged(object sender, ListChangedEventArgs e)
         {
 
-            Console.WriteLine("Bill List Change Triggered");
             BillingForm billingForm = GetBillingFormIfOpen();
 
             if(billingForm != null)
             {
-                Console.WriteLine("Billing form open: " + billingForm.Name);
-                //billingForm.updateButton.Enabled = true;
-
                 if (billingForm.current_bill == null)
                 {
                     billingForm.current_bill = bills[bills.Count - 1];
@@ -154,7 +156,7 @@ namespace CRAS
                 if (billingForm.identifiedFacesFLP.Controls.Count > 0)
                 //if (customers.Count > 0)
                 {
-                    Console.WriteLine("Inserting identified customer to FLP at index " + billingForm.identifiedFacesFLP.Controls.Count);
+                    //Console.WriteLine("Inserting identified customer to FLP at index " + billingForm.identifiedFacesFLP.Controls.Count);
                     if (billingForm.identifiedFacesFLP.Controls.Count != customers.Count)
                     {
                         //billingForm.InsertIdentifiedCustomer(customers[customers.Count - 1]);
@@ -166,12 +168,11 @@ namespace CRAS
                 {
                     if (customers != null)
                     {
-                        Console.WriteLine("Inserting identified customer to FLP at index 0");
                         //billingForm.InsertIdentifiedCustomer(customers[0]);
                         billingForm.Invoke(new Action (() => { billingForm.InitializeCustomerFLP(billingForm.current_bill); }));
 
                     }
-                    else Console.WriteLine("Bill Changed but no customer present");
+                    //else Console.WriteLine("Bill Changed but no customer present");
 
                 }
 
@@ -179,18 +180,16 @@ namespace CRAS
 
             else
             {
-                Console.WriteLine("Billing Form Not Open!");
+                //Console.WriteLine("Billing Form Not Open!");
             }
             //throw new NotImplementedException();
         }
 
         private void Customer_list_ListChanged(object sender, ListChangedEventArgs e)
         {
-            Console.WriteLine("List changed!!!!!!! " + e.ListChangedType);
-            //PopulateCustomerFlowLayout();
+            
             int new_records = customer_list.Count - customer_list_count;
 
-            Console.WriteLine("New Record: " +  new_records);
 
             if (new_records > 0)
             {
@@ -209,6 +208,7 @@ namespace CRAS
                 }*/
             }
             customer_list_count = customer_list.Count();
+            totalCustomersValue.Invoke(new Action(() => { totalCustomersValue.Text = customer_list_count.ToString(); }));
             //throw new NotImplementedException();
         }
 
@@ -219,9 +219,9 @@ namespace CRAS
             customerData.ControlDoubleClicked += UserControl_ControlDoubleClicked;
             customerData.SetImage(customer.image);
             customerData.SetLabel("label1", "Name: ", customer.name);
-            customerData.SetLabel("label2", "Phone: ", customer.phone_number);
+            customerData.SetLabel("label2", "Num Visits: ", customer.num_visits.ToString());
             customerData.SetLabel("label3", "Returning: ", customer.return_customer);
-            customerData.SetLabel("label4", "Category: ", customer.category);
+            customerData.SetLabel("label4", "Customer Id: ", customer.customer_id);
             customerData.SetLabel("label5", "Last Visit: ", customer.last_visit.ToString("dd-MM-yyyy HH:mm:ss"));
             customerData.SetLabel("label6", "Entry Time: ", customer.entry_time.ToShortTimeString());
             customerData.selectCustomerLabel.Hide();
@@ -277,7 +277,9 @@ namespace CRAS
             if (!selected) selectedCustomerUC.Select();
             else if (selected) selectedCustomerUC.UnSelect();
 
-            ShowCustomerDetail(customer_list[index], selectedCustomerUC);
+            MessageBox.Show("Sender: " + sender.ToString());
+            if (displayComboBox.SelectedIndex == 0) ShowCustomerDetail(customer_list[index], selectedCustomerUC);
+            else if (displayComboBox.SelectedIndex == 1) ShowCustomerDetail(exited_customers[index], selectedCustomerUC);
         }
         
         
@@ -404,7 +406,7 @@ namespace CRAS
                 catch (Exception ex)
                 {
                     // Handle any exceptions that occur during reading or displaying frames
-                    Console.WriteLine($"Error: {ex.Message}");
+                    //Console.WriteLine($"Error: {ex.Message}");
                 }
             }
         }
@@ -464,17 +466,6 @@ namespace CRAS
 
                 streaming = 0;
             }
-        }
-
-        private List<string> GetListOfPipes(string pipeNamePrefix)
-        {
-            List<string> pipes = new List<string>();
-            String[] listOfPipes = System.IO.Directory.GetFiles(@"\\.\pipe\");
-            foreach (String pipe in listOfPipes)
-            {
-                if (pipe.Contains("webcam_")) pipes.Add(pipe);
-            }
-            return pipes;
         }
 
         private void statusButton_Click(object sender, EventArgs e)
@@ -595,6 +586,12 @@ namespace CRAS
 
             return billingForm;
         }
+
+        public static LoadingForm GetLoadingFormIfOpen()
+        {
+            LoadingForm loadingForm = Application.OpenForms.OfType<LoadingForm>().FirstOrDefault();
+            return loadingForm;
+        }
         private void scanStatusLabel_TextChanged(object sender, EventArgs e)
         {
             if(scanStatusLabel.Text == "Scanning")
@@ -603,7 +600,6 @@ namespace CRAS
                 BillingForm billingForm = GetBillingFormIfOpen();
                 if (billingForm != null)
                 {
-                    Console.WriteLine("Billing form button disabled!");
                     billingForm.rescanButton.Enabled = false;
                     billingForm.rescanButton.BackColor = Color.DarkGray;
                     billingForm.scanStatus.Text = "Scanning";
@@ -638,13 +634,27 @@ namespace CRAS
             {
                 customerFlowLayout.Hide();
                 exitedCustomerFLP.Show();
+                totalExitedLabel.Visible = true;
+                totalExitedValue.Visible = true;
+                totalCustomersLabel.Visible = false;
+                totalCustomersValue.Visible = false;
             }
 
             if(displayComboBox.SelectedIndex == 0)
             {
                 customerFlowLayout.Show();
                 exitedCustomerFLP.Hide();
+                totalExitedLabel.Visible = false;
+                totalExitedValue.Visible = false;
+                totalCustomersLabel.Visible = true;
+                totalCustomersValue.Visible = true;
             }
+        }
+
+        private void dbButton_Click(object sender, EventArgs e)
+        {
+            DBDisplayForm dBDisplayForm = new DBDisplayForm();
+            dBDisplayForm.Show();
         }
     }
 }

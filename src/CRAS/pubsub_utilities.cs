@@ -16,15 +16,31 @@ namespace CRAS
 
         public static void NewCustomerIdentified(string customer_id)
         {
-            redis_customer customer;
-            visit_details visit;
+            BindingList<redis_customer> customers;
+            BindingList<visit_details> visits;
 
-            customer = redis_utilities.GetCustomerDetails(MainForm.redisConnection, customer_id)[0];
-            visit = redis_utilities.GetVisitDetails(MainForm.redisConnection, customer_id)[0];
+            visit_details visit = new visit_details();
+            redis_customer customer = new redis_customer();
 
-            MainForm.visits.Insert(0, visit);
-            MainForm.customer_list.Insert(0, customer);
-            
+            customers = redis_utilities.GetCustomerDetails(MainForm.redisConnection, customer_id);
+            visits = redis_utilities.GetVisitDetails(MainForm.redisConnection, customer_id);
+
+            if (customers != null && visits != null)
+            {
+                if (customers.Count > 0 && visits.Count > 0)
+                {
+                    customer = customers[0];
+                    visit = visits[0];
+             
+                    if (customer.customer_id != null && visit.visit_id != null)
+                    {
+                        Console.WriteLine("Current list size: " + MainForm.customer_list.Count);
+                        MainForm.visits.Insert(0, visit);
+                        MainForm.customer_list.Insert(0, customer);
+                        Console.WriteLine("Inserted Customer: " + MainForm.customer_list[0].customer_id + " New list size: " + MainForm.customer_list.Count.ToString());
+                    }
+                }
+            }
         }
 
         public static redis_customer GetCustomerFromInMem(string customer_id)
@@ -68,6 +84,45 @@ namespace CRAS
 
         }
 
+        public static void UpdateTempCustomer(string temp_customer_id, string customer_id, MainForm mainForm)
+        {
+            BindingList<redis_customer> temp_customers = redis_utilities.GetCustomerDetails(MainForm.redisConnection, temp_customer_id);
+            redis_customer temp_customer = new redis_customer();
+
+            BindingList<visit_details> temp_visits = redis_utilities.GetVisitDetails(MainForm.redisConnection, temp_customer_id);
+            visit_details temp_visit = new visit_details();
+
+            if (temp_customers != null && temp_customers.Count > 0) temp_customer = temp_customers[0];
+            if(temp_visits != null && temp_visits.Count > 0) temp_visit = temp_visits[0];
+
+            redis_customer customer = redis_utilities.GetCustomerDetails(MainForm.redisConnection,customer_id)[0];
+            visit_details visit = redis_utilities.GetVisitDetails(MainForm.redisConnection, customer_id)[0];   
+
+            int index = 0;
+
+            if (mainForm != null)
+            {
+                if (temp_customer.customer_id != null && temp_visit.visit_id != null)
+                {
+                    index = MainForm.customer_list.IndexOf(temp_customer);
+
+                    MainForm.customer_list[index] = customer;
+                    MainForm.visits[index] = visit;
+
+                    mainForm.Invoke(new Action(() => mainForm.customerFlowLayout.Controls.RemoveAt(index)));
+                    mainForm.Invoke(new Action(() => mainForm.InsertCustomerInLayout(mainForm.customerFlowLayout, customer, index)));
+                }
+
+                else
+                {
+                    MainForm.customer_list.Insert(index, customer);
+                    MainForm.visits.Insert(index, visit);
+                }
+                //mainForm.Invoke(new Action(() => mainForm.InsertCustomerInLayout(mainForm.customerFlowLayout, customer, index)));
+
+            }
+
+        }
         public static void CustomerExited(string customer_id, MainForm mainForm = null)
         {
             redis_customer customer;
@@ -108,9 +163,11 @@ namespace CRAS
                 if (messageReceived.StartsWith("UpdateCustomer"))
                 {
                     var ids = messageReceived.Split(':', ',');
-                    customer_id = ids[1];
-                    temp_customer_id = ids[3];
+                    temp_customer_id = ids[1];
+                    customer_id = ids[2];
                     Console.WriteLine("Existing Customer Entered! Customer Id:" + customer_id + " Temp id: " + temp_customer_id);
+                    
+                    UpdateTempCustomer(temp_customer_id, customer_id, mainForm);
 
                 }
                 if (messageReceived.StartsWith("BillingCustomer"))

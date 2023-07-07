@@ -47,11 +47,11 @@
             // 
             // loadingLabel
             // 
-            this.loadingLabel.AutoSize = true;
+            this.loadingLabel.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.loadingLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.loadingLabel.Location = new System.Drawing.Point(138, 229);
+            this.loadingLabel.Location = new System.Drawing.Point(0, 248);
             this.loadingLabel.Name = "loadingLabel";
-            this.loadingLabel.Size = new System.Drawing.Size(84, 16);
+            this.loadingLabel.Size = new System.Drawing.Size(359, 16);
             this.loadingLabel.TabIndex = 1;
             this.loadingLabel.Text = "Connecting";
             this.loadingLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -69,7 +69,6 @@
             this.Text = "LoadingForm";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 

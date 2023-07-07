@@ -23,6 +23,11 @@ namespace CRAS
             return label;
         }
 
+        public void SetLoadingLabel(string labelText) 
+        {
+            loadingLabel.Invoke(new Action(() => { loadingLabel.Text = labelText; }));
+        }
+
         private void pictureBox1_Click(object sender, EventArgs e)
         {
 

@@ -215,6 +215,7 @@
             this.Size = new System.Drawing.Size(736, 148);
             this.Load += new System.EventHandler(this.CustomerDataUC_Load);
             this.DoubleClick += new System.EventHandler(this.CustomerDataUC_DoubleClick);
+            this.MouseHover += new System.EventHandler(this.CustomerDataUC_MouseHover);
             ((System.ComponentModel.ISupportInitialize)(this.customerPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

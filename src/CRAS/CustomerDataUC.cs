@@ -114,5 +114,10 @@ namespace CRAS
                 selectCustomerLabel.Show();
             }
         }
+
+        private void CustomerDataUC_MouseHover(object sender, EventArgs e)
+        {
+
+        }
     }
 }

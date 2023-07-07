@@ -41,8 +41,11 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.scanStatusLabel = new System.Windows.Forms.Label();
             this.displayComboBox = new System.Windows.Forms.ComboBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
+            this.totalCustomersLabel = new System.Windows.Forms.Label();
+            this.totalCustomersValue = new System.Windows.Forms.Label();
+            this.totalExitedLabel = new System.Windows.Forms.Label();
+            this.totalExitedValue = new System.Windows.Forms.Label();
+            this.dbButton = new System.Windows.Forms.Button();
             this.customerFlowLayout.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -181,24 +184,56 @@
             this.displayComboBox.TabIndex = 14;
             this.displayComboBox.SelectedIndexChanged += new System.EventHandler(this.displayComboBox_SelectedIndexChanged);
             // 
-            // label3
+            // totalCustomersLabel
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(578, 749);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(160, 16);
-            this.label3.TabIndex = 15;
-            this.label3.Text = "Total Customers In-Store: ";
+            this.totalCustomersLabel.AutoSize = true;
+            this.totalCustomersLabel.Location = new System.Drawing.Point(578, 749);
+            this.totalCustomersLabel.Name = "totalCustomersLabel";
+            this.totalCustomersLabel.Size = new System.Drawing.Size(160, 16);
+            this.totalCustomersLabel.TabIndex = 15;
+            this.totalCustomersLabel.Text = "Total Customers In-Store: ";
             // 
-            // label4
+            // totalCustomersValue
             // 
-            this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(744, 749);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(15, 16);
-            this.label4.TabIndex = 16;
-            this.label4.Text = "0";
+            this.totalCustomersValue.AutoSize = true;
+            this.totalCustomersValue.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.totalCustomersValue.Location = new System.Drawing.Point(744, 749);
+            this.totalCustomersValue.Name = "totalCustomersValue";
+            this.totalCustomersValue.Size = new System.Drawing.Size(15, 16);
+            this.totalCustomersValue.TabIndex = 16;
+            this.totalCustomersValue.Text = "0";
+            // 
+            // totalExitedLabel
+            // 
+            this.totalExitedLabel.AutoSize = true;
+            this.totalExitedLabel.Location = new System.Drawing.Point(578, 753);
+            this.totalExitedLabel.Name = "totalExitedLabel";
+            this.totalExitedLabel.Size = new System.Drawing.Size(151, 16);
+            this.totalExitedLabel.TabIndex = 17;
+            this.totalExitedLabel.Text = "Total Exited Customers: ";
+            this.totalExitedLabel.Visible = false;
+            // 
+            // totalExitedValue
+            // 
+            this.totalExitedValue.AutoSize = true;
+            this.totalExitedValue.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.totalExitedValue.Location = new System.Drawing.Point(744, 753);
+            this.totalExitedValue.Name = "totalExitedValue";
+            this.totalExitedValue.Size = new System.Drawing.Size(15, 16);
+            this.totalExitedValue.TabIndex = 18;
+            this.totalExitedValue.Text = "0";
+            this.totalExitedValue.Visible = false;
+            // 
+            // dbButton
+            // 
+            this.dbButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.dbButton.Location = new System.Drawing.Point(1131, 18);
+            this.dbButton.Name = "dbButton";
+            this.dbButton.Size = new System.Drawing.Size(75, 29);
+            this.dbButton.TabIndex = 19;
+            this.dbButton.Text = "DB";
+            this.dbButton.UseVisualStyleBackColor = true;
+            this.dbButton.Click += new System.EventHandler(this.dbButton_Click);
             // 
             // MainForm
             // 
@@ -206,8 +241,11 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1371, 796);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.label3);
+            this.Controls.Add(this.dbButton);
+            this.Controls.Add(this.totalExitedValue);
+            this.Controls.Add(this.totalExitedLabel);
+            this.Controls.Add(this.totalCustomersValue);
+            this.Controls.Add(this.totalCustomersLabel);
             this.Controls.Add(this.displayComboBox);
             this.Controls.Add(this.scanStatusLabel);
             this.Controls.Add(this.billingButton);
@@ -245,9 +283,12 @@
         private System.Windows.Forms.Button billingButton;
         public System.Windows.Forms.Label scanStatusLabel;
         private System.Windows.Forms.ComboBox displayComboBox;
-        public System.Windows.Forms.Label label3;
-        public System.Windows.Forms.Label label4;
+        public System.Windows.Forms.Label totalCustomersLabel;
+        public System.Windows.Forms.Label totalCustomersValue;
         public System.Windows.Forms.FlowLayoutPanel exitedCustomerFLP;
         public System.Windows.Forms.FlowLayoutPanel customerFlowLayout;
+        public System.Windows.Forms.Label totalExitedLabel;
+        public System.Windows.Forms.Label totalExitedValue;
+        private System.Windows.Forms.Button dbButton;
     }
 }

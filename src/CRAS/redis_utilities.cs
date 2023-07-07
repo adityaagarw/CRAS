@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -17,9 +18,9 @@ namespace CRAS
             int attempt = 1;
             while (redisConnection == null || !redisConnection.IsConnected)
             {
+                if(MainForm.loadingForm!= null) MainForm.loadingForm.Invoke(new Action(() => { MainForm.loadingForm.SetLoadingLabel("Connecting to Redis! Attempt: " + attempt.ToString()); }));
                 try
                 {
-                   
                     ConfigurationOptions options = new ConfigurationOptions
                     {
                         EndPoints = { host },
@@ -30,7 +31,9 @@ namespace CRAS
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to connect to Redis server: {ex.Message}");
+                    attempt++;
+                    if(MainForm.loadingForm != null) MainForm.loadingForm.Invoke(new Action(() => { MainForm.loadingForm.SetLoadingLabel("Redis connection failed! Retrying!"); })) ;
+                    //MessageBox.Show($"Failed to connect to Redis server: {ex.Message}");
                 }
             } 
 
@@ -58,7 +61,6 @@ namespace CRAS
                 db.HashSet(key, data);
             }
         }
-        
         
         public static BindingList<redis_customer> GetCustomerDetails(ConnectionMultiplexer redisConnection, string customer_id = "*")
         {
@@ -145,6 +147,23 @@ namespace CRAS
                 }
             }
             return customer_list;
+        }
+
+        public static DataTable GetAllRedisData(ConnectionMultiplexer redisConnection)
+        {
+            DataTable dt = new DataTable();
+
+            if (redisConnection != null)
+            {
+                visit_details visit = new visit_details();
+                IServer redisServer = redisConnection.GetServer("127.0.0.1", 6379);
+                IDatabase db = redisConnection.GetDatabase();
+                foreach (var hashKey in redisServer.Keys('*'))
+                {
+
+                }
+            }
+            return dt;
         }
 
         public static BindingList<visit_details> GetVisitDetails(ConnectionMultiplexer redisConnection, string customer_id = "*")
