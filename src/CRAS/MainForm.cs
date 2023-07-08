@@ -61,7 +61,7 @@ namespace CRAS
         public MainForm()
         {
             InitializeComponent();
-            InitializeSQLNotification();
+            //InitializeSQLNotification();
         }
 
         private void ShowLoadingForm()

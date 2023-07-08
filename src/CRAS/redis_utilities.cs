@@ -149,21 +149,25 @@ namespace CRAS
             return customer_list;
         }
 
-        public static DataTable GetAllRedisData(ConnectionMultiplexer redisConnection)
+        public static Dictionary<string, HashEntry[]> GetAllRedisData(ConnectionMultiplexer redisConnection)
         {
-            DataTable dt = new DataTable();
-
+            Dictionary<string, HashEntry[]> hashes = new Dictionary<string, HashEntry[]>();
             if (redisConnection != null)
             {
                 visit_details visit = new visit_details();
                 IServer redisServer = redisConnection.GetServer("127.0.0.1", 6379);
                 IDatabase db = redisConnection.GetDatabase();
-                foreach (var hashKey in redisServer.Keys('*'))
+                foreach (var hashKey in redisServer.Keys(pattern: "*"))
                 {
                     //Da
+                    //Console.WriteLine(hashKey);
+                    HashEntry[] hash = db.HashGetAll(hashKey);
+                    
+                    hashes.Add(hashKey, hash);
+                    //foreach (HashEntry value in values) { if (!(value.Name.Equals("encoding") || value.Name.Equals("image"))) Console.WriteLine(value.Name + ": " + value.Value.ToString()); }
                 }
             }
-            return dt;
+            return hashes;
         }
 
         public static BindingList<visit_details> GetVisitDetails(ConnectionMultiplexer redisConnection, string customer_id = "*")

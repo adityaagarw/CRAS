@@ -107,6 +107,7 @@ namespace CRAS
             return customer_list;
         }
 
+        
         public static DataTable GetTableData(NpgsqlConnection connection, string table_name)
         {
             DataTable tableData = new DataTable();

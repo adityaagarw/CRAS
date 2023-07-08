@@ -59,7 +59,7 @@
             this.selectTableCombo.FormattingEnabled = true;
             this.selectTableCombo.Location = new System.Drawing.Point(458, 38);
             this.selectTableCombo.Name = "selectTableCombo";
-            this.selectTableCombo.Size = new System.Drawing.Size(121, 24);
+            this.selectTableCombo.Size = new System.Drawing.Size(191, 24);
             this.selectTableCombo.TabIndex = 2;
             this.selectTableCombo.SelectedIndexChanged += new System.EventHandler(this.selectTableCombo_SelectedIndexChanged);
             // 
@@ -74,10 +74,15 @@
             // 
             // tableDataGridView
             // 
+            this.tableDataGridView.AllowUserToAddRows = false;
+            this.tableDataGridView.AllowUserToDeleteRows = false;
+            this.tableDataGridView.AllowUserToOrderColumns = true;
             this.tableDataGridView.BackgroundColor = System.Drawing.Color.White;
-            this.tableDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.tableDataGridView.ColumnHeadersHeight = 29;
             this.tableDataGridView.Location = new System.Drawing.Point(43, 113);
             this.tableDataGridView.Name = "tableDataGridView";
+            this.tableDataGridView.ReadOnly = true;
+            this.tableDataGridView.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.tableDataGridView.RowHeadersWidth = 51;
             this.tableDataGridView.RowTemplate.Height = 24;
             this.tableDataGridView.Size = new System.Drawing.Size(695, 325);
