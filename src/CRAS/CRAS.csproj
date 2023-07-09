@@ -264,6 +264,8 @@
     <None Include="Resources\StarUnselected.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\png-transparent-delete-key-logo-button-text-rectangle-logo.png" />
+    <None Include="Resources\pngwing.com.png" />
     <Content Include="Resources\StarHover.png" />
     <Content Include="Resources\StarSelected.png" />
   </ItemGroup>

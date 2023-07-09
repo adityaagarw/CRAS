@@ -226,6 +226,12 @@ namespace CRAS
             customerData.SetLabel("label6", "Entry Time: ", customer.entry_time.ToShortTimeString());
             customerData.selectCustomerLabel.Hide();
 
+            if (panel.Name.Equals(customerFlowLayout.Name))
+            {
+                customerData.deleteButton.Visible = true;
+                customerData.DeleteButtonClicked += CustomerData_DeleteButtonClicked;
+            }
+
             if (index > -1)
             {
                 panel.Invoke(new Action(() => { panel.SuspendLayout(); }));
@@ -277,7 +283,7 @@ namespace CRAS
             if (!selected) selectedCustomerUC.Select();
             else if (selected) selectedCustomerUC.UnSelect();
 
-            MessageBox.Show("Sender: " + sender.ToString());
+            //MessageBox.Show("Sender: " + sender.ToString());
             if (displayComboBox.SelectedIndex == 0) ShowCustomerDetail(customer_list[index], selectedCustomerUC);
             else if (displayComboBox.SelectedIndex == 1) ShowCustomerDetail(exited_customers[index], selectedCustomerUC);
         }
@@ -410,7 +416,25 @@ namespace CRAS
                 }
             }
         }
-        static class Program
+        private void CustomerData_DeleteButtonClicked(object sender, int e)
+        {
+            CustomerDataUC selectedCustomerUC = (CustomerDataUC)sender;
+            int index = selectedCustomerUC.Parent.Controls.IndexOf(selectedCustomerUC);
+            
+            redis_customer customer = customer_list[index];
+
+            if (customer != null) 
+            {
+                customer_list.RemoveAt(index);
+                customerFlowLayout.Controls.RemoveAt(index);
+                redis_utilities.DeleteRedisEntry(redisConnection, customer.key);
+                MessageBox.Show($"Customer {customer.customer_id} at index {index} deleted successfully!");
+            }
+            //MessageBox.Show("Customer Deleted: " + index.ToString() + customer_list[index].customer_id);
+            //throw new NotImplementedException();
+        }
+
+        class Program
         {
             /// <summary>
             /// The main entry point for the application.

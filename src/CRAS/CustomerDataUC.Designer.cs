@@ -34,7 +34,6 @@
             this.label1value = new System.Windows.Forms.Label();
             this.label2value = new System.Windows.Forms.Label();
             this.label3value = new System.Windows.Forms.Label();
-            this.customerPictureBox = new System.Windows.Forms.PictureBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -42,6 +41,8 @@
             this.label5value = new System.Windows.Forms.Label();
             this.label6value = new System.Windows.Forms.Label();
             this.selectCustomerLabel = new System.Windows.Forms.Label();
+            this.deleteButton = new System.Windows.Forms.Button();
+            this.customerPictureBox = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.customerPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -107,14 +108,6 @@
             this.label3value.Size = new System.Drawing.Size(108, 22);
             this.label3value.TabIndex = 6;
             this.label3value.Text = "label3value";
-            // 
-            // customerPictureBox
-            // 
-            this.customerPictureBox.Location = new System.Drawing.Point(16, 13);
-            this.customerPictureBox.Name = "customerPictureBox";
-            this.customerPictureBox.Size = new System.Drawing.Size(119, 119);
-            this.customerPictureBox.TabIndex = 0;
-            this.customerPictureBox.TabStop = false;
             // 
             // label4
             // 
@@ -190,6 +183,29 @@
             this.selectCustomerLabel.Text = "Please select a Customer!";
             this.selectCustomerLabel.TextChanged += new System.EventHandler(this.selectCustomerLabel_TextChanged);
             // 
+            // deleteButton
+            // 
+            this.deleteButton.BackColor = System.Drawing.Color.White;
+            this.deleteButton.BackgroundImage = global::CRAS.Properties.Resources.pngwing_com;
+            this.deleteButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.deleteButton.FlatAppearance.BorderSize = 0;
+            this.deleteButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.deleteButton.Location = new System.Drawing.Point(703, 110);
+            this.deleteButton.Name = "deleteButton";
+            this.deleteButton.Size = new System.Drawing.Size(30, 32);
+            this.deleteButton.TabIndex = 14;
+            this.deleteButton.UseVisualStyleBackColor = false;
+            this.deleteButton.Visible = false;
+            this.deleteButton.Click += new System.EventHandler(this.deleteButton_Click);
+            // 
+            // customerPictureBox
+            // 
+            this.customerPictureBox.Location = new System.Drawing.Point(16, 13);
+            this.customerPictureBox.Name = "customerPictureBox";
+            this.customerPictureBox.Size = new System.Drawing.Size(119, 119);
+            this.customerPictureBox.TabIndex = 0;
+            this.customerPictureBox.TabStop = false;
+            // 
             // CustomerDataUC
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -197,6 +213,7 @@
             this.BackColor = System.Drawing.Color.White;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.Controls.Add(this.deleteButton);
             this.Controls.Add(this.selectCustomerLabel);
             this.Controls.Add(this.label6value);
             this.Controls.Add(this.label5value);
@@ -238,5 +255,6 @@
         private System.Windows.Forms.Label label5value;
         private System.Windows.Forms.Label label6value;
         public System.Windows.Forms.Label selectCustomerLabel;
+        public System.Windows.Forms.Button deleteButton;
     }
 }

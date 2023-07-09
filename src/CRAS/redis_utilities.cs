@@ -61,7 +61,16 @@ namespace CRAS
                 db.HashSet(key, data);
             }
         }
-        
+
+        public static bool DeleteRedisEntry(ConnectionMultiplexer redisConnection, string redisKey)
+        {
+            IDatabase db = redisConnection.GetDatabase();
+
+            db.KeyDelete(redisKey);
+
+            return true;
+        }
+
         public static BindingList<redis_customer> GetCustomerDetails(ConnectionMultiplexer redisConnection, string customer_id = "*")
         {
             BindingList<redis_customer> customer_list = new BindingList<redis_customer>();

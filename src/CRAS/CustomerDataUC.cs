@@ -16,6 +16,7 @@ namespace CRAS
     {
         public event EventHandler<int> ControlClicked;
         public event EventHandler<int> ControlDoubleClicked;
+        public event EventHandler<int> DeleteButtonClicked;
 
         public bool isSelected { get; set; }
         public CustomerDataUC()
@@ -118,6 +119,11 @@ namespace CRAS
         private void CustomerDataUC_MouseHover(object sender, EventArgs e)
         {
 
+        }
+
+        private void deleteButton_Click(object sender, EventArgs e)
+        {
+            DeleteButtonClicked?.Invoke(this, Parent.Controls.IndexOf(this));
         }
     }
 }
