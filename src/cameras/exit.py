@@ -68,6 +68,7 @@ def insert_id_to_exited_mem(customer_id, inmem_db):
 #     )
 #     inmem_db.insert_record(new_record, type="exited")
 #################################################################################
+# Test more
 def create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_db, local_db):
     date_format = "%Y-%m-%d %H:%M:%S"
     new_id = Utils.generate_unique_id()
@@ -95,7 +96,7 @@ def create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_d
         maximum_purchase = "",
         remarks = "New Customer",
         loyalty_level = "",
-        num_bills = "",
+        num_bills = "0",
         num_visits = "1",
         num_billed_visits = "",
         last_location = loc_list,
@@ -120,13 +121,15 @@ def create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_d
         visit_remark = "New incomplete customer",
         customer_rating = "",
         customer_feedback = "",
-        incomplete = "1"
+        incomplete = "1",
+        return_customer = "0"
     )
 
     local_db.insert_customer_record(new_customer_record)
     local_db.insert_visit_record(new_visit_record)
     print("New customer record created and inserted to local db, customer: id: ", new_id)
 
+# Make new visit for existing record since customer was not found in mem but found in localdb
 def insert_existing_record_to_visit(record, in_mem_db, local_db):
     # Delete exisitng record
     date_format = "%Y-%m-%d %H:%M:%S"
@@ -148,7 +151,8 @@ def insert_existing_record_to_visit(record, in_mem_db, local_db):
         visit_remark = "Incomplete visit",
         customer_rating = "",
         customer_feedback = "",
-        incomplete = "1"
+        incomplete = "1",
+        return_customer = "1"
     )
     local_db.insert_visit_record(new_visit_record)
     print("Customer not found in memory but found in local db, recording visit, customer: id: ", customer_id)
@@ -246,6 +250,7 @@ def get_face_id_from_exited_mem(face_id, in_mem_db):
     else:
         return None
 
+# Add null check for all decode
 def commit_record(customer_id):
     in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
     local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
@@ -309,7 +314,8 @@ def commit_record(customer_id):
             visit_remark = visit_record.get(b'visit_remark').decode(),
             customer_rating = visit_record.get(b'customer_rating').decode(),
             customer_feedback = visit_record.get(b'customer_feedback').decode(),
-            incomplete = int(visit_record.get(b'incomplete').decode())
+            incomplete = int(visit_record.get(b'incomplete').decode()),
+            return_customer = int(visit_record.get(b'return_customer').decode())
         )
 
         if (customer_record.get(b'return_customer').decode() == "1"):
@@ -437,6 +443,7 @@ def update_record_inmem(record, in_mem_db):
     v_visit_remark = vrecord.get(b'visit_remark').decode()
     v_customer_rating = vrecord.get(b'customer_rating').decode()
     v_customer_feedback = vrecord.get(b'customer_feedback').decode()
+    v_return_customer = vrecord.get(b'return_customer').decode()
 
     new_visit_record = InMemVisit(
         customer_id = customer_id,
@@ -453,7 +460,8 @@ def update_record_inmem(record, in_mem_db):
         visit_remark = v_visit_remark,
         customer_rating = v_customer_rating,
         customer_feedback = v_customer_feedback,
-        incomplete = "0"
+        incomplete = "0",
+        return_customer = v_return_customer
     )
     in_mem_db.delete_record(customer_id, type="customer")
     in_mem_db.delete_record(customer_id, type="visit")
@@ -608,6 +616,8 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
             face_encoding, face_pixels = get_face_image_encoding(r, face, frame)
             if face_encoding is None:
                 continue
+
+
 
             record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
 

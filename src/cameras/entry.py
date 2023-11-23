@@ -55,6 +55,78 @@ def get_face_image_encoding(r, face, frame):
     embedding = r.get_encodings(face, frame)
     return embedding, face_pixels
 
+def fetch_all_employee_records(local_db):
+    fetch_query = """
+                        SELECT * FROM local_employee_db; 
+                        """
+    local_db.cursor.execute(fetch_query)
+    records = local_db.cursor.fetchall()
+    return records
+
+# Load employee data from local db to in mem db
+def load_employee_data():
+    print("Loading employee data")
+    local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+
+    local_db.connect()
+    if not local_db.connection:
+        print("Local db connection failed while loading employee data!")
+    else:
+        print("Connected to localdb while loading employee data")
+
+    in_mem_db.connect()
+    if not in_mem_db.connection:
+        print("Redis db connection failed while loading employee data!")
+    else:
+        print("Connected to redis db while loading employee data")
+
+    # Get all employee records from localdb
+    employee_records = fetch_all_employee_records(local_db)
+    for record in employee_records:
+        # Insert employee record in-mem
+        new_employee_record = InMemEmployee(
+            employee_id = "" if record[0] is None else record[0],
+            name = "" if record[1] is None else record[1],
+            phone_number = "" if record[2] is None else record[2],
+            face_image = "" if record[3] is None else record[3],
+            face_encoding = "" if record[4] is None else record[4],
+            entry_time = "",
+            exit_time = "",
+            num_exits = "0",
+            in_store = "0"
+        )
+        in_mem_db.insert_record(new_employee_record, "employee")
+
+    local_db.disconnect()
+    in_mem_db.disconnect()
+
+def update_employee_inmem(in_mem_db, record):
+    date_format = "%Y-%m-%d %H:%M:%S"
+    employee_id = record.get(b'employee_id').decode()
+    name = record.get(b'name').decode()
+    phone_number = record.get(b'phone_number').decode()
+    face_image = record.get(b'face_image')
+    face_encoding = record.get(b'face_encoding')
+    entry_time = datetime.now().strftime(date_format)
+    exit_time = record.get(b'exit_time').decode()
+    num_exits = record.get(b'num_exits').decode()
+
+    new_employee_record = InMemEmployee(
+        employee_id = employee_id,
+        name = name,
+        phone_number = phone_number,
+        face_image = face_image,
+        face_encoding = face_encoding,
+        entry_time = entry_time,
+        exit_time = exit_time,
+        num_exits = num_exits,
+        in_store = "1"
+    )
+
+    in_mem_db.delete_record(employee_id, type="employee")
+    in_mem_db.insert_record(new_employee_record, type="employee")
+
 def update_exit_entry_customer(in_mem_db, customer_id):
     record = in_mem_db.connection.hgetall("customer_inmem_db:" + customer_id)
     date_format = "%Y-%m-%d %H:%M:%S"
@@ -168,7 +240,8 @@ def update_exit_entry_customer(in_mem_db, customer_id):
         visit_remark = v_visit_remark,
         customer_rating = v_customer_rating,
         customer_feedback = v_customer_feedback,
-        incomplete = "0"
+        incomplete = "0",
+        return_customer = "1"
     )
     in_mem_db.delete_record(customer_id, type="customer")
     in_mem_db.delete_record(customer_id, type="visit")
@@ -241,7 +314,8 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
         visit_remark = "New customer",
         customer_rating = "",
         customer_feedback = "",
-        incomplete = "1"
+        incomplete = "1",
+        return_customer = "0"
     )
 
     in_mem_db.insert_record(new_customer_record)
@@ -356,7 +430,8 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
         visit_remark="",
         customer_rating="",
         customer_feedback="",
-        incomplete="1"
+        incomplete="1",
+        return_customer="1"
     )
 
     print("Inserting existing customer in memory")
@@ -370,10 +445,38 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
     message = BackendMessage.UpdateCustomer.value + ":" + str(new_record.customer_id) + "," + str(record[0])
     in_mem_db.connection.publish(Channel.Backend.value, message)
 
-
 def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
     # Get all customer records from the in-memory Redis database
     records = in_mem_db.connection.keys('customer_inmem_db:*')
+
+    # Initialize variables to track the closest record and similarity
+    closest_record = None
+    closest_similarity = -1.0
+
+    # Iterate over each record
+    for record_key in records:
+        # Retrieve the face encoding from the record
+        record_data = in_mem_db.connection.hgetall(record_key)
+        record_encoding_bytes = record_data.get(b'encoding')
+
+        # Convert the face encodings to numpy arrays
+        face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
+        
+        record_encoding_np = np.frombuffer(record_encoding_bytes, dtype=np.float32)
+
+        # Calculate the cosine similarity between the face encodings
+        similarity = cosine_similarity(face_encoding_np.reshape(1, -1), record_encoding_np.reshape(1, -1))
+
+        # Check if the similarity exceeds the threshold and is closer than the previous closest
+        if similarity > float(threshold) and similarity > closest_similarity:
+            closest_record = record_data
+            closest_similarity = similarity
+
+    return closest_record
+
+def get_employee_face_record_from_mem(face_encoding, threshold, in_mem_db):
+    # Get all customer records from the in-memory Redis database
+    records = in_mem_db.connection.keys('employee_inmem_db:*')
 
     # Initialize variables to track the closest record and similarity
     closest_record = None
@@ -405,6 +508,17 @@ def get_face_record_from_localdb(face_encoding, threshold, local_db):
     face_encoding_str = f"{face_encoding.tolist()}"
     face_record_query = """
                         SELECT * FROM local_customer_db WHERE (1 - (encoding <=> %(face_encoding)s)) > %(threshold)s LIMIT 1; 
+                        """
+    local_db.cursor.execute(face_record_query, {'face_encoding': face_encoding_str, 'threshold': threshold})
+    record = local_db.cursor.fetchone()
+
+    return record
+
+def get_employee_face_record_from_localdb(face_encoding, threshold, local_db):
+    # Query to get nearest similarity face record
+    face_encoding_str = f"{face_encoding.tolist()}"
+    face_record_query = """
+                        SELECT * FROM local_employee_db WHERE (1 - (encoding <=> %(face_encoding)s)) > %(threshold)s LIMIT 1; 
                         """
     local_db.cursor.execute(face_record_query, {'face_encoding': face_encoding_str, 'threshold': threshold})
     record = local_db.cursor.fetchone()
@@ -514,6 +628,13 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
                 continue
 
             with lock:
+                # First check employee db
+                record_from_mem = get_employee_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
+                if record_from_mem:
+                    # Update employee record
+                    update_employee_inmem(in_mem_db, record_from_mem)
+                    continue
+
                 record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
                 if record_from_mem:
                     exited = record_from_mem.get(b'exited').decode('utf-8')
@@ -548,6 +669,9 @@ def send_faces_to_queue(faces, frame, q):
 
 # Start entry camera
 def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
+
+    # Load employee data
+    load_employee_data()
 
     # Choose source
     cap = cv2.VideoCapture(camera)

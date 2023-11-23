@@ -79,7 +79,7 @@ class LocalStore:
 
 class LocalVisit:
     def __init__(self, customer_id, visit_id, store_id, entry_time, exit_time, billed, bill_no, bill_date, bill_amount, return_amount, time_spent, 
-                 visit_remark, customer_rating, customer_feedback, incomplete):
+                 visit_remark, customer_rating, customer_feedback, incomplete, return_customer):
         self.store_id = store_id
         self.customer_id = customer_id
         self.visit_id = visit_id
@@ -95,6 +95,7 @@ class LocalVisit:
         self.customer_rating = customer_rating
         self.customer_feedback = customer_feedback
         self.incomplete = incomplete
+        self.return_customer = return_customer
 
 # Class for the local PostgreSQL database
 class LocalPostgresDB(Database):
@@ -185,7 +186,8 @@ class LocalPostgresDB(Database):
             visit_remark TEXT,
             customer_rating INTEGER,
             customer_feedback INTEGER,
-            incomplete INTEGER DEFAULT 1
+            incomplete INTEGER DEFAULT 1,
+            return_customer INTEGER DEFAULT 0
         )"""
         self.cursor.execute(create_table_query)
         self.connection.commit()
@@ -321,9 +323,9 @@ class LocalPostgresDB(Database):
         insert_query = """
         INSERT INTO local_visit_db (
             customer_id, visit_id, store_id, entry_time, exit_time, billed, bill_amount, time_spent, visit_remark,
-            customer_rating, customer_feedback, incomplete
+            customer_rating, customer_feedback, incomplete, return_customer
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         self.cursor.execute(insert_query, (
             record.customer_id, record.visit_id, record.store_id, record.entry_time, record.exit_time,
@@ -335,7 +337,7 @@ class LocalPostgresDB(Database):
     def insert_visit_record(self, record):
         fields = [
             'customer_id', 'visit_id', 'store_id', 'entry_time', 'exit_time', 'billed', 'bill_amount',
-            'time_spent', 'visit_remark', 'customer_rating', 'customer_feedback', 'incomplete'
+            'time_spent', 'visit_remark', 'customer_rating', 'customer_feedback', 'incomplete', 'return_customer'
         ]
 
         with self.connection.cursor() as cursor:
@@ -427,7 +429,7 @@ class LocalPostgresDB(Database):
         update_query = """
         UPDATE local_visit_db
         SET customer_id = %s, visit_id = %s, store_id = %s, entry_time = %s, exit_time = %s, billed = %s, bill_amount = %s,
-            time_spent = %s, visit_remark = %s, customer_rating = %s, customer_feedback = %s, incomplete = %s
+            time_spent = %s, visit_remark = %s, customer_rating = %s, customer_feedback = %s, incomplete = %s, return_customer = %s
         WHERE visit_id = %s
         """
         self.cursor.execute(update_query, (
@@ -565,7 +567,7 @@ class InMemCustomer:
 # Employee data structure for in-memory Redis database
 class InMemEmployee:
     def __init__(self, employee_id, name, phone_number, face_image, face_encoding,
-                 entry_time=None, exit_time=None, num_exits=0):
+                 entry_time=None, exit_time=None, num_exits=0, in_store = False):
         self.employee_id = employee_id
         self.name = name
         self.phone_number = phone_number
@@ -575,6 +577,7 @@ class InMemEmployee:
         self.entry_time = entry_time
         self.exit_time = exit_time
         self.num_exits = num_exits
+        self.in_store = in_store
 
 class InMemStore:
     def __init__(self, store_id, location, name, num_entry_cams, num_billing_cams, num_exit_cams,
@@ -591,7 +594,7 @@ class InMemStore:
 
 class InMemVisit:
     def __init__(self, customer_id, visit_id, store_id, entry_time, exit_time, billed, bill_no, bill_date, bill_amount, return_amount, time_spent, 
-                 visit_remark, customer_rating, customer_feedback, incomplete):
+                 visit_remark, customer_rating, customer_feedback, incomplete, return_customer):
         self.store_id = store_id
         self.customer_id = customer_id
         self.visit_id = visit_id
@@ -607,6 +610,7 @@ class InMemVisit:
         self.customer_rating = customer_rating
         self.customer_feedback = customer_feedback
         self.incomplete = incomplete
+        self.return_customer = return_customer
 
 class InMemIncomplete:
     def __init__(self, customer_id, encoding):
@@ -794,7 +798,8 @@ class MapInMemtoLocal:
             visit_remark=inmem_visit.visit_remark,
             customer_rating=inmem_visit.customer_rating,
             customer_feedback=inmem_visit.customer_feedback,
-            incomplete=inmem_visit.incomplete
+            incomplete=inmem_visit.incomplete,
+            return_customer=inmem_visit.return_customer
         )
         self.local_db.insert_record(local_visit)
 
@@ -864,7 +869,8 @@ class MapLocaltoInMem:
             visit_remark=local_visit[8],
             customer_rating=local_visit[9],
             customer_feedback=local_visit[10],
-            incomplete=local_visit[11]
+            incomplete=local_visit[11],
+            return_customer=local_visit[12]
         )
         return inmem_visit
     

@@ -28,10 +28,10 @@ def get_model_dir():
 
 default_model_dir = get_model_dir()
 default_video_path = get_model_dir()
-default_username = "cras"
-default_password = "cras_admin"
+default_username = "cras_admin"
+default_password = "admin"
 default_db_link = "localhost"
-default_db_name = "local_customers"
+default_db_name = "localdb"
 default_detection_method = "Frontal"
 default_sim_method = "Cosine"
 default_recognition_library = "VGG"

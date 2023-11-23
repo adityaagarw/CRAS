@@ -131,8 +131,8 @@ def start_cameras():
     # Start entry camera
     py_cmd = get_python_command()
     subprocess.Popen([py_cmd, 'cameras/entry.py', '-camera', '0'])
-    subprocess.Popen([py_cmd, 'cameras/billing.py', '-camera', '1'])
-    subprocess.Popen([py_cmd, 'cameras/exit.py', '-camera', '2'])
+    subprocess.Popen([py_cmd, 'cameras/billing.py', '-camera', '2'])
+    subprocess.Popen([py_cmd, 'cameras/exit.py', '-camera', '1'])
  
 def get_camera_ids():
     # Get camera ids
