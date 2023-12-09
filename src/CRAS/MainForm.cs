@@ -226,10 +226,14 @@ namespace CRAS
             customerData.SetLabel("label6", "Entry Time: ", customer.entry_time.ToShortTimeString());
             customerData.selectCustomerLabel.Hide();
 
+            //Give delete button in CustomerFlowLayout to Delete Duplicate entries & markAsEmployeeButton to mark customer as employee
             if (panel.Name.Equals(customerFlowLayout.Name))
             {
-                customerData.deleteButton.Visible = true;
+                panel.Invoke(new Action(() => { customerData.deleteButton.Visible = true; }));
                 customerData.DeleteButtonClicked += CustomerData_DeleteButtonClicked;
+
+                panel.Invoke(new Action(() => { customerData.markAsEmployee.Visible = true; }));
+                customerData.MarkAsEmployeeClicked += CustomerData_MarkAsEmployeeClicked;
             }
 
             if (index > -1)
@@ -244,6 +248,14 @@ namespace CRAS
 
             //customerFlowLayout.Controls.Add(customerData);
         }
+
+        private void CustomerData_MarkAsEmployeeClicked(object sender, int e)
+        {
+            //throw new NotImplementedException();
+            AddEmployeeForm addEmployeeForm = new AddEmployeeForm("MarkAsEmployee", ((CustomerDataUC)sender).label4value.Text.ToString(), ((CustomerDataUC)sender).customerPictureBox.Image);
+            addEmployeeForm.ShowDialog();
+        }
+
         public void PopulateCustomerFlowLayout(BindingList<redis_customer> customers)
         {
           
@@ -611,6 +623,12 @@ namespace CRAS
             return billingForm;
         }
 
+        public static AddEmployeeForm GetAddEmployeeFormIfOpen()
+        {
+            AddEmployeeForm addEmployeeForm = Application.OpenForms.OfType<AddEmployeeForm>().FirstOrDefault();
+            return addEmployeeForm;
+        }
+
         public static LoadingForm GetLoadingFormIfOpen()
         {
             LoadingForm loadingForm = Application.OpenForms.OfType<LoadingForm>().FirstOrDefault();
@@ -679,6 +697,18 @@ namespace CRAS
         {
             DBDisplayForm dBDisplayForm = new DBDisplayForm();
             dBDisplayForm.Show();
+        }
+
+        private void bhDashboardButton_Click(object sender, EventArgs e)
+        {
+            BHDashboard bHDashboard = new BHDashboard();
+            bHDashboard.Show();
+        }
+
+        private void addEmployee_Click(object sender, EventArgs e)
+        {
+            AddEmployeeForm addEmployeeForm = new AddEmployeeForm("AddNewEmployee");
+            addEmployeeForm.Show();
         }
     }
 }

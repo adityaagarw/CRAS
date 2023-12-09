@@ -135,12 +135,16 @@ namespace CRAS
             
         }
 
+        public static void AddEmployee(string customer_id, byte[] image, string name, string mobile)
+        {
+            
+        }
+
         public static void PublishMessage(string channelName, string message)
         {
             ISubscriber publishChannel = MainForm.redisConnection.GetSubscriber();
             publishChannel.Publish(channelName, message);
             Console.WriteLine("Published " + message + " to " + channelName);
-
         }
 
         public static void InitialiseSubscribers(string channelName, MainForm mainForm = null)
@@ -198,13 +202,14 @@ namespace CRAS
                     Console.WriteLine("Rescan Stream Ended!");
                     MainForm.bill_scanning = 0;
                     BillingForm billingForm = MainForm.GetBillingFormIfOpen();
-                if (billingForm != null)
-                {
-                    billingForm.Invoke(new Action(() => { billingForm.scanStatus.Text = "Scan Completed"; }));
-                    pgsql_utilities.UpdateBillDetails(MainForm.pgsql_connection, billingForm.current_bill);
-                    billingForm.Invoke(new Action(() => {billingForm.FormBorderStyle = FormBorderStyle.FixedToolWindow; }));
+                    if (billingForm != null)
+                    {
+                        billingForm.Invoke(new Action(() => { billingForm.scanStatus.Text = "Scan Completed"; }));
+                        pgsql_utilities.UpdateBillDetails(MainForm.pgsql_connection, billingForm.current_bill);
+                        billingForm.Invoke(new Action(() => {billingForm.FormBorderStyle = FormBorderStyle.FixedToolWindow; }));
 
                     }
+
                     if (mainForm != null) mainForm.Invoke(new Action(() => { mainForm.scanStatusLabel.Text = "Scan Completed"; }));
                     //In case Bill Exists, then update instead of Insert
                     //billingForm.scanStatus.ForeColor = Color.Gray;
@@ -215,9 +220,26 @@ namespace CRAS
                     Console.WriteLine("Customer Exited: " + customer_id);
                     CustomerExited(customer_id, mainForm);
                 }
-                if (messageReceived.StartsWith("Employee"))
+                if (messageReceived.StartsWith("NewEmployeeAck"))
                 {
+                    AddEmployeeForm addEmployeeForm = MainForm.GetAddEmployeeFormIfOpen();
+                    if (addEmployeeForm != null)
+                    {
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.addEmployeeButton.Enabled = true; }));
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.ControlBox = true; }));
+                        addEmployeeForm.Invoke(new Action(() => { MessageBox.Show("New Employee Added Successfully!"); }));
+                    }
+                }
 
+                if(messageReceived.StartsWith("MarkAsEmployeeAck"))
+                {
+                    AddEmployeeForm addEmployeeForm = MainForm.GetAddEmployeeFormIfOpen();
+                    if (addEmployeeForm != null)
+                    {
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.addEmployeeButton.Enabled = true; }));
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.ControlBox = true; }));
+                        addEmployeeForm.Invoke(new Action(() => { MessageBox.Show("Marked Existing person as Employee successfully!"); }));
+                    }
                 }
             });
 

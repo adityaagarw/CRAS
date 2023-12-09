@@ -107,6 +107,24 @@ namespace CRAS
             return customer_list;
         }
 
+        public static DataTable GetDailyOverview(NpgsqlConnection connection, string date)
+        {
+            DataTable overview = new DataTable();
+
+            connection.Open();
+
+            string query = "SELECT COUNT(visit_id) as TotalVisits, COUNT(customer_id) as TotalVisitors, COUNT(DISTINCT customer_id) as UniqueVisitors, MAX(time_spent) as MaxTime, MIN(time_spent) as MinTime, SUM(time_spent) as TotalTime FROM local_visit_db WHERE incomplete = '0'";
+
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+
+            NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter();
+            dataAdapter.SelectCommand = command;
+            dataAdapter.Fill(overview);
+
+            connection.Close();
+
+            return overview;
+        }
         
         public static DataTable GetTableData(NpgsqlConnection connection, string table_name)
         {

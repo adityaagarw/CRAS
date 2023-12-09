@@ -63,10 +63,50 @@ namespace CRAS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap _307_3074480_cash_register_icons_cash_register_icon_png {
+            get {
+                object obj = ResourceManager.GetObject("307-3074480_cash-register-icons-cash-register-icon-png", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap _3687412 {
+            get {
+                object obj = ResourceManager.GetObject("3687412", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon AddEmployee {
+            get {
+                object obj = ResourceManager.GetObject("AddEmployee", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Billing {
             get {
                 object obj = ResourceManager.GetObject("Billing", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon MarkAsEmployee {
+            get {
+                object obj = ResourceManager.GetObject("MarkAsEmployee", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
@@ -76,6 +116,16 @@ namespace CRAS.Properties {
         internal static System.Drawing.Bitmap png_transparent_delete_key_logo_button_text_rectangle_logo {
             get {
                 object obj = ResourceManager.GetObject("png-transparent-delete-key-logo-button-text-rectangle-logo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap png_transparent_transfer_man_employee_user_avatar_arrow_refresh_icon {
+            get {
+                object obj = ResourceManager.GetObject("png-transparent-transfer-man-employee-user-avatar-arrow-refresh-icon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

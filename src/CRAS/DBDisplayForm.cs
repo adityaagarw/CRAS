@@ -149,7 +149,7 @@ namespace CRAS
                 }*/
 
                 tableDataGridView.DataSource = redisTables[selectTableCombo.SelectedIndex];
-                ((DataGridViewImageColumn)tableDataGridView.Columns["image"]).ImageLayout = DataGridViewImageCellLayout.Zoom;
+                //((DataGridViewImageColumn)tableDataGridView.Columns["image"]).ImageLayout = DataGridViewImageCellLayout.Zoom;
             }
         }
     }

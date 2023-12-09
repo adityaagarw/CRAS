@@ -19,6 +19,23 @@ namespace CRAS
             return image;
         }
 
+        public static byte[] ImagetoByte(Image image)
+        {
+            if (image == null)
+            {
+                throw new ArgumentNullException(nameof(image), "Input image cannot be null.");
+            }
+
+            using (MemoryStream stream = new MemoryStream())
+            {
+                // Save the image to the memory stream in a specific format (e.g., PNG)
+                image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+
+                // Convert the memory stream to a byte array
+                return stream.ToArray();
+            }
+        }
+
         public static BindingList<redis_customer> OrderBy(BindingList<redis_customer> customers, string column, string order = "ASC") 
         {
             List<redis_customer> list = new List<redis_customer>();

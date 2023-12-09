@@ -17,6 +17,7 @@ namespace CRAS
         public event EventHandler<int> ControlClicked;
         public event EventHandler<int> ControlDoubleClicked;
         public event EventHandler<int> DeleteButtonClicked;
+        public event EventHandler<int> MarkAsEmployeeClicked;
 
         public bool isSelected { get; set; }
         public CustomerDataUC()
@@ -124,6 +125,11 @@ namespace CRAS
         private void deleteButton_Click(object sender, EventArgs e)
         {
             DeleteButtonClicked?.Invoke(this, Parent.Controls.IndexOf(this));
+        }
+
+        private void markAsEmployee_Click(object sender, EventArgs e)
+        {
+            MarkAsEmployeeClicked?.Invoke(this, Parent.Controls.IndexOf(this));
         }
     }
 }
