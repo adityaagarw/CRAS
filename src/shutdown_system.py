@@ -31,6 +31,16 @@ def read_exit_pid():
         exit(1)
     return pid
 
+def read_employee_pid():
+    # Read the PID from the file
+    try:
+        with open("employee_pid", "r") as f:
+            pid = int(f.read())
+    except:
+        print("Employee program not running!")
+        exit(1)
+    return pid
+
 def delete_entry_pid():
     # Delete the PID file
     os.remove("entry_pid")
@@ -43,6 +53,10 @@ def delete_exit_pid():
     # Delete the PID file
     os.remove("exit_pid")
 
+def delete_employee_pid():
+    # Delete the PID file
+    os.remove("employee_pid")
+
 if __name__ == "__main__":
 
     with open("status", "w") as f:
@@ -51,6 +65,7 @@ if __name__ == "__main__":
     entry_pid = read_entry_pid()
     billing_pid = read_billing_pid()
     exit_pid = read_exit_pid()
+    employee_pid = read_employee_pid()
 
     # Kill the process using psutil
     try:
@@ -67,6 +82,11 @@ if __name__ == "__main__":
         exit_pid = psutil.Process(exit_pid)
     except:
         exit_pid = None
+
+    try:
+        employee_pid = psutil.Process(employee_pid)
+    except:
+        employee_pid = None
 
     # Check if entry_p is running
     if entry_p and entry_p.is_running():
@@ -100,3 +120,14 @@ if __name__ == "__main__":
     else:
         print("Exit program already shut down")
         os.remove("exit_pid")
+
+    # Check if employee_pid is running
+    if employee_pid and employee_pid.is_running():
+        print("Shutting down employee program")
+        for p in employee_pid.children(recursive=True):
+            p.terminate()
+        employee_pid.terminate()
+        delete_employee_pid()
+    else:
+        print("Employee program already shut down")
+        os.remove("employee_pid")

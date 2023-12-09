@@ -10,6 +10,8 @@ import requests
 import uuid
 
 class Utils:
+    def generate_face_encoding_from_image():
+        pass
     def get_location():
         response = requests.get('https://api64.ipify.org?format=json').json()
         ip_address = response["ip"]

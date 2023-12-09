@@ -58,7 +58,8 @@ class LocalCustomer:
         self.group_id = group_id
 
 class LocalEmployee:
-    def __init__(self, name, phone_number, face_image, face_encoding):
+    def __init__(self, employee_id, name, phone_number, face_image, face_encoding):
+        self.employee_id = employee_id
         self.name = name
         self.phone_number = phone_number
         self.face_image = face_image

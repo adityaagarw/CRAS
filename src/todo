@@ -20,3 +20,4 @@ Research and experiment oriented:
 -> Fischer face recognition
 -> Group faces together based on time and similarity (dynamic similarity). <- frame differencing
 
+-> Deletion of in mem is happening in frontend. Change that to backend in future

@@ -41,6 +41,15 @@ Redis port: 6379
 -> Set python path so that libraries are known
 
 
+---------------------------------------------------------
+-> Set windows long path
+-> Install python 3.10.11
+-> Set env variables
+-> In file: C:\Users\snehn\AppData\Local\Programs\Python\Python310\lib\site-packages\keras_vggface\models.py
+    #from keras.engine.topology import get_source_inputs
+    from keras.utils.layer_utils import get_source_inputs
+
+
 
 
 

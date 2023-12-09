@@ -5,6 +5,7 @@ class Channel(Enum):
     Billing = "Billing"
     Frontend = "Frontend"
     CancelTimer = "CancelTimer"
+    Employee = "Employee"
 
 class Status(Enum):
     BackEndDown = "BackEndDown"
@@ -33,7 +34,11 @@ class BackendMessage(Enum):
     EndRescan = "EndRescan"
     CancelTimer = "CancelTimer"
     CancelQueue = "CancelQueue"
+    NewEmployeeAck = "NewEmployeeAck"
+    MarkAsEmployeeAck = "MarkAsEmployeeAck"
 
 class FrontendMessage(Enum):
     StartBilling = "StartBilling"
     StartRescan = "StartRescan"
+    NewEmployee = "NewEmployee"
+    MarkAsEmployee = "MarkAsEmployee"

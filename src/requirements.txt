@@ -1,6 +1,6 @@
 psutil
 pillow
-tensorflow
+tensorflow<2.11
 keras_vggface
 keras_facenet
 opencv-python
