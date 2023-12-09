@@ -133,6 +133,9 @@ def start_cameras():
     subprocess.Popen([py_cmd, 'cameras/entry.py', '-camera', '0'])
     subprocess.Popen([py_cmd, 'cameras/billing.py', '-camera', '2'])
     subprocess.Popen([py_cmd, 'cameras/exit.py', '-camera', '1'])
+    
+    subprocess.Popen([py_cmd, 'employee/employee.py'])
+
  
 def get_camera_ids():
     # Get camera ids
@@ -174,6 +177,17 @@ if __name__ == "__main__":
                 exit(1)
             else:
                 os.remove("exit_pid")
+
+    if os.path.isfile("employee_pid"):
+        # Check if process exists and is running
+        with open("employee_pid", "r") as f:
+            pid = f.read()
+            pid = int(pid)
+            if psutil.pid_exists(pid):
+                print("Employee Program already running")
+                exit(1)
+            else:
+                os.remove("employee_pid")
 
     write_status(0)
     start_status_check()
