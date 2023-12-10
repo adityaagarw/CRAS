@@ -71,9 +71,12 @@ namespace CRAS
 
             byte[] imageBytes = utilities.ImagetoByte(employeePicture.Image);
 
+            //TBD : Resize image
+            string imageString = Convert.ToBase64String(imageBytes);
+
             if (source.Equals("AddNewEmployee"))
             {
-                string message = "NewEmployee:" + imageBytes.ToString() + "," + nameTextBox.Text.ToString() + "," + mobileTextBox.Text.ToString();
+                string message = "NewEmployee:" + imageString + "," + nameTextBox.Text.ToString() + "," + mobileTextBox.Text.ToString();
 
                 pubsub_utilities.PublishMessage("Employee", message);
             }
