@@ -137,6 +137,10 @@ namespace CRAS
             {
                 query = "SELECT customer_id, name, phone_number, image, return_customer, last_visit, average_time_spent, average_bill_value, average_bill_per_visit, average_bill_per_billed_visit, maximum_purchase, remarks, loyalty_level, num_bills, num_visits, num_billed_visits, last_location, category FROM local_customer_db";
             }
+            if (table_name.Equals("local_employee_db"))
+            {
+                query = "SELECT employee_id, name, phone_number, face_image from local_employee_db";
+            }
             
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
 
