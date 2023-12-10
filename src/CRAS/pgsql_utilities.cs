@@ -15,7 +15,7 @@ namespace CRAS
 {
     internal class pgsql_utilities
     {
-        public static string CONNECTION_STRING = "Host=localhost;Username=cras_admin;Password=admin;Database=localdb";
+        public static string CONNECTION_STRING = "Host=127.0.0.1;Username=cras_admin;Password=admin;Database=localdb";
 
         public static NpgsqlConnection ConnectToPGSQL(string connection_string = "")
         {

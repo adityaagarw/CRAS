@@ -316,8 +316,11 @@ namespace CRAS
             // Stop the thread and close the named pipe when the form is closing
             //StopPythonScript();
             ClosePipes();
-            sqlDependency.Stop();
-            sqlDependency.Dispose();
+            if (sqlDependency != null)
+            {
+                sqlDependency.Stop();
+                sqlDependency.Dispose();
+            }
             //SqlDependency.Stop(posdb_utilities.GetConnectionString(POSSERVER, POSDB, POSUID, POSPWD, posdb));
 
         }
