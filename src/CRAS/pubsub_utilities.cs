@@ -222,6 +222,7 @@ namespace CRAS
                 }
                 if (messageReceived.StartsWith("NewEmployeeAck"))
                 {
+                    Console.WriteLine("Received new employee acknowledgement");
                     AddEmployeeForm addEmployeeForm = MainForm.GetAddEmployeeFormIfOpen();
                     if (addEmployeeForm != null)
                     {
@@ -233,6 +234,7 @@ namespace CRAS
 
                 if(messageReceived.StartsWith("MarkAsEmployeeAck"))
                 {
+                    Console.WriteLine("Received marked employee acknowledgement");
                     AddEmployeeForm addEmployeeForm = MainForm.GetAddEmployeeFormIfOpen();
                     if (addEmployeeForm != null)
                     {

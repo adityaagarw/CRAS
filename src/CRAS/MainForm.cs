@@ -95,6 +95,7 @@ namespace CRAS
             if(loadingForm != null) loadingForm.SetLoadingLabel("Initializing PUBSUB!");
             pubsub_utilities.InitialiseSubscribers("Backend", this);
             pubsub_utilities.InitialiseSubscribers("Billing", this);
+            pubsub_utilities.InitialiseSubscribers("Employee", this);
 
             if (loadingForm != null) loadingForm.SetLoadingLabel("Connecting to PGSQL");
             pgsql_connection = pgsql_utilities.ConnectToPGSQL();
