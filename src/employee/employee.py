@@ -58,7 +58,7 @@ def create_new_employee(data_string, in_mem_db, detector, r):
         entry_time=time_now,
         exit_time="",
         num_exits="0",
-        in_store="1"
+        in_store="1" # TBD: Assuming for now that all new employees are in store
     )
 
     in_mem_db.insert_record(new_employee_inmem, type="employee")
@@ -87,9 +87,9 @@ def change_customer_to_employee(data_string, in_mem_db):
     if len(record) != 0:
         face_encoding = record.get(b'encoding')
         face_image = record.get(b'image')
-        face_encoding_bytes = face_encoding.tobytes()
+        
         # For PGSQL vector field
-        encoding = np.frombuffer(face_encoding_bytes, dtype=np.float32).tolist()
+        encoding = np.frombuffer(face_encoding, dtype=np.float32).tolist()
     else:
         face_image = None
         face_encoding = None
@@ -121,6 +121,8 @@ def change_customer_to_employee(data_string, in_mem_db):
     in_mem_db.insert_record(new_employee_inmem, type="employee")
     local_db.insert_employee_record(new_employee)
     local_db.disconnect()
+
+    in_mem_db.delete_record(record_key, type="customer")
 
     print("Marked employee added to local and in mem db and ACK published")
     in_mem_db.connection.publish(Channel.Employee.value, BackendMessage.MarkAsEmployeeAck.value)

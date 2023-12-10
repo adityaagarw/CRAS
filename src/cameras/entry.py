@@ -486,7 +486,7 @@ def get_employee_face_record_from_mem(face_encoding, threshold, in_mem_db):
     for record_key in records:
         # Retrieve the face encoding from the record
         record_data = in_mem_db.connection.hgetall(record_key)
-        record_encoding_bytes = record_data.get(b'encoding')
+        record_encoding_bytes = record_data.get(b'face_encoding')
 
         # Convert the face encodings to numpy arrays
         face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
