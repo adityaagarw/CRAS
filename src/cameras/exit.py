@@ -156,6 +156,33 @@ def insert_existing_record_to_visit(record, in_mem_db, local_db):
     )
     local_db.insert_visit_record(new_visit_record)
     print("Customer not found in memory but found in local db, recording visit, customer: id: ", customer_id)
+
+def update_employee_inmem(in_mem_db, record):
+    date_format = "%Y-%m-%d %H:%M:%S"
+    employee_id = record.get(b'employee_id').decode()
+    name = record.get(b'name').decode()
+    phone_number = record.get(b'phone_number').decode()
+    face_image = record.get(b'face_image')
+    face_encoding = record.get(b'face_encoding')
+    exit_time = datetime.now().strftime(date_format)
+    entry_time = record.get(b'entry_time').decode()
+    num_exits = record.get(b'num_exits').decode()
+
+    new_employee_record = InMemEmployee(
+        employee_id = employee_id,
+        name = name,
+        phone_number = phone_number,
+        face_image = face_image,
+        face_encoding = face_encoding,
+        entry_time = entry_time,
+        exit_time = exit_time,
+        num_exits = num_exits,
+        in_store = "0"
+    )
+
+    in_mem_db.delete_record(employee_id, type="employee")
+    in_mem_db.insert_record(new_employee_record, type="employee")
+
 #################################################################################
 def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
     # Get all customer records from the in-memory Redis database
@@ -185,6 +212,41 @@ def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
             closest_similarity = similarity
 
     return closest_record
+
+def get_employee_face_record_from_mem(face_encoding, threshold, in_mem_db):
+    # Get all customer records from the in-memory Redis database
+    records = in_mem_db.connection.keys('employee_inmem_db:*')
+
+    # Initialize variables to track the closest record and similarity
+    closest_record = None
+    closest_similarity = -1.0
+
+    # Iterate over each record
+    for record_key in records:
+        # Retrieve the face encoding from the record
+        record_data = in_mem_db.connection.hgetall(record_key)
+        record_encoding_bytes = record_data.get(b'face_encoding')
+
+        # Convert the face encodings to numpy arrays
+        face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
+        
+        record_encoding_np = np.frombuffer(record_encoding_bytes, dtype=np.float32)
+
+        # Calculate the cosine similarity between the face encodings
+        similarity = cosine_similarity(face_encoding_np.reshape(1, -1), record_encoding_np.reshape(1, -1))
+
+        # Check if the similarity exceeds the threshold and is closer than the previous closest
+        if similarity > float(threshold) and similarity > closest_similarity:
+            closest_record = record_data
+            closest_similarity = similarity
+
+    return closest_record
+
+def check_if_employee_instore(record):
+    is_in_store = record.get(b'in_store').decode('utf-8')
+    if is_in_store == '1':
+        return True
+    return False
 
 def get_face_record_from_incomplete_mem(face_encoding, threshold, in_mem_db):
     records = in_mem_db.connection.keys('incomplete_inmem_db:*')
@@ -617,7 +679,14 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
             if face_encoding is None:
                 continue
 
-
+            # Employee handling
+            record_from_mem = get_employee_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
+            if record_from_mem:
+                # If employee has already exited do nothing
+                if check_if_employee_instore(record_from_mem) is False:
+                    continue
+                update_employee_inmem(in_mem_db, record_from_mem)
+                continue
 
             record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
 

@@ -11,7 +11,18 @@ from face.face import Detection, Recognition, Rectangle, Predictor
 from face.imagetoface import ImageToFace
 from utils.utils import Utils
 
-def create_new_employee(data_string, in_mem_db, detector, r):
+def get_employee_face_record_from_localdb(face_encoding, threshold, local_db):
+    # Query to get nearest similarity face record
+    face_encoding_str = f"{face_encoding.tolist()}"
+    face_record_query = """
+                        SELECT * FROM local_employee_db WHERE encoding <=> %(face_encoding)s > %(threshold)s LIMIT 1; 
+                        """
+    local_db.cursor.execute(face_record_query, {'face_encoding': face_encoding_str, 'threshold': threshold})
+    record = local_db.cursor.fetchone()
+
+    return record
+
+def create_new_employee(data_string, in_mem_db, parameters, detector, r):
     local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
     local_db.connect()
 
@@ -32,6 +43,13 @@ def create_new_employee(data_string, in_mem_db, detector, r):
     phone_number = data[2]
 
     face_encoding, pixels = ImToFace.imageToEncoding(detector, r, image)
+
+    if get_employee_face_record_from_localdb(face_encoding, parameters.threshold, local_db) is not None:
+        print("Employee already exists in local db")
+        in_mem_db.connection.publish(Channel.Employee.value, BackendMessage.EmployeeExists.value)
+        local_db.disconnect()
+        return
+
     # For Redis in mem db
     face_encoding_bytes = face_encoding.tobytes()
     # For PGSQL vector field
@@ -90,6 +108,7 @@ def change_customer_to_employee(data_string, in_mem_db):
         
         # For PGSQL vector field
         encoding = np.frombuffer(face_encoding, dtype=np.float32).tolist()
+        print
     else:
         face_image = None
         face_encoding = None
@@ -148,7 +167,7 @@ def start_employee_process(parameters):
                     data = data.decode('utf-8')
                 split_data = data.split(":")
                 if split_data[0] == FrontendMessage.NewEmployee.value:
-                    create_new_employee(split_data[1], in_mem_db, detector, r)
+                    create_new_employee(split_data[1], in_mem_db, parameters, detector, r)
                 if split_data[0] == FrontendMessage.MarkAsEmployee.value:
                     change_customer_to_employee(split_data[1], in_mem_db)
 

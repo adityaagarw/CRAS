@@ -525,6 +525,12 @@ def get_employee_face_record_from_localdb(face_encoding, threshold, local_db):
 
     return record
 
+def check_if_employee_instore(record):
+    is_in_store = record.get(b'in_store').decode('utf-8')
+    if is_in_store == '1':
+        return True
+    return False
+
 def pipe_stream_process(camera, parameters, pipe_q, camfeed_break_flag):
     fp = FacePipe("entry")
     
@@ -632,6 +638,8 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
                 record_from_mem = get_employee_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
                 if record_from_mem:
                     # Update employee record
+                    if check_if_employee_instore(record_from_mem):
+                        continue
                     update_employee_inmem(in_mem_db, record_from_mem)
                     continue
 

@@ -36,6 +36,7 @@ class BackendMessage(Enum):
     CancelQueue = "CancelQueue"
     NewEmployeeAck = "NewEmployeeAck"
     MarkAsEmployeeAck = "MarkAsEmployeeAck"
+    EmployeeExists = "EmployeeExists"
 
 class FrontendMessage(Enum):
     StartBilling = "StartBilling"
