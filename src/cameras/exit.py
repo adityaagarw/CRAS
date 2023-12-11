@@ -537,7 +537,7 @@ def get_face_record_from_localdb(face_encoding, threshold, local_db):
     # Query to get nearest similarity face record
     face_encoding_str = f"{face_encoding.tolist()}"
     face_record_query = """
-                        SELECT * FROM local_customer_db WHERE encoding <=> %(face_encoding)s > %(threshold)s LIMIT 1; 
+                        SELECT * FROM local_customer_db WHERE (1 - (encoding <=> %(face_encoding)s)) > %(threshold)s LIMIT 1; 
                         """
     local_db.cursor.execute(face_record_query, {'face_encoding': face_encoding_str, 'threshold': threshold})
     record = local_db.cursor.fetchone()

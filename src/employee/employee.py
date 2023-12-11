@@ -13,9 +13,10 @@ from utils.utils import Utils
 
 def get_employee_face_record_from_localdb(face_encoding, threshold, local_db):
     # Query to get nearest similarity face record
+    threshold = 1 - threshold
     face_encoding_str = f"{face_encoding.tolist()}"
     face_record_query = """
-                        SELECT * FROM local_employee_db WHERE encoding <=> %(face_encoding)s > %(threshold)s LIMIT 1; 
+                        SELECT * FROM local_employee_db WHERE face_encoding <=> %(face_encoding)s < %(threshold)s LIMIT 1; 
                         """
     local_db.cursor.execute(face_record_query, {'face_encoding': face_encoding_str, 'threshold': threshold})
     record = local_db.cursor.fetchone()
@@ -43,8 +44,8 @@ def create_new_employee(data_string, in_mem_db, parameters, detector, r):
     phone_number = data[2]
 
     face_encoding, pixels = ImToFace.imageToEncoding(detector, r, image)
-
-    if get_employee_face_record_from_localdb(face_encoding, parameters.threshold, local_db) is not None:
+    record = get_employee_face_record_from_localdb(face_encoding, parameters.threshold, local_db)
+    if record is not None:
         print("Employee already exists in local db")
         in_mem_db.connection.publish(Channel.Employee.value, BackendMessage.EmployeeExists.value)
         local_db.disconnect()
