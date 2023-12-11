@@ -105,7 +105,7 @@
             // 
             this.startStopFeedButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.startStopFeedButton.Location = new System.Drawing.Point(95, 7);
-            this.startStopFeedButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.startStopFeedButton.Margin = new System.Windows.Forms.Padding(2);
             this.startStopFeedButton.Name = "startStopFeedButton";
             this.startStopFeedButton.Size = new System.Drawing.Size(133, 38);
             this.startStopFeedButton.TabIndex = 6;
@@ -117,7 +117,7 @@
             // 
             this.statusButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.statusButton.Location = new System.Drawing.Point(928, 15);
-            this.statusButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.statusButton.Margin = new System.Windows.Forms.Padding(2);
             this.statusButton.Name = "statusButton";
             this.statusButton.Size = new System.Drawing.Size(56, 24);
             this.statusButton.TabIndex = 7;
@@ -130,7 +130,7 @@
             this.customerFlowLayout.Controls.Add(this.exitedCustomerFLP);
             this.customerFlowLayout.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.customerFlowLayout.Location = new System.Drawing.Point(436, 50);
-            this.customerFlowLayout.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.customerFlowLayout.Margin = new System.Windows.Forms.Padding(2);
             this.customerFlowLayout.Name = "customerFlowLayout";
             this.customerFlowLayout.Size = new System.Drawing.Size(584, 544);
             this.customerFlowLayout.TabIndex = 11;
@@ -141,7 +141,7 @@
             this.exitedCustomerFLP.BackColor = System.Drawing.Color.White;
             this.exitedCustomerFLP.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.exitedCustomerFLP.Location = new System.Drawing.Point(2, 2);
-            this.exitedCustomerFLP.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.exitedCustomerFLP.Margin = new System.Windows.Forms.Padding(2);
             this.exitedCustomerFLP.Name = "exitedCustomerFLP";
             this.exitedCustomerFLP.Size = new System.Drawing.Size(584, 542);
             this.exitedCustomerFLP.TabIndex = 12;
@@ -153,7 +153,7 @@
             this.billingButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.billingButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.billingButton.Location = new System.Drawing.Point(975, 600);
-            this.billingButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.billingButton.Margin = new System.Windows.Forms.Padding(2);
             this.billingButton.Name = "billingButton";
             this.billingButton.Size = new System.Drawing.Size(44, 37);
             this.billingButton.TabIndex = 12;
@@ -163,7 +163,7 @@
             // pictureBox2
             // 
             this.pictureBox2.Location = new System.Drawing.Point(20, 355);
-            this.pictureBox2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pictureBox2.Margin = new System.Windows.Forms.Padding(2);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(302, 251);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -173,7 +173,7 @@
             // pictureBox1
             // 
             this.pictureBox1.Location = new System.Drawing.Point(20, 50);
-            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(302, 254);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -195,7 +195,7 @@
             // 
             this.displayComboBox.FormattingEnabled = true;
             this.displayComboBox.Location = new System.Drawing.Point(436, 26);
-            this.displayComboBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.displayComboBox.Margin = new System.Windows.Forms.Padding(2);
             this.displayComboBox.Name = "displayComboBox";
             this.displayComboBox.Size = new System.Drawing.Size(148, 21);
             this.displayComboBox.TabIndex = 14;
@@ -249,7 +249,7 @@
             // 
             this.dbButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.dbButton.Location = new System.Drawing.Point(848, 15);
-            this.dbButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.dbButton.Margin = new System.Windows.Forms.Padding(2);
             this.dbButton.Name = "dbButton";
             this.dbButton.Size = new System.Drawing.Size(56, 24);
             this.dbButton.TabIndex = 19;
@@ -261,7 +261,7 @@
             // 
             this.bhDashboardButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.bhDashboardButton.Location = new System.Drawing.Point(729, 15);
-            this.bhDashboardButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.bhDashboardButton.Margin = new System.Windows.Forms.Padding(2);
             this.bhDashboardButton.Name = "bhDashboardButton";
             this.bhDashboardButton.Size = new System.Drawing.Size(87, 24);
             this.bhDashboardButton.TabIndex = 20;
@@ -274,7 +274,7 @@
             this.addEmployee.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("addEmployee.BackgroundImage")));
             this.addEmployee.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.addEmployee.Location = new System.Drawing.Point(928, 600);
-            this.addEmployee.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.addEmployee.Margin = new System.Windows.Forms.Padding(2);
             this.addEmployee.Name = "addEmployee";
             this.addEmployee.Size = new System.Drawing.Size(42, 37);
             this.addEmployee.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -307,7 +307,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.pictureBox1);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainForm";
             this.Text = "MainForm";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
@@ -342,6 +342,6 @@
         public System.Windows.Forms.Label totalExitedValue;
         private System.Windows.Forms.Button dbButton;
         private System.Windows.Forms.Button bhDashboardButton;
-        private System.Windows.Forms.PictureBox addEmployee;
+        public System.Windows.Forms.PictureBox addEmployee;
     }
 }

@@ -294,6 +294,7 @@
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "AddEmployeeForm";
             this.Text = "Add New Employee";
+            this.Load += new System.EventHandler(this.AddEmployeeForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.employeePicture)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

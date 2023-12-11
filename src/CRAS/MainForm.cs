@@ -253,7 +253,8 @@ namespace CRAS
         private void CustomerData_MarkAsEmployeeClicked(object sender, int e)
         {
             //throw new NotImplementedException();
-            AddEmployeeForm addEmployeeForm = new AddEmployeeForm("MarkAsEmployee", ((CustomerDataUC)sender).label4value.Text.ToString(), ((CustomerDataUC)sender).customerPictureBox.Image);
+            //AddEmployeeForm addEmployeeForm = new AddEmployeeForm("MarkAsEmployee", ((CustomerDataUC)sender).label4value.Text.ToString(), ((CustomerDataUC)sender).customerPictureBox.Image);
+            AddEmployeeForm addEmployeeForm = new AddEmployeeForm("MarkAsEmployee", (CustomerDataUC)sender);
             addEmployeeForm.ShowDialog();
         }
 
@@ -448,6 +449,19 @@ namespace CRAS
             }
             //MessageBox.Show("Customer Deleted: " + index.ToString() + customer_list[index].customer_id);
             //throw new NotImplementedException();
+        }
+
+        public void DeleteCustomer(int index)
+        {
+            redis_customer customer = customer_list[index];
+
+            if (customer != null)
+            {
+                customer_list.RemoveAt(index);
+                customerFlowLayout.Controls.RemoveAt(index);
+                redis_utilities.DeleteRedisEntry(redisConnection, customer.key);
+                MessageBox.Show($"Customer {customer.customer_id} at index {index} deleted successfully!");
+            }
         }
 
         class Program
@@ -713,6 +727,7 @@ namespace CRAS
         {
             AddEmployeeForm addEmployeeForm = new AddEmployeeForm("AddNewEmployee");
             addEmployeeForm.Show();
+            addEmployee.Enabled = false;
         }
     }
 }

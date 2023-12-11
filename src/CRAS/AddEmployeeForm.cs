@@ -15,22 +15,24 @@ namespace CRAS
     {
         public string source;
         public string customerId = "";
-        public AddEmployeeForm(string openedBy, string id = "", Image image = null)
+        public CustomerDataUC customerDataUC;
+        //public AddEmployeeForm(string openedBy, string id = "", Image image = null)
+        public AddEmployeeForm(string openedBy, CustomerDataUC customer = null)
         {
             InitializeComponent();
             source = openedBy;
 
+
+
             if(source.Equals("MarkAsEmployee"))
             {
+                customerDataUC = customer;
                 employeePicture.Enabled = false;
-                employeePicture.Image = image;
-                customerId = id;
+                employeePicture.Image = customerDataUC.customerPictureBox.Image;
+                customerId = customerDataUC.label4value.Text.ToString();
                 this.Text = ("Mark As Employee");
                 this.Icon = new Icon("Resources/MarkAsEmployee.ico");
                 addEmployeeButton.Text = "Mark As Employee";
-
-
-
             }
 
             else if(source.Equals("AddNewEmployee"))
@@ -93,6 +95,21 @@ namespace CRAS
             }*/
 
             
+
+        }
+
+        private void AddEmployeeForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        public void Reset()
+        {
+            employeePicture.Image = null;
+            employeeIDTextbox.Text = string.Empty;
+            nameTextBox.Text = string.Empty;
+            mobileTextBox.Text = string.Empty;
+            idNumberText.Text = string.Empty;
 
         }
     }

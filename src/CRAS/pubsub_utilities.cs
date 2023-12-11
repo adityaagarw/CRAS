@@ -228,7 +228,9 @@ namespace CRAS
                     {
                         addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.addEmployeeButton.Enabled = true; }));
                         addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.ControlBox = true; }));
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.Reset(); }));
                         addEmployeeForm.Invoke(new Action(() => { MessageBox.Show("New Employee Added Successfully!"); }));
+                        //mainForm.Invoke(new Action(() => { mainForm.addEmployee.Enabled = true; }));
                     }
                 }
 
@@ -240,7 +242,24 @@ namespace CRAS
                     {
                         addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.addEmployeeButton.Enabled = true; }));
                         addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.ControlBox = true; }));
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.Reset(); }));
                         addEmployeeForm.Invoke(new Action(() => { MessageBox.Show("Marked Existing person as Employee successfully!"); }));
+                        //mainForm.Invoke(new Action(() => { mainForm.addEmployee.Enabled = true; }));
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.customerDataUC.deleteButton.PerformClick(); }));
+
+                    }
+                }
+
+                if(messageReceived.StartsWith("EmployeeExists"))
+                {
+                    Console.WriteLine("Employee already Exists!");
+                    AddEmployeeForm addEmployeeForm = MainForm.GetAddEmployeeFormIfOpen();
+                    if (addEmployeeForm != null)
+                    {
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.addEmployeeButton.Enabled = true; }));
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.ControlBox = true; }));
+                        addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.Reset(); }));
+                        addEmployeeForm.Invoke(new Action(() => { MessageBox.Show("Employee already exists!"); }));
                     }
                 }
             });
