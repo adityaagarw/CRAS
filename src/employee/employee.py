@@ -141,8 +141,6 @@ def change_customer_to_employee(data_string, in_mem_db):
     local_db.insert_employee_record(new_employee)
     local_db.disconnect()
 
-    in_mem_db.delete_record(record_key, type="customer")
-
     print("Marked employee added to local and in mem db and ACK published")
     in_mem_db.connection.publish(Channel.Employee.value, BackendMessage.MarkAsEmployeeAck.value)
 
