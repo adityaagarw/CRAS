@@ -84,15 +84,22 @@ def load_employee_data():
     # Get all employee records from localdb
     employee_records = fetch_all_employee_records(local_db)
     for record in employee_records:
+
+        # Format encoding from localdb to inmemdb
+        encoding = "" if record[4] is None else record[4]
+        encoding_str_list = encoding.strip("[]").split()
+        encoding_str = ",".join(encoding_str_list)
+        face_encoding_np = np.fromstring(encoding_str, sep=",", dtype=np.float32)
+
         # Insert employee record in-mem
         new_employee_record = InMemEmployee(
             employee_id = "" if record[0] is None else record[0],
             name = "" if record[1] is None else record[1],
             phone_number = "" if record[2] is None else record[2],
             face_image = "" if record[3] is None else record[3],
-            face_encoding = "" if record[4] is None else record[4],
+            face_encoding = face_encoding_np.tobytes(),
             entry_time = "",
-            exit_time = "",
+            exit_time = "",                                                                      
             num_exits = "0",
             in_store = "0"
         )
