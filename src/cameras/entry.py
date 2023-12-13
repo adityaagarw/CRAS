@@ -646,7 +646,9 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
                 if record_from_mem:
                     # Update employee record
                     if check_if_employee_instore(record_from_mem):
+                        print("Employee  " + record_from_mem.get(b'name').decode('utf-8') + " already in store and standing infront of entry cam, what a noob!")
                         continue
+                    print("Employee " + record_from_mem.get(b'name').decode('utf-8') + " entered the store, welcome back!")
                     update_employee_inmem(in_mem_db, record_from_mem)
                     continue
 

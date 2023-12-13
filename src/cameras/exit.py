@@ -684,7 +684,9 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
             if record_from_mem:
                 # If employee has already exited do nothing
                 if check_if_employee_instore(record_from_mem) is False:
+                    print("Employee already exited: ", record_from_mem.get(b'name').decode())
                     continue
+                print("Employee exiting: ", record_from_mem.get(b'name').decode())
                 update_employee_inmem(in_mem_db, record_from_mem)
                 continue
 
