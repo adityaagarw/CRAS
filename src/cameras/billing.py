@@ -1,5 +1,6 @@
 import argparse
 import configparser
+from datetime import datetime
 import cv2
 import os
 import time
@@ -14,6 +15,7 @@ from face.face import Detection, Recognition, Predictor
 from config.params import Parameters
 from db.database import *
 from db.redis_pubsub import *
+from db.log import *
 
 CAMERA_FPS = 30
 
@@ -84,9 +86,11 @@ def find_and_publish_records(in_mem_db, faces, frame, r, p, parameters, type):
                 in_mem_db.connection.lpush('cust_id_list', cust_id)
                 # Publish the customer record to the backend channel
                 if type == "Billing":
+                    print_log(in_mem_db, "Backend", datetime.now(), "billing", "BillingCustomer", cust_id.decode(), "Billing customer found", line_number(), "DEBUG")
                     message = BackendMessage.BillingCustomer.value + ":" + str(cust_id.decode())
                     in_mem_db.connection.publish(Channel.Billing.value, message)
                 if type == "Rescan":
+                    print_log(in_mem_db, "Backend", datetime.now(), "billing", "RescanCustomer", cust_id.decode(), "Rescan customer found", line_number(), "DEBUG")
                     message = BackendMessage.RescanCustomer.value + ":" + str(cust_id.decode())
                     in_mem_db.connection.publish(Channel.Billing.value, message)
 

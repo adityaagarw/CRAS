@@ -6,6 +6,7 @@ class Channel(Enum):
     Frontend = "Frontend"
     CancelTimer = "CancelTimer"
     Employee = "Employee"
+    Log = "Log"
 
 class Status(Enum):
     BackEndDown = "BackEndDown"

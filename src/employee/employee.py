@@ -10,6 +10,7 @@ from db.redis_pubsub import *
 from face.face import Detection, Recognition, Rectangle, Predictor
 from face.imagetoface import ImageToFace
 from utils.utils import Utils
+from db.log import *
 
 def get_employee_face_record_from_localdb(face_encoding, threshold, local_db):
     # Query to get nearest similarity face record
@@ -84,6 +85,7 @@ def create_new_employee(data_string, in_mem_db, parameters, detector, r):
     local_db.disconnect()
 
     print("New employee added to local and in mem db and ACK published")
+    print_log(in_mem_db, "Backend", datetime.now(), "employee", "NewEmployeeAck", str(new_id), "New employee added to local and in mem db", line_number(), "DEBUG")
     in_mem_db.connection.publish(Channel.Employee.value, BackendMessage.NewEmployeeAck.value)
 
 def change_customer_to_employee(data_string, in_mem_db):
@@ -142,6 +144,7 @@ def change_customer_to_employee(data_string, in_mem_db):
     local_db.disconnect()
 
     print("Marked employee added to local and in mem db and ACK published")
+    print_log(in_mem_db, "Backend", datetime.now(), "employee", "MarkAsEmployeeAck", str(cust_id), "Marked employee added to local and in mem db", line_number(), "DEBUG")
     in_mem_db.connection.publish(Channel.Employee.value, BackendMessage.MarkAsEmployeeAck.value)
 
 def start_employee_process(parameters):

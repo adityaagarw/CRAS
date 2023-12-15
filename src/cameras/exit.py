@@ -21,6 +21,7 @@ from utils.utils import Utils
 from config.params import Parameters
 from db.database import *
 from db.redis_pubsub import *
+from db.log import *
 
 QUEUE_MAX_SIZE = 100000
 SEARCH_QUEUE_SIZE = 100000
@@ -128,6 +129,7 @@ def create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_d
     local_db.insert_customer_record(new_customer_record)
     local_db.insert_visit_record(new_visit_record)
     print("New customer record created and inserted to local db, customer: id: ", new_id)
+    print_log(in_mem_db, "Backend", datetime.now(), "exit", "create_new_record_and_insert_to_localdb", str(new_id), "New incomplete record created and inserted to local db", line_number(), "DEBUG")
 
 # Make new visit for existing record since customer was not found in mem but found in localdb
 def insert_existing_record_to_visit(record, in_mem_db, local_db):
@@ -392,6 +394,7 @@ def commit_record(customer_id):
         exited_record = in_mem_db.connection.hgetall("exited_inmem_db:" + str(customer_id))
         if not exited_record:
             print("Successfully deleted and exited customer from in-memory database")
+            print_log(in_mem_db, "Backend", datetime.now(), "exit", "commit_record", str(customer_id), "Successfully deleted and exited customer from in-memory database", line_number(), "DEBUG")
         in_mem_db.connection.publish(Channel.Backend.value, BackendMessage.DeleteCustomer.value + ":" + str(customer_id))
         print("Customer exited: ", customer_id)
 
@@ -601,8 +604,10 @@ def search_face_data(parameters, search_q, camfeed_break_flag):
         if record_from_localdb:
             # Overwrite everything
             # Delete new record and add existing record
+            print_log(in_mem_db, "Backend", datetime.now(), "exit", "get_face_record_from_localdb", record_from_localdb.get('customer_id'), "Incomplete Found in local db", line_number(), "DEBUG")
             insert_existing_record_to_visit(record_from_localdb, in_mem_db, local_db)
         elif not record_from_localdb:
+            print_log(in_mem_db, "Backend", datetime.now(), "exit", "get_face_record_from_localdb", "None", "Incomplete Not found, creating new record and inserting", line_number(), "DEBUG")
             create_new_record_and_insert_to_localdb(face_encoding, face_pixels, in_mem_db, local_db)
         time.sleep(0.100)
 
@@ -685,8 +690,10 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
                 # If employee has already exited do nothing
                 if check_if_employee_instore(record_from_mem) is False:
                     print("Employee already exited: ", record_from_mem.get(b'name').decode())
+                    print_log(in_mem_db, "Backend", datetime.now(), "exit", "update_employee_inmem", record_from_mem.get(b'employee_id').decode(), "Employee already exited", line_number(), "INFO")
                     continue
                 print("Employee exiting: ", record_from_mem.get(b'name').decode())
+                print_log(in_mem_db, "Backend", datetime.now(), "exit", "update_employee_inmem", record_from_mem.get(b'employee_id').decode(), "Employee exiting", line_number(), "INFO")
                 update_employee_inmem(in_mem_db, record_from_mem)
                 continue
 
@@ -700,6 +707,7 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
                 if not id_from_exited_mem:
                     print("Updating record in memory: ", customer_id)
                     id = update_record_inmem(record_from_mem, in_mem_db)
+                    print_log(in_mem_db, "Backend", datetime.now(), "exit", "update_record_inmem", id, "Starting exit timer", line_number(), "DEBUG")
                     timer = start_expiry_timer(id) #DEBUG Remove exited entry on timer expire
                     timer_dict[id] = timer
                     #insert_record_to_exited_mem(face_encoding, in_mem_db)

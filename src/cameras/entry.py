@@ -20,6 +20,7 @@ from utils.utils import Utils
 from config.params import Parameters
 from db.database import *
 from db.redis_pubsub import *
+from db.log import *
 
 QUEUE_MAX_SIZE = 100000
 SEARCH_QUEUE_SIZE = 100000
@@ -105,6 +106,7 @@ def load_employee_data():
         )
         in_mem_db.insert_record(new_employee_record, "employee")
 
+    print_log(in_mem_db, "Backend", datetime.now(), "entry", "load_employee_data", "Success", "Loaded employee data", line_number(), "DEBUG")
     local_db.disconnect()
     in_mem_db.disconnect()
 
@@ -255,6 +257,7 @@ def update_exit_entry_customer(in_mem_db, customer_id):
     in_mem_db.insert_record(new_customer_record)
     in_mem_db.insert_record(new_visit_record, type="visit")
     print("Welcome back noob: ", customer_id)
+    print_log(in_mem_db, "Backend", datetime.now(), "entry", "update_exit_entry_customer", customer_id, "Exited customer re-entered", line_number(), "DEBUG")
     return new_customer_record.customer_id
 
 def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
@@ -329,6 +332,7 @@ def insert_initial_record_inmem(face_encoding, face_pixels, in_mem_db):
     in_mem_db.insert_record(new_visit_record, type="visit")
 
     print("Welcome new customer: " + new_customer_record.customer_id)
+    print_log(in_mem_db, "Backend", datetime.now(), "entry", "insert_initial_record_inmem", new_id, "New customer entered the store", line_number(), "DEBUG")
     message = BackendMessage.NewCustomer.value + ":" + str(new_id)
     in_mem_db.connection.publish(Channel.Backend.value, message)
     return(new_customer_record)
@@ -443,6 +447,7 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
 
     print("Inserting existing customer in memory")
     print("Welcome exisitng customer: " + str(existing_customer_record.customer_id))
+    print_log(in_mem_db, "Backend", datetime.now(), "entry", "insert_existing_record_inmem", existing_customer_record.customer_id, "Customer found!", line_number(), "DEBUG")
     in_mem_db.insert_record(existing_customer_record)
     in_mem_db.insert_record(modified_visit_record, type="visit")
     in_mem_db.delete_record(new_record.customer_id)
@@ -647,8 +652,10 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
                     # Update employee record
                     if check_if_employee_instore(record_from_mem):
                         print("Employee  " + record_from_mem.get(b'name').decode('utf-8') + " already in store and standing infront of entry cam, what a noob!")
+                        print_log(in_mem_db, "Backend", datetime.now(), "entry", "consume_face_data", "Success", "Employee already in store and standing infront of entry cam", line_number(), "INFO")
                         continue
                     print("Employee " + record_from_mem.get(b'name').decode('utf-8') + " entered the store, welcome back!")
+                    print_log(in_mem_db, "Backend", datetime.now(), "entry", "consume_face_data", "Success", "Employee entered the store", line_number(), "INFO")
                     update_employee_inmem(in_mem_db, record_from_mem)
                     continue
 
