@@ -450,11 +450,12 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
     print_log(in_mem_db, "Backend", datetime.now(), "entry", "insert_existing_record_inmem", existing_customer_record.customer_id, "Customer found!", line_number(), "DEBUG")
     in_mem_db.insert_record(existing_customer_record)
     in_mem_db.insert_record(modified_visit_record, type="visit")
-    in_mem_db.delete_record(new_record.customer_id)
-    in_mem_db.delete_record(new_record.customer_id, type="visit")
+    #in_mem_db.delete_record(new_record.customer_id)
+    #in_mem_db.delete_record(new_record.customer_id, type="visit")
 
     # UpdateCustomer:<>,TempCustomer:<>
     message = BackendMessage.UpdateCustomer.value + ":" + str(new_record.customer_id) + "," + str(record[0])
+    print(message)
     in_mem_db.connection.publish(Channel.Backend.value, message)
 
 def get_face_record_from_mem(face_encoding, threshold, in_mem_db):

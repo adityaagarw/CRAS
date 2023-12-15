@@ -1,6 +1,6 @@
 import cv2
 import io
-
+import numpy as np
 from PIL import Image
 
 # Responsible for converting image to face encoding by detecting, extracting and encoding face
@@ -33,6 +33,16 @@ class ImageToFace:
         img_data = img_bytes.getvalue()
         return img_data
     
+    def fullImagetoEncoding(self, detector, r, image_path):
+        cv2_image = cv2.imread(image_path)
+        return self.imageToEncoding(detector, r, cv2_image)
+
+    def imageBytesToEncoding(self, detector, r, bytes_data):
+        numpy_array = np.frombuffer(bytes_data, np.uint8)
+        # Convert to cv2 image
+        image = cv2.imdecode(numpy_array, cv2.IMREAD_COLOR)
+        return self.imageToEncoding(detector, r, image)
+
     def imageToEncoding(self, detector, r, picture):
         
         face = self.detect_face_in_frame(detector, picture)
