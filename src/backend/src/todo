@@ -1,0 +1,23 @@
+
+-> Set pythonpath and environment properly. Use sitepackages for published code, pythonpath or sysenv
+-> Index postgres db based on encodings when encodings exceed 10k entries
+-> Map cameras properly
+-> Remove prints and add logs
+-> Bug: shutdown_system needs some time to recognize before killing
+-> Increase numprocesses dynamically
+-> add code to install pip programs to orchestrator
+
+
+To do after 1.0 backend:
+-> Handle employee
+-> In mem cache to improve performance
+-> Performance tests with 10k faces
+-> Replace keras vgg face source_input Error
+-> Run sample keras program first
+
+Research and experiment oriented:
+-> Look into frame differencing
+-> Fischer face recognition
+-> Group faces together based on time and similarity (dynamic similarity). <- frame differencing
+
+-> Deletion of in mem is happening in frontend. Change that to backend in future
