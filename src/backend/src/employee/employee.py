@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from db.database import *
 from db.redis_pubsub import *
 from face.face import Detection, Recognition, Rectangle, Predictor
-from face.imagetoface import ImageToFace
+from face_utils.imagetoface import ImageToFace
 from utils.utils import Utils
 from db.log import *
 

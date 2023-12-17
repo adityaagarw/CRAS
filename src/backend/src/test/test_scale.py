@@ -11,7 +11,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from PIL import Image
 from face.face import Detection, Recognition, Rectangle, Predictor
-from face.imagetoface import ImageToFace
+from face_utils.imagetoface import ImageToFace
 from utils.utils import Utils
 from config.params import Parameters
 from db.database import *

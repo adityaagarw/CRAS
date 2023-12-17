@@ -604,7 +604,7 @@ def search_face_data(parameters, search_q, camfeed_break_flag):
         if record_from_localdb:
             # Overwrite everything
             # Delete new record and add existing record
-            print_log(in_mem_db, "Backend", datetime.now(), "exit", "get_face_record_from_localdb", record_from_localdb.get('customer_id'), "Incomplete Found in local db", line_number(), "DEBUG")
+            print_log(in_mem_db, "Backend", datetime.now(), "exit", "get_face_record_from_localdb", record_from_localdb[0], "Incomplete Found in local db", line_number(), "DEBUG")
             insert_existing_record_to_visit(record_from_localdb, in_mem_db, local_db)
         elif not record_from_localdb:
             print_log(in_mem_db, "Backend", datetime.now(), "exit", "get_face_record_from_localdb", "None", "Incomplete Not found, creating new record and inserting", line_number(), "DEBUG")
