@@ -212,6 +212,21 @@ class LocalPostgresDB(Database):
         self.cursor.execute(create_table_query)
         self.connection.commit()
 
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS Log (
+            sessionid   INTEGER,
+            logtime     TIMESTAMP,
+            source      VARCHAR(255),
+            module      VARCHAR(255),
+            actiontype  VARCHAR(255),
+            actionvalue VARCHAR(255),
+            logmessage  VARCHAR(2048), 
+            line        VARCHAR(255)
+        )
+        """
+        self.cursor.execute(create_table_query)
+        self.connection.commit()
+
     def insert_customer_record_old(self, record):
         with self.connection.cursor() as cursor:
             insert_query = """

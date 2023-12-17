@@ -1,11 +1,8 @@
 import argparse
 import configparser
-import cv2
 import os
-import io
 import random
 import string
-import time
 import numpy as np
 
 from datetime import datetime, timedelta
