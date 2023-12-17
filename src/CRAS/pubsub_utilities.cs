@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -104,13 +106,22 @@ namespace CRAS
             {
                 if (temp_customer.customer_id != null && temp_visit.visit_id != null)
                 {
-                    index = MainForm.customer_list.IndexOf(temp_customer);
+                    index = redis_customer.IndexOf(MainForm.customer_list, temp_customer);
 
-                    MainForm.customer_list[index] = customer;
-                    MainForm.visits[index] = visit;
+                    Console.WriteLine($"Current id at index 0 = {MainForm.customer_list[0].customer_id}");
 
-                    mainForm.Invoke(new Action(() => mainForm.customerFlowLayout.Controls.RemoveAt(index)));
-                    mainForm.Invoke(new Action(() => mainForm.InsertCustomerInLayout(mainForm.customerFlowLayout, customer, index)));
+                    if (index > -1)
+                    {
+                        MainForm.customer_list[index] = customer;
+                        MainForm.visits[index] = visit;
+
+                        //Remove Old Customer from customerflowlayout and insert the updated customer
+                        mainForm.Invoke(new Action(() => mainForm.customerFlowLayout.Controls.RemoveAt(index)));
+                        mainForm.Invoke(new Action(() => mainForm.InsertCustomerInLayout(mainForm.customerFlowLayout, customer, index)));
+
+                        redis_utilities.DeleteRedisEntry(MainForm.redisConnection, temp_customer.key);
+                        redis_utilities.DeleteRedisEntry(MainForm.redisConnection, temp_visit.key);
+                    }
                 }
 
                 else
@@ -166,6 +177,8 @@ namespace CRAS
                 }
                 if (messageReceived.StartsWith("UpdateCustomer"))
                 {
+                    //TEMPORARY FIX TO SLOW DOWN UPDATING OF CUSTOMER TBD****************************************************************
+                    Thread.Sleep(1000);
                     var ids = messageReceived.Split(':', ',');
                     temp_customer_id = ids[1];
                     customer_id = ids[2];
@@ -261,6 +274,34 @@ namespace CRAS
                         addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.Reset(); }));
                         addEmployeeForm.Invoke(new Action(() => { MessageBox.Show("Employee already exists!"); }));
                     }
+                }
+
+                if(channelName.Equals("Log"))
+                {
+                    Console.WriteLine("Log Received!");
+                    string[] messages = messageReceived.Split(';');
+
+                    string source = messages[0].Split('=')[1];
+                    //string time = messages[1].Split('=')[1];
+                    string module = messages[2].Split('=')[1];
+                    string actionType = messages[3].Split('=')[1];
+                    string actionValue = messages[4].Split('=')[1];
+                    string messageRecv = messages[5].Split('=')[1];
+                    string line = messages[6].Split('=')[1];
+
+
+                    log logger = new log(source, module, actionType, actionValue, messageRecv, line);
+                    logger.Print();
+                    logger.LogToFile();
+                    logger.LogToSQL();
+
+                    LogViewerForm logViewerForm = MainForm.GetLogViewerFormIfOpen();
+
+                    if (logViewerForm != null && logViewerForm.liveUpdate.Checked) 
+                    {
+                        logViewerForm.Invoke(new Action(() => { logViewerForm.UpdateLog(logViewerForm.fromDate.Value.ToString("yyyy/MM/dd HH:mm")); }));
+                    }
+                
                 }
             });
 

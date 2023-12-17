@@ -30,6 +30,9 @@ namespace CRAS
                 employeePicture.Enabled = false;
                 employeePicture.Image = customerDataUC.customerPictureBox.Image;
                 customerId = customerDataUC.label4value.Text.ToString();
+                nameTextBox.Text = customer.label1value.Text.ToString();
+                mobileTextBox.Text = customer.label2value.Text.ToString();
+
                 this.Text = ("Mark As Employee");
                 this.Icon = new Icon("Resources/MarkAsEmployee.ico");
                 addEmployeeButton.Text = "Mark As Employee";

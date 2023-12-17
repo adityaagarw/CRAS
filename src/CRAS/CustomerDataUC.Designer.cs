@@ -190,7 +190,7 @@
             // 
             this.selectCustomerLabel.AutoSize = true;
             this.selectCustomerLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.selectCustomerLabel.Location = new System.Drawing.Point(172, 49);
+            this.selectCustomerLabel.Location = new System.Drawing.Point(174, 45);
             this.selectCustomerLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.selectCustomerLabel.Name = "selectCustomerLabel";
             this.selectCustomerLabel.Size = new System.Drawing.Size(252, 24);
@@ -258,7 +258,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.customerPictureBox);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "CustomerDataUC";
             this.Size = new System.Drawing.Size(552, 120);
             this.Load += new System.EventHandler(this.CustomerDataUC_Load);
@@ -275,18 +275,18 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label1value;
-        private System.Windows.Forms.Label label2value;
-        private System.Windows.Forms.Label label3value;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label5value;
-        private System.Windows.Forms.Label label6value;
         public System.Windows.Forms.Label selectCustomerLabel;
         public System.Windows.Forms.Button deleteButton;
         public System.Windows.Forms.PictureBox markAsEmployee;
         public System.Windows.Forms.PictureBox customerPictureBox;
         public System.Windows.Forms.Label label4value;
+        public System.Windows.Forms.Label label1value;
+        public System.Windows.Forms.Label label2value;
+        public System.Windows.Forms.Label label3value;
+        public System.Windows.Forms.Label label5value;
+        public System.Windows.Forms.Label label6value;
     }
 }

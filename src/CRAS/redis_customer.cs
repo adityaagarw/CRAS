@@ -1,6 +1,7 @@
 ﻿using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -147,6 +148,19 @@ namespace CRAS
             }
 
             return data;
+        }
+
+        public static int IndexOf(BindingList<redis_customer> customerList, redis_customer customer)
+        {
+            int index = -1;
+
+            foreach (var x in customerList)
+            {
+                index++;
+                if(customer.customer_id == x.customer_id)
+                    return index;
+            }
+            return -1;
         }
     }
 }

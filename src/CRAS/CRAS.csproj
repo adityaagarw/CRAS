@@ -57,6 +57,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="AdvancedDataGridView, Version=0.1.0.10, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ADGV.0.1.0.10\lib\net40\AdvancedDataGridView.dll</HintPath>
+    </Reference>
     <Reference Include="AForge, Version=2.2.5.0, Culture=neutral, PublicKeyToken=c1db6ff4eaa06aeb, processorArchitecture=MSIL">
       <HintPath>..\packages\AForge.2.2.5\lib\AForge.dll</HintPath>
     </Reference>
@@ -240,6 +243,13 @@
     <Compile Include="DBDisplayForm.Designer.cs">
       <DependentUpon>DBDisplayForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="log.cs" />
+    <Compile Include="LogViewerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogViewerForm.Designer.cs">
+      <DependentUpon>LogViewerForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="visit_details.cs" />
     <Compile Include="CustomerDataUC.cs">
       <SubType>UserControl</SubType>
@@ -315,6 +325,9 @@
     <EmbeddedResource Include="LoadingForm.resx">
       <DependentUpon>LoadingForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="LogViewerForm.resx">
+      <DependentUpon>LogViewerForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -368,6 +381,14 @@
     <None Include="Resources\MarkAsEmployee.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Resources\log_icon.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\log_icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\log_icon1.ico" />
+    <None Include="Resources\cras.ico" />
     <Content Include="Resources\StarHover.png" />
     <Content Include="Resources\StarSelected.png" />
   </ItemGroup>

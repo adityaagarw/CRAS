@@ -17,6 +17,7 @@ using System.Security.Cryptography;
 using TableDependency.SqlClient;
 using TableDependency.SqlClient.Base.EventArgs;
 using Npgsql;
+using CRAS.Properties;
 
 namespace CRAS
 {
@@ -55,6 +56,7 @@ namespace CRAS
 
         public static int bill_scanning = 0;
         public static BindingList<redis_customer> exited_customers = new BindingList<redis_customer>();
+        //public static BindingList<> 
         public static NpgsqlConnection pgsql_connection;
 
 
@@ -73,6 +75,12 @@ namespace CRAS
        
         private void MainForm_Load(object sender, EventArgs e)
         {
+            log logger = new log("Front End", "Main Form", "Application Started","", "Frontend Initialised!", "MainForm.cs line: 76");
+            logger.Print();
+            logger.LogToSQL();
+
+            this.Icon = Resources.cras;
+
             Thread loadingThread = new Thread(ShowLoadingForm);
             loadingThread.Start();
 
@@ -96,6 +104,7 @@ namespace CRAS
             pubsub_utilities.InitialiseSubscribers("Backend", this);
             pubsub_utilities.InitialiseSubscribers("Billing", this);
             pubsub_utilities.InitialiseSubscribers("Employee", this);
+            pubsub_utilities.InitialiseSubscribers("Log", this);
 
             if (loadingForm != null) loadingForm.SetLoadingLabel("Connecting to PGSQL");
             pgsql_connection = pgsql_utilities.ConnectToPGSQL();
@@ -116,6 +125,7 @@ namespace CRAS
 
             displayComboBox.Items.Add("In-Store Customers");
             displayComboBox.Items.Add("Exited Customers");
+            displayComboBox.Items.Add("Employees");
             displayComboBox.SelectedIndex = 0;
         }
 
@@ -325,6 +335,8 @@ namespace CRAS
             }
             //SqlDependency.Stop(posdb_utilities.GetConnectionString(POSSERVER, POSDB, POSUID, POSPWD, posdb));
 
+            log logger = new log("Front End", "Main Form", "Application Closed", "", "UI Closed!", "MainForm.cs Line 333");
+            logger.LogToSQL();
         }
 
         private NamedPipeClientStream StartPipe(object camera_id)
@@ -439,12 +451,16 @@ namespace CRAS
             int index = selectedCustomerUC.Parent.Controls.IndexOf(selectedCustomerUC);
             
             redis_customer customer = customer_list[index];
+            visit_details visit = redis_utilities.GetVisitDetails(redisConnection, customer.customer_id)[0];
 
             if (customer != null) 
             {
                 customer_list.RemoveAt(index);
                 customerFlowLayout.Controls.RemoveAt(index);
                 redis_utilities.DeleteRedisEntry(redisConnection, customer.key);
+
+                if(visit!=null) redis_utilities.DeleteRedisEntry(redisConnection, visit.key);
+
                 MessageBox.Show($"Customer {customer.customer_id} at index {index} deleted successfully!");
             }
             //MessageBox.Show("Customer Deleted: " + index.ToString() + customer_list[index].customer_id);
@@ -641,6 +657,13 @@ namespace CRAS
             return billingForm;
         }
 
+        public static LogViewerForm GetLogViewerFormIfOpen()
+        {
+            LogViewerForm logViewerForm = Application.OpenForms.OfType<LogViewerForm>().FirstOrDefault();
+
+            return logViewerForm;
+        }
+
         public static AddEmployeeForm GetAddEmployeeFormIfOpen()
         {
             AddEmployeeForm addEmployeeForm = Application.OpenForms.OfType<AddEmployeeForm>().FirstOrDefault();
@@ -726,8 +749,14 @@ namespace CRAS
         private void addEmployee_Click(object sender, EventArgs e)
         {
             AddEmployeeForm addEmployeeForm = new AddEmployeeForm("AddNewEmployee");
-            addEmployeeForm.Show();
-            addEmployee.Enabled = false;
+            addEmployeeForm.ShowDialog();
+            
+        }
+
+        private void logPictureBox_Click(object sender, EventArgs e)
+        {
+            LogViewerForm logViewerForm = new LogViewerForm();
+            logViewerForm.Show();
         }
     }
 }

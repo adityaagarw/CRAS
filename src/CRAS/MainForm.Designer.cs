@@ -49,10 +49,14 @@
             this.dbButton = new System.Windows.Forms.Button();
             this.bhDashboardButton = new System.Windows.Forms.Button();
             this.addEmployee = new System.Windows.Forms.PictureBox();
+            this.logPictureBox = new System.Windows.Forms.PictureBox();
+            this.employeeFLP = new System.Windows.Forms.FlowLayoutPanel();
             this.customerFlowLayout.SuspendLayout();
+            this.exitedCustomerFLP.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.addEmployee)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.logPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -139,6 +143,7 @@
             // exitedCustomerFLP
             // 
             this.exitedCustomerFLP.BackColor = System.Drawing.Color.White;
+            this.exitedCustomerFLP.Controls.Add(this.employeeFLP);
             this.exitedCustomerFLP.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.exitedCustomerFLP.Location = new System.Drawing.Point(2, 2);
             this.exitedCustomerFLP.Margin = new System.Windows.Forms.Padding(2);
@@ -282,12 +287,35 @@
             this.addEmployee.TabStop = false;
             this.addEmployee.Click += new System.EventHandler(this.addEmployee_Click);
             // 
+            // logPictureBox
+            // 
+            this.logPictureBox.Image = global::CRAS.Properties.Resources.log_icon;
+            this.logPictureBox.Location = new System.Drawing.Point(994, 15);
+            this.logPictureBox.Name = "logPictureBox";
+            this.logPictureBox.Size = new System.Drawing.Size(25, 24);
+            this.logPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.logPictureBox.TabIndex = 22;
+            this.logPictureBox.TabStop = false;
+            this.logPictureBox.Click += new System.EventHandler(this.logPictureBox_Click);
+            // 
+            // employeeFLP
+            // 
+            this.employeeFLP.BackColor = System.Drawing.Color.White;
+            this.employeeFLP.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.employeeFLP.Location = new System.Drawing.Point(2, 2);
+            this.employeeFLP.Margin = new System.Windows.Forms.Padding(2);
+            this.employeeFLP.Name = "employeeFLP";
+            this.employeeFLP.Size = new System.Drawing.Size(584, 542);
+            this.employeeFLP.TabIndex = 13;
+            this.employeeFLP.WrapContents = false;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1028, 647);
+            this.Controls.Add(this.logPictureBox);
             this.Controls.Add(this.addEmployee);
             this.Controls.Add(this.bhDashboardButton);
             this.Controls.Add(this.dbButton);
@@ -313,9 +341,11 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.customerFlowLayout.ResumeLayout(false);
+            this.exitedCustomerFLP.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.addEmployee)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.logPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -343,5 +373,7 @@
         private System.Windows.Forms.Button dbButton;
         private System.Windows.Forms.Button bhDashboardButton;
         public System.Windows.Forms.PictureBox addEmployee;
+        private System.Windows.Forms.PictureBox logPictureBox;
+        public System.Windows.Forms.FlowLayoutPanel employeeFLP;
     }
 }

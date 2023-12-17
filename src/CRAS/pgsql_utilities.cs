@@ -126,7 +126,7 @@ namespace CRAS
             return overview;
         }
         
-        public static DataTable GetTableData(NpgsqlConnection connection, string table_name)
+        public static DataTable GetTableData(NpgsqlConnection connection, string table_name, string whereClause = "", string orderByClause = "", string limit = "")
         {
             DataTable tableData = new DataTable();
             connection.Open();
@@ -141,7 +141,44 @@ namespace CRAS
             {
                 query = "SELECT employee_id, name, phone_number, face_image from local_employee_db";
             }
+            if (table_name.Equals("log"))
+            {
+                query = "SELECT * FROM log";
+            }
+
+            if (whereClause.Length > 0)
+            {
+                query += " " + whereClause;
+            }
+
+            if (orderByClause.Length > 0)
+            { query += " " + orderByClause; }
+
+            if (limit.Length > 0)
+            {
+                query += " " + limit;
+            }
+
+            Console.WriteLine(query);
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+
+            NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter();
+            dataAdapter.SelectCommand = command;
+            dataAdapter.Fill(tableData);
+
+            connection.Close();
+            return tableData;
+        }
+
+        public static DataTable GetLogData(NpgsqlConnection connection,string table_name = "log", string whereClause = "", string limit = "")
+        {
+            DataTable tableData = new DataTable();
+            connection.Open();
+
+            string query = "SELECT * FROM " + table_name;
+
             
+
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
 
             NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter();
