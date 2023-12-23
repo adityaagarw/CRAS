@@ -71,6 +71,44 @@ namespace CRAS
             return true;
         }
 
+        public static BindingList<redis_employee> GetEmployeeList(ConnectionMultiplexer redisConnection, string employee_id = "*")
+        {
+            BindingList<redis_employee> employee_list = new BindingList<redis_employee>();
+
+            if (redisConnection != null)
+            {
+                IServer redisServer = redisConnection.GetServer("127.0.0.1", 6379);
+                IDatabase db = redisConnection.GetDatabase();
+                foreach (var hashKey in redisServer.Keys(pattern: "employee_inmem_db:" + employee_id))
+                {
+                    redis_employee employee = new redis_employee();
+
+                    employee.key = hashKey.ToString();
+
+
+                    employee.employee_id = db.HashGet(hashKey, "employee_id").ToString();
+
+                    employee.name = db.HashGet(hashKey, "name").ToString();
+                    employee.phone_number = db.HashGet(hashKey, "phone_number").ToString();
+                    employee.image = db.HashGet(hashKey, "face_image");
+                    employee.entry_time = db.HashGet(hashKey, "entry_time");
+                    employee.exit_time = db.HashGet(hashKey, "exit_time");
+                    int result_int = 0;
+                    int.TryParse(db.HashGet(hashKey, "num_exits").ToString(), out result_int);
+                    employee.num_exits = result_int; result_int = 0;
+
+                    int.TryParse(db.HashGet(hashKey, "in_store").ToString(), out result_int);
+                    employee.in_store = result_int; result_int = 0;
+
+
+                    //customer.print_record();
+                    employee_list.Add(employee);
+
+                }
+            }
+            return employee_list;
+        }
+
         public static BindingList<redis_customer> GetCustomerDetails(ConnectionMultiplexer redisConnection, string customer_id = "*")
         {
             BindingList<redis_customer> customer_list = new BindingList<redis_customer>();

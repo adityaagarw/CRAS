@@ -18,6 +18,7 @@ using TableDependency.SqlClient;
 using TableDependency.SqlClient.Base.EventArgs;
 using Npgsql;
 using CRAS.Properties;
+using System.Configuration;
 
 namespace CRAS
 {
@@ -35,6 +36,10 @@ namespace CRAS
         private NamedPipeClientStream pipeClient2;
         private Process pythonProcess1;
         private Process pythonProcess2;
+        
+        public static string workingDirectoryFrontend;
+        public static string workingDirectoryBackend;
+        
         public static ConnectionMultiplexer redisConnection;
         public static IDatabase redisDB;
         public static BindingList<redis_customer> customer_list;
@@ -42,6 +47,7 @@ namespace CRAS
         public static LoadingForm loadingForm;
         private int customer_list_count = 0;
         private int exited_customers_count = 0;
+        private int employee_list_count = 0;
         private static int streaming = 0;
         private SqlConnection connection;
         private SqlCommand command;
@@ -53,6 +59,7 @@ namespace CRAS
         public static string POSPWD = "aa";
         public static BindingList<bill_details> bills = new BindingList<bill_details>();
         public static BindingList<visit_details> visits = new BindingList<visit_details>();
+        public static BindingList<redis_employee> employee_list = new BindingList<redis_employee>();
 
         public static int bill_scanning = 0;
         public static BindingList<redis_customer> exited_customers = new BindingList<redis_customer>();
@@ -72,22 +79,35 @@ namespace CRAS
             Application.Run(loadingForm);
         }
 
-       
+
         private void MainForm_Load(object sender, EventArgs e)
         {
-            log logger = new log("Front End", "Main Form", "Application Started","", "Frontend Initialised!", "MainForm.cs line: 76");
+            log logger = new log("Front End", "Main Form", "Application Started", "", "Frontend Initialised!", "MainForm.cs line: 76");
             logger.Print();
             logger.LogToSQL();
 
-            this.Icon = Resources.cras;
+            //this.Icon = Resources.cras;
 
             Thread loadingThread = new Thread(ShowLoadingForm);
             loadingThread.Start();
 
-            
+            workingDirectoryBackend = ConfigurationSettings.AppSettings.Get("backend");
+            workingDirectoryFrontend = ConfigurationSettings.AppSettings.Get("frontend");
+
+            Directory.SetCurrentDirectory(workingDirectoryBackend);
+
+            Console.WriteLine(workingDirectoryBackend);
+
             exitedCustomerFLP.Parent = customerFlowLayout.Parent;
             exitedCustomerFLP.Location = customerFlowLayout.Location;
+
+            employeeFLP.Parent = customerFlowLayout.Parent;
+            employeeFLP.Location = customerFlowLayout.Location;
+
             scanStatusLabel.Text = "Scan Completed";
+
+            if (loadingForm != null) loadingForm.SetLoadingLabel("Initiating Backend!");
+            InitiateBackend();
 
             if (loadingForm != null) loadingForm.SetLoadingLabel("Connecting To Redis!");
             redisConnection = redis_utilities.ConnectToRedis("127.0.0.1", "6379");
@@ -97,10 +117,15 @@ namespace CRAS
             //customer_list = customer_list.OrderByDescending(customer => customer.entry_time).ToList();
             customer_list = utilities.OrderBy(customer_list, "entry_time", "DESC");
 
+            employee_list = redis_utilities.GetEmployeeList(redisConnection);
+
             customer_list_count = customer_list.Count();
             totalCustomersValue.Invoke(new Action(() => { totalCustomersValue.Text = customer_list_count.ToString(); }));
 
-            if(loadingForm != null) loadingForm.SetLoadingLabel("Initializing PUBSUB!");
+            employee_list_count = employee_list.Count();
+            totalEmployeesValue.Text = employee_list_count.ToString();
+
+            if (loadingForm != null) loadingForm.SetLoadingLabel("Initializing PUBSUB!");
             pubsub_utilities.InitialiseSubscribers("Backend", this);
             pubsub_utilities.InitialiseSubscribers("Billing", this);
             pubsub_utilities.InitialiseSubscribers("Employee", this);
@@ -115,11 +140,16 @@ namespace CRAS
             //Add ListChanged Listener to customer_list
             customer_list.ListChanged += Customer_list_ListChanged;
             exited_customers.ListChanged += Exited_customers_ListChanged;
+            employee_list.ListChanged += Employee_list_ListChanged;
+
+
             bills = pgsql_utilities.GetBillDetails(pgsql_connection, "", "", 10);
             bills.ListChanged += Bills_ListChanged;
 
 
             PopulateCustomerFlowLayout(customer_list);
+            PopulateEmployeeFlowLayout(employee_list);
+
 
             loadingForm.Invoke(new Action(() => loadingForm.Close()));
 
@@ -127,6 +157,132 @@ namespace CRAS
             displayComboBox.Items.Add("Exited Customers");
             displayComboBox.Items.Add("Employees");
             displayComboBox.SelectedIndex = 0;
+        }
+
+        private void InitiateBackend()
+        {
+            try
+            {
+                // Specify the path to the Python script
+                string pythonScriptPath = @"C:\Users\snehn\source\repos\CRAS_main\src\backend\src\orchestrator.py";
+
+                // Specify the Python interpreter executable (e.g., python.exe or python3.exe)
+                string pythonInterpreter = "python";
+
+                // Arguments for the Python script (if any)
+                string scriptArguments = "";
+
+                // Create a process start info
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = pythonInterpreter,
+                    Arguments = $"{pythonScriptPath} {scriptArguments}",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                // Start the process
+                Process process = new Process
+                {
+                    StartInfo = startInfo
+                    
+                };
+                // Handle output and error asynchronously
+                process.OutputDataReceived += (sender, args) => Console.WriteLine(args.Data);
+                process.ErrorDataReceived += (sender, args) => Console.WriteLine(args.Data);
+
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                               
+
+                // Wait for the indicator files to be created
+                WaitForIndicatorFiles("creation");
+
+                // Continue with the next tasks...
+                //MessageBox.Show("Backend started successfully!");
+                Console.WriteLine("Backend Started Successfully!");
+              
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+            }
+        }
+
+        public void ChangeEmployeeState(int index, string state)
+        {
+            //employeeFLP.Controls[index]
+
+            if (state.Equals("exit"))
+            {
+                employeeFLP.Controls[index].BackColor = Color.LightGray;
+            }
+            else employeeFLP.Controls[index].BackColor = Color.White;
+        }
+        private void WaitForIndicatorFiles(string operation)
+        {
+            // Specify the paths to the indicator files
+            string entryFile = workingDirectoryBackend + "\\entry_pid";
+            string exitFile = workingDirectoryBackend + "\\exit_pid";
+            string billingFile = workingDirectoryBackend + "\\billing_pid";
+
+            // Wait for the files to be created (adjust the timeout as needed)
+            int timeout = 30000; // 30 seconds timeout
+            DateTime startTime = DateTime.Now;
+
+            if (operation.Equals("creation"))
+            {
+                while (!File.Exists(entryFile) || !File.Exists(exitFile) || !File.Exists(billingFile))
+                {
+                    if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(timeout))
+                    {
+                        // Timeout reached
+                        MessageBox.Show("Timeout waiting for indicator files.");
+                        break;
+                    }
+
+                    // Sleep for a short interval before checking again
+                    System.Threading.Thread.Sleep(100);
+                }
+            }
+
+            else if (operation.Equals("deletion"))
+            {
+                while (File.Exists(entryFile) || File.Exists(exitFile) || File.Exists(billingFile))
+                {
+                    if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(timeout))
+                    {
+                        // Timeout reached
+                        MessageBox.Show("Timeout waiting for indicator files.");
+                        break;
+                    }
+
+                    // Sleep for a short interval before checking again
+                    System.Threading.Thread.Sleep(100);
+                }
+            }
+        }
+        private void Employee_list_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+            int new_records = employee_list.Count - employee_list_count;
+
+            if (new_records > 0)
+            {
+
+                for (int i = 0; i < new_records; i++)
+                {
+                        InsertEmployeeInLayout(employeeFLP, employee_list[i], i);
+                    //Console.WriteLine("Employee added to Employee List! New Records: " + exited_customers[exited_customers_count + i].customer_id);
+
+                }
+                employee_list_count = employee_list.Count;
+                totalEmployeesValue.Invoke(new Action(() => { totalEmployeesValue.Text = employee_list_count.ToString(); }));
+            }
+
         }
 
         private void Exited_customers_ListChanged(object sender, ListChangedEventArgs e)
@@ -260,10 +416,41 @@ namespace CRAS
             //customerFlowLayout.Controls.Add(customerData);
         }
 
-        private void CustomerData_MarkAsEmployeeClicked(object sender, int e)
+        public void InsertEmployeeInLayout(FlowLayoutPanel panel, redis_employee employee, int index = -1)
         {
-            //throw new NotImplementedException();
-            //AddEmployeeForm addEmployeeForm = new AddEmployeeForm("MarkAsEmployee", ((CustomerDataUC)sender).label4value.Text.ToString(), ((CustomerDataUC)sender).customerPictureBox.Image);
+            CustomerDataUC employeeData = new CustomerDataUC();
+
+            employeeData.ControlDoubleClicked += UserControl_ControlDoubleClicked;
+            employeeData.SetImage(employee.image);
+            employeeData.SetLabel("label1", "Name: ", employee.name);
+            employeeData.SetLabel("label2", "Mobile: ", employee.phone_number);
+            employeeData.SetLabel("label3", "In Store: ", employee.in_store.ToString());
+            employeeData.SetLabel("label4", "Employee Id: ", employee.employee_id);
+            employeeData.SetLabel("label5", "Entry Time: ", employee.entry_time);
+            employeeData.SetLabel("label6", "Exit Time: ", employee.exit_time);
+            employeeData.selectCustomerLabel.Hide();
+
+            if (index > -1)
+            {
+                panel.Invoke(new Action(() => { panel.SuspendLayout(); }));
+                panel.Invoke(new Action(() => { panel.Controls.Add(employeeData); }));
+                panel.Invoke(new Action(() => { panel.Controls.SetChildIndex(employeeData, index); }));
+                panel.Invoke(new Action(() => { panel.ResumeLayout(); }));
+            }
+            
+            else
+            panel.Invoke(new Action(() => { panel.Controls.Add(employeeData); }));
+
+            if(employee.in_store == 1) employeeData.BackColor = Color.White;
+            else employeeData.BackColor = Color.LightGray;
+
+            //panel.Controls.Add(employeeData);
+
+            //customerFlowLayout.Controls.Add(customerData);
+        }
+
+        private void CustomerData_MarkAsEmployeeClicked(object sender, int e)
+        { 
             AddEmployeeForm addEmployeeForm = new AddEmployeeForm("MarkAsEmployee", (CustomerDataUC)sender);
             addEmployeeForm.ShowDialog();
         }
@@ -281,6 +468,21 @@ namespace CRAS
                     InsertCustomerInLayout(customerFlowLayout, customer);
                 }
            
+        }
+
+        public void PopulateEmployeeFlowLayout(BindingList<redis_employee> employees)
+        {
+
+            employeeFLP.Invoke(new Action(() => { employeeFLP.Controls.Clear(); }));
+            employeeFLP.Invoke(new Action(() => { employeeFLP.FlowDirection = FlowDirection.TopDown; }));
+            employeeFLP.Invoke(new Action(() => { employeeFLP.AutoScroll = true; }));
+
+
+            foreach (var employee in employees)
+            {
+                InsertEmployeeInLayout(employeeFLP, employee);
+            }
+
         }
 
         private void ShowCustomerDetail(redis_customer customer, CustomerDataUC customerData)
@@ -325,8 +527,35 @@ namespace CRAS
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (e.CloseReason == CloseReason.UserClosing && notifyIcon.Visible == false)
+            {
+                //If app is closed, minimise it to tray
+                notifyIcon.Visible = true;
+                this.Hide();
+                
+                e.Cancel = true;
+            }
+
+            else
+            {
+                //If Exit is Pressed from tray
+                DialogResult result;
+                result = MessageBox.Show("Pakka bandh kardu? Soch Le! Phir mat boliyo ke pehchaan kaun!","Tera ghar jayenga!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if(result == DialogResult.No) e.Cancel = true;
+
+                else
+                {
+                    InitiateClosingSequence();
+                }
+            }
+
+            log logger = new log("Front End", "Main Form", "Application Closed", "", "UI Closed!", "MainForm.cs Line 333");
+            logger.LogToSQL();
+        }
+
+        private void InitiateClosingSequence()
+        {
             // Stop the thread and close the named pipe when the form is closing
-            //StopPythonScript();
             ClosePipes();
             if (sqlDependency != null)
             {
@@ -334,9 +563,52 @@ namespace CRAS
                 sqlDependency.Dispose();
             }
             //SqlDependency.Stop(posdb_utilities.GetConnectionString(POSSERVER, POSDB, POSUID, POSPWD, posdb));
+            try
+            {
+                // Specify the path to the Python script
+                string pythonScriptPath = workingDirectoryBackend + "\\shutdown_system.py";
 
-            log logger = new log("Front End", "Main Form", "Application Closed", "", "UI Closed!", "MainForm.cs Line 333");
-            logger.LogToSQL();
+                // Specify the Python interpreter executable (e.g., python.exe or python3.exe)
+                string pythonInterpreter = "python";
+
+                // Arguments for the Python script (if any)
+                string scriptArguments = "";
+
+                // Create a process start info
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = pythonInterpreter,
+                    Arguments = $"{pythonScriptPath} {scriptArguments}",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                // Start the process
+                Process process = new Process
+                {
+                    StartInfo = startInfo
+
+                };
+                // Handle output and error asynchronously
+                process.OutputDataReceived += (sender, args) => Console.WriteLine(args.Data);
+                process.ErrorDataReceived += (sender, args) => Console.WriteLine(args.Data);
+
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                WaitForIndicatorFiles("deletion");
+                // Continue with the next tasks...
+                //MessageBox.Show("Backend started successfully!");
+                Console.WriteLine("Backend Shutdown Successfully!");
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+            }
         }
 
         private NamedPipeClientStream StartPipe(object camera_id)
@@ -713,25 +985,58 @@ namespace CRAS
 
         private void displayComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if(displayComboBox.SelectedIndex == 1)
+            if (displayComboBox.SelectedIndex == 2)
             {
+
                 customerFlowLayout.Hide();
-                exitedCustomerFLP.Show();
-                totalExitedLabel.Visible = true;
-                totalExitedValue.Visible = true;
+                exitedCustomerFLP.Hide();
+                employeeFLP.Show();
+
                 totalCustomersLabel.Visible = false;
                 totalCustomersValue.Visible = false;
+
+                totalExitedLabel.Visible = false;
+                totalExitedValue.Visible = false;
+
+                totalEmployeesLabel.Visible = true;
+                totalEmployeesValue.Visible = true;
+
+            }
+
+            if (displayComboBox.SelectedIndex == 1)
+            {
+                exitedCustomerFLP.Show();
+
+                customerFlowLayout.Hide();
+                employeeFLP.Hide();              
+                
+                totalExitedLabel.Visible = true;
+                totalExitedValue.Visible = true;
+                
+                totalCustomersLabel.Visible = false;
+                totalCustomersValue.Visible = false;
+
+                totalEmployeesLabel.Visible = false;
+                totalEmployeesValue.Visible = false;
             }
 
             if(displayComboBox.SelectedIndex == 0)
             {
                 customerFlowLayout.Show();
+   
+                employeeFLP.Hide();
                 exitedCustomerFLP.Hide();
-                totalExitedLabel.Visible = false;
-                totalExitedValue.Visible = false;
+                
                 totalCustomersLabel.Visible = true;
                 totalCustomersValue.Visible = true;
+
+                totalExitedLabel.Visible = false;
+                totalExitedValue.Visible = false;
+
+                totalEmployeesLabel.Visible = false;
+                totalEmployeesValue.Visible = false;
             }
+            
         }
 
         private void dbButton_Click(object sender, EventArgs e)
@@ -757,6 +1062,21 @@ namespace CRAS
         {
             LogViewerForm logViewerForm = new LogViewerForm();
             logViewerForm.Show();
+        }
+
+        private void notifyIcon_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+            notifyIcon.Visible = false;
+        }
+
+        private void contextMenu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            if(e.ClickedItem.Text == "Exit")
+            {
+                this.Close();                
+            }
         }
     }
 }

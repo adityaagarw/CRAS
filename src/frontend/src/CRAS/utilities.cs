@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace CRAS
 {
@@ -106,6 +108,81 @@ namespace CRAS
             if(customer_list.Count > 0) return customer_list[0];
 
             return null;
+        }
+
+        public static bool IsDockerDaemonRunning()
+        {
+            try
+            {
+                // Run a simple Docker command to check if the daemon is running
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "docker",
+                    Arguments = "info",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                Process process = new Process
+                {
+                    StartInfo = startInfo
+                };
+                process.Start();
+
+                // Wait for the process to exit
+                process.WaitForExit();
+
+                // Check the exit code
+                return process.ExitCode == 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while checking Docker daemon status: {ex.Message}");
+                return false;
+            }
+        }
+
+        public static void StartDockerDaemon()
+        {
+            try
+            {
+                // Start the Docker daemon
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "docker",
+                    Arguments = "daemon",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                Process process = new Process
+                {
+                    StartInfo = startInfo
+                };
+                process.Start();
+
+                // Wait for the process to exit
+                process.WaitForExit();
+
+                // Check the exit code
+                if (process.ExitCode != 0)
+                {
+                    string errorMessage = process.StandardError.ReadToEnd();
+                    MessageBox.Show($"Error starting Docker daemon: {errorMessage}");
+                }
+                else
+                {
+                    MessageBox.Show("Docker daemon started successfully!");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while starting Docker daemon: {ex.Message}");
+            }
         }
 
     }

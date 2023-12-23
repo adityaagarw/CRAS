@@ -1,8 +1,11 @@
 import subprocess
 import shutil
 import os
-import redis
 import time
+
+from db.database import *
+from db.redis_pubsub import *
+from db.log import *
 
 def get_python_command():
     python_commands = ['python3', 'python', 'py']
@@ -23,11 +26,14 @@ def write_status(status):
         f.write(str(status))
 
 def check_status():
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    in_mem_db.connect()
     py_cmd = get_python_command()
     while True:
         status = read_status()
         if status == "1":
             # Failure case
+            in_mem_db.connection.publish(Channel.Status.value, Status.BackendDown.value)
             os.system(py_cmd + " shutdown_system.py")
             write_status(0)
             os.system(py_cmd + " orchestrator.py")

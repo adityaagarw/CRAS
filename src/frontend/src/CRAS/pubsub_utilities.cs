@@ -36,13 +36,36 @@ namespace CRAS
              
                     if (customer.customer_id != null && visit.visit_id != null)
                     {
-                        Console.WriteLine("Current list size: " + MainForm.customer_list.Count);
+                        //Console.WriteLine("Current list size: " + MainForm.customer_list.Count);
                         MainForm.visits.Insert(0, visit);
                         MainForm.customer_list.Insert(0, customer);
-                        Console.WriteLine("Inserted Customer: " + MainForm.customer_list[0].customer_id + " New list size: " + MainForm.customer_list.Count.ToString());
+                        //Console.WriteLine("Inserted Customer: " + MainForm.customer_list[0].customer_id + " New list size: " + MainForm.customer_list.Count.ToString());
                     }
                 }
             }
+        }
+
+        public static void NewEmployeeAdded(string customer_id)
+        {
+            redis_employee employee = new redis_employee();
+            employee = redis_utilities.GetEmployeeList(MainForm.redisConnection, customer_id)[0];
+
+            if(employee != null)
+            {
+                MainForm.employee_list.Insert(0,employee);
+            }
+        }
+
+        public static void EmployeeEnteredOrExited(MainForm mainForm, string employee_id, string entry_exit)
+        {
+            redis_employee employee = redis_utilities.GetEmployeeList(MainForm.redisConnection, employee_id)[0];
+            int index = -1;
+
+            index = redis_employee.IndexOf(MainForm.employee_list, employee);
+
+            MainForm.employee_list[index] = employee;
+            mainForm.ChangeEmployeeState(index, entry_exit);
+            
         }
 
         public static redis_customer GetCustomerFromInMem(string customer_id)
@@ -236,6 +259,8 @@ namespace CRAS
                 if (messageReceived.StartsWith("NewEmployeeAck"))
                 {
                     Console.WriteLine("Received new employee acknowledgement");
+                    string employee_id = messageReceived.Split(':')[1];
+
                     AddEmployeeForm addEmployeeForm = MainForm.GetAddEmployeeFormIfOpen();
                     if (addEmployeeForm != null)
                     {
@@ -244,12 +269,15 @@ namespace CRAS
                         addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.Reset(); }));
                         addEmployeeForm.Invoke(new Action(() => { MessageBox.Show("New Employee Added Successfully!"); }));
                         //mainForm.Invoke(new Action(() => { mainForm.addEmployee.Enabled = true; }));
+                        NewEmployeeAdded(employee_id);
                     }
                 }
 
                 if(messageReceived.StartsWith("MarkAsEmployeeAck"))
                 {
                     Console.WriteLine("Received marked employee acknowledgement");
+                    string employee_id = messageReceived.Split(':')[1];
+
                     AddEmployeeForm addEmployeeForm = MainForm.GetAddEmployeeFormIfOpen();
                     if (addEmployeeForm != null)
                     {
@@ -259,7 +287,7 @@ namespace CRAS
                         addEmployeeForm.Invoke(new Action(() => { MessageBox.Show("Marked Existing person as Employee successfully!"); }));
                         //mainForm.Invoke(new Action(() => { mainForm.addEmployee.Enabled = true; }));
                         addEmployeeForm.Invoke(new Action(() => { addEmployeeForm.customerDataUC.deleteButton.PerformClick(); }));
-
+                        NewEmployeeAdded(employee_id);
                     }
                 }
 
@@ -276,7 +304,21 @@ namespace CRAS
                     }
                 }
 
-                if(channelName.Equals("Log"))
+                if(messageReceived.StartsWith("EmployeeEntered"))
+                {
+                    string employee_id = messageReceived.Split(':')[1];
+                    Console.WriteLine($"Employee Entered: {employee_id}");
+                    EmployeeEnteredOrExited(mainForm, employee_id, "entry");
+                }
+
+                if (messageReceived.StartsWith("EmployeeExited"))
+                {
+                    string employee_id = messageReceived.Split(':')[1];
+                    Console.WriteLine($"Employee Entered: {employee_id}");
+                    EmployeeEnteredOrExited(mainForm, employee_id, "exit");
+                }
+
+                if (channelName.Equals("Log"))
                 {
                     Console.WriteLine("Log Received!");
                     string[] messages = messageReceived.Split(';');
@@ -291,7 +333,7 @@ namespace CRAS
 
 
                     log logger = new log(source, module, actionType, actionValue, messageRecv, line);
-                    logger.Print();
+                    //logger.Print();
                     logger.LogToFile();
                     logger.LogToSQL();
 

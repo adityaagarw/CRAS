@@ -47,7 +47,8 @@ def create_new_employee(data_string, in_mem_db, parameters, detector, r):
     record = get_employee_face_record_from_localdb(face_encoding, parameters.threshold, local_db)
     if record is not None:
         print("Employee already exists in local db")
-        in_mem_db.connection.publish(Channel.Employee.value, BackendMessage.EmployeeExists.value)
+        pub_message = f"{BackendMessage.EmployeeExists.value}:{record[0]}"
+        in_mem_db.connection.publish(Channel.Employee.value, pub_message)
         local_db.disconnect()
         return
 
@@ -85,8 +86,9 @@ def create_new_employee(data_string, in_mem_db, parameters, detector, r):
     local_db.disconnect()
 
     print("New employee added to local and in mem db and ACK published")
+    pub_message = f"{BackendMessage.NewEmployeeAck.value}:{new_id}"
     print_log(in_mem_db, "Backend", datetime.now(), "employee", "NewEmployeeAck", str(new_id), "New employee added to local and in mem db", line_number(), "DEBUG")
-    in_mem_db.connection.publish(Channel.Employee.value, BackendMessage.NewEmployeeAck.value)
+    in_mem_db.connection.publish(Channel.Employee.value, pub_message)
 
 def change_customer_to_employee(data_string, in_mem_db):
     local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
@@ -145,7 +147,8 @@ def change_customer_to_employee(data_string, in_mem_db):
 
     print("Marked employee added to local and in mem db and ACK published")
     print_log(in_mem_db, "Backend", datetime.now(), "employee", "MarkAsEmployeeAck", str(cust_id), "Marked employee added to local and in mem db", line_number(), "DEBUG")
-    in_mem_db.connection.publish(Channel.Employee.value, BackendMessage.MarkAsEmployeeAck.value)
+    pub_message = f"{BackendMessage.MarkAsEmployeeAck.value}:{cust_id}"
+    in_mem_db.connection.publish(Channel.Employee.value, pub_message)
 
 def start_employee_process(parameters):
     in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)

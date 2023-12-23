@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -37,6 +38,7 @@
             this.statusButton = new System.Windows.Forms.Button();
             this.customerFlowLayout = new System.Windows.Forms.FlowLayoutPanel();
             this.exitedCustomerFLP = new System.Windows.Forms.FlowLayoutPanel();
+            this.employeeFLP = new System.Windows.Forms.FlowLayoutPanel();
             this.billingButton = new System.Windows.Forms.Button();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
@@ -50,13 +52,18 @@
             this.bhDashboardButton = new System.Windows.Forms.Button();
             this.addEmployee = new System.Windows.Forms.PictureBox();
             this.logPictureBox = new System.Windows.Forms.PictureBox();
-            this.employeeFLP = new System.Windows.Forms.FlowLayoutPanel();
+            this.totalEmployeesLabel = new System.Windows.Forms.Label();
+            this.totalEmployeesValue = new System.Windows.Forms.Label();
+            this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.exitMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.customerFlowLayout.SuspendLayout();
             this.exitedCustomerFLP.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.addEmployee)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.logPictureBox)).BeginInit();
+            this.contextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -151,6 +158,17 @@
             this.exitedCustomerFLP.Size = new System.Drawing.Size(584, 542);
             this.exitedCustomerFLP.TabIndex = 12;
             this.exitedCustomerFLP.WrapContents = false;
+            // 
+            // employeeFLP
+            // 
+            this.employeeFLP.BackColor = System.Drawing.Color.White;
+            this.employeeFLP.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.employeeFLP.Location = new System.Drawing.Point(2, 2);
+            this.employeeFLP.Margin = new System.Windows.Forms.Padding(2);
+            this.employeeFLP.Name = "employeeFLP";
+            this.employeeFLP.Size = new System.Drawing.Size(584, 542);
+            this.employeeFLP.TabIndex = 13;
+            this.employeeFLP.WrapContents = false;
             // 
             // billingButton
             // 
@@ -298,16 +316,52 @@
             this.logPictureBox.TabStop = false;
             this.logPictureBox.Click += new System.EventHandler(this.logPictureBox_Click);
             // 
-            // employeeFLP
+            // totalEmployeesLabel
             // 
-            this.employeeFLP.BackColor = System.Drawing.Color.White;
-            this.employeeFLP.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.employeeFLP.Location = new System.Drawing.Point(2, 2);
-            this.employeeFLP.Margin = new System.Windows.Forms.Padding(2);
-            this.employeeFLP.Name = "employeeFLP";
-            this.employeeFLP.Size = new System.Drawing.Size(584, 542);
-            this.employeeFLP.TabIndex = 13;
-            this.employeeFLP.WrapContents = false;
+            this.totalEmployeesLabel.AutoSize = true;
+            this.totalEmployeesLabel.Location = new System.Drawing.Point(435, 612);
+            this.totalEmployeesLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.totalEmployeesLabel.Name = "totalEmployeesLabel";
+            this.totalEmployeesLabel.Size = new System.Drawing.Size(88, 13);
+            this.totalEmployeesLabel.TabIndex = 23;
+            this.totalEmployeesLabel.Text = "Total Employees:";
+            this.totalEmployeesLabel.Visible = false;
+            // 
+            // totalEmployeesValue
+            // 
+            this.totalEmployeesValue.AutoSize = true;
+            this.totalEmployeesValue.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.totalEmployeesValue.Location = new System.Drawing.Point(527, 612);
+            this.totalEmployeesValue.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.totalEmployeesValue.Name = "totalEmployeesValue";
+            this.totalEmployeesValue.Size = new System.Drawing.Size(14, 13);
+            this.totalEmployeesValue.TabIndex = 24;
+            this.totalEmployeesValue.Text = "0";
+            this.totalEmployeesValue.Visible = false;
+            // 
+            // notifyIcon
+            // 
+            this.notifyIcon.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            this.notifyIcon.BalloonTipText = "CRAS is running";
+            this.notifyIcon.BalloonTipTitle = "Bandh mat kariyo tera ghar jayenga";
+            this.notifyIcon.ContextMenuStrip = this.contextMenu;
+            this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
+            this.notifyIcon.Text = "notifyIcon";
+            this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_MouseDoubleClick);
+            // 
+            // contextMenu
+            // 
+            this.contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exitMenu});
+            this.contextMenu.Name = "contextMenu";
+            this.contextMenu.Size = new System.Drawing.Size(94, 26);
+            this.contextMenu.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenu_ItemClicked);
+            // 
+            // exitMenu
+            // 
+            this.exitMenu.Name = "exitMenu";
+            this.exitMenu.Size = new System.Drawing.Size(93, 22);
+            this.exitMenu.Text = "Exit";
             // 
             // MainForm
             // 
@@ -315,6 +369,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1028, 647);
+            this.Controls.Add(this.totalEmployeesValue);
+            this.Controls.Add(this.totalEmployeesLabel);
             this.Controls.Add(this.logPictureBox);
             this.Controls.Add(this.addEmployee);
             this.Controls.Add(this.bhDashboardButton);
@@ -346,6 +402,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.addEmployee)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.logPictureBox)).EndInit();
+            this.contextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -375,5 +432,10 @@
         public System.Windows.Forms.PictureBox addEmployee;
         private System.Windows.Forms.PictureBox logPictureBox;
         public System.Windows.Forms.FlowLayoutPanel employeeFLP;
+        public System.Windows.Forms.Label totalEmployeesLabel;
+        public System.Windows.Forms.Label totalEmployeesValue;
+        private System.Windows.Forms.NotifyIcon notifyIcon;
+        private System.Windows.Forms.ContextMenuStrip contextMenu;
+        private System.Windows.Forms.ToolStripMenuItem exitMenu;
     }
 }

@@ -268,7 +268,7 @@ class LocalPostgresDB(Database):
             
             cursor.execute(insert_query, tuple(values))
             self.connection.commit()
-            print(insert_query)
+            #print(insert_query)
 
     def print_insert_query(self, record):
         insert_query = """
@@ -369,7 +369,7 @@ class LocalPostgresDB(Database):
             
             cursor.execute(insert_query, tuple(values))
             self.connection.commit()
-            print(insert_query)
+            #print(insert_query)
 
     def update_customer_record_old(self, record):
         with self.connection.cursor() as cursor:

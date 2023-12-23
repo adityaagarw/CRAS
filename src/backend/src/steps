@@ -51,8 +51,10 @@ Redis port: 6379
 
 
 
-
-
+BACKUP PGSQL
+---------------
+pg_dump -U [USERNAME] -F c [DB_NAME] > backup.dump
+pg_restore -U [USERNAME] -d [DB_NAME] backup.dump
 
 
 

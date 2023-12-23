@@ -54,6 +54,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Cras.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -250,6 +251,7 @@
     <Compile Include="LogViewerForm.Designer.cs">
       <DependentUpon>LogViewerForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="redis_employee.cs" />
     <Compile Include="visit_details.cs" />
     <Compile Include="CustomerDataUC.cs">
       <SubType>UserControl</SubType>

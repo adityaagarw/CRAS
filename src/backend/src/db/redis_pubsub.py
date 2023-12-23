@@ -7,12 +7,19 @@ class Channel(Enum):
     CancelTimer = "CancelTimer"
     Employee = "Employee"
     Log = "Log"
+    Status = "Status"
 
 class Status(Enum):
-    BackEndDown = "BackEndDown"
-    BackEndUp = "BackEndUp"
-    FrontEndDown = "FrontEndDown"
-    FrontEndUp = "FrontEndUp"
+    BackendDown = "BackendDown"
+    BackendUp = "BackendUp"
+    FrontendDown = "FrontendDown"
+    FrontendUp = "FrontendUp"
+    EntryCamDown = "EntryCamDown"
+    EntryCamUp = "EntryCamUp"
+    BillingCamDown = "BillingCamDown"
+    BillingCamUp = "BillingCamUp"
+    ExitCamDown = "ExitCamDown"
+    ExitCamUp = "ExitCamUp"
 
 class BackendStatus(Enum):
     EntryCamUp = "EntryCamUp"
@@ -38,6 +45,8 @@ class BackendMessage(Enum):
     NewEmployeeAck = "NewEmployeeAck"
     MarkAsEmployeeAck = "MarkAsEmployeeAck"
     EmployeeExists = "EmployeeExists"
+    EmployeeEntered = "EmployeeEntered"
+    EmployeeExited = "EmployeeExited"
 
 class FrontendMessage(Enum):
     StartBilling = "StartBilling"
