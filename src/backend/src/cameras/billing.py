@@ -151,6 +151,8 @@ def start_billing_cam(parameters, camera, stop_event):
     p = in_mem_db.connection.pubsub()
     p.subscribe(Channel.Frontend.value)
 
+    in_mem_db.connection.publish(Channel.Status.value, Status.BillingCamUp.value)
+
     while True:
         if stop_event.is_set():
             break

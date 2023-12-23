@@ -88,28 +88,94 @@ def local_db_store(local_db, face_encoding, face_image):
     local_db.insert_visit_record(ins_visit_record)
 
 # Retrieve exising record from local database and store it in memory
-def exising_inmem_db_store(record, local_db, face_encoding, face_image):
-    customer_id = record[0]
-    name = record[1]
-    phone_number = record[2]
-    encoding = record[3]
-    image = record[4]
-    return_customer = record[5]
-    last_visit = record[6]
-    average_time_spent = record[7]
-    average_purchase = record[8]
-    maximum_purchase = record[9]
-    remarks = record[10]
-    loyalty_level = record[11]
-    num_visits = record[12]
-    last_location = record[13]
-    location_list = record[14]
-    category = record[15]
-    creation_date = record[16]
-    group_id = record[17]
-    cos_distance = record[18]
-    # TBD Write this function later
-    pass
+def existing_inmem_db_store(record, in_mem_db):
+    date_format = "%Y-%m-%d %H:%M:%S"
+    entry_time = datetime.now().strftime(date_format)
+
+    customer_id = '' if record[0] is None else record[0]
+    name = '' if record[1] is None else record[1]
+    phone_number = '' if record[2] is None else record[2]
+    encoding = '' if record[3] is None else record[3]
+    image = '' if record[4] is None else record[4]
+    return_customer = '' if record[5] is None else record[5]
+    last_visit = '' if record[6] is None else record[6]
+    average_time_spent = '' if record[7] is None else record[7]
+    average_bill_value = '' if record[8] is None else record[8]
+    average_bill_per_visit = '' if record[9] is None else record[9]
+    average_bill_per_billed_visit = '' if record[10] is None else record[10]
+    maximum_purchase = '' if record[11] is None else record[11]
+    remarks = '' if record[12] is None else record[12]
+    loyalty_level = '' if record[13] is None else record[13]
+    num_bills = '' if record[14] is None else record[14]
+    num_visits = '' if record[15] is None else record[15]
+    num_billed_visits = '' if record[16] is None else record[16]
+    last_location = '' if record[17] is None else record[17]
+    location_list = '' if record[18] is None else record[18]
+    category = '' if record[19] is None else record[19]
+    creation_date = '' if record[20] is None else record[20]
+    group_id = '' if record[21] is None else record[21]
+    encoding_str_list = encoding.strip("[]").split()
+    encoding_str = ",".join(encoding_str_list)
+
+    # If image type is memoryview convert it to bytes else keep it as is
+    if (type(image) == memoryview):
+        image = image.tobytes()
+    else:
+        print("Failed for customer id: " + str(customer_id) + " " + name + " " + phone_number)
+        return
+
+    face_encoding_np = np.fromstring(encoding_str, sep=",", dtype=np.float32)
+    existing_customer_record = InMemCustomer(
+        customer_id = str(customer_id),
+        name = name,
+        phone_number = str(phone_number),
+        encoding = face_encoding_np.tobytes(),
+        image = image,
+        return_customer = "1",
+        last_visit = str(last_visit),
+        average_time_spent = str(average_time_spent),
+        average_bill_value= str(average_bill_value),
+        average_bill_per_visit= str(average_bill_per_visit),
+        average_bill_per_billed_visit= str(average_bill_per_billed_visit),
+        maximum_purchase = str(maximum_purchase),
+        remarks = str(remarks),
+        loyalty_level = str(loyalty_level),
+        num_bills = str(num_bills),
+        num_visits = str(num_visits),
+        num_billed_visits= str(num_billed_visits),
+        last_location = last_location,
+        location_list = str(location_list),
+        category = str(category),
+        creation_date = str(creation_date),
+        group_id = str(group_id),
+        incomplete="1",
+        entry_time=str(entry_time),
+        exited="0",
+        visit_time="",
+        exit_time=""
+    )
+
+    new_visit_record = InMemVisit(
+        customer_id=str(customer_id),
+        visit_id=str(Utils.generate_unique_id()),
+        store_id="2cc25f36-8c1d-4fd9-a6c7-b6d4e791bb30",
+        entry_time=str(entry_time),
+        exit_time="",
+        billed="0",
+        bill_no="",
+        bill_date="",
+        bill_amount="0",
+        return_amount="0",
+        time_spent="",
+        visit_remark="",
+        customer_rating="",
+        customer_feedback="",
+        incomplete="1",
+        return_customer="1"
+    )
+    in_mem_db.insert_record(existing_customer_record)
+    in_mem_db.insert_record(new_visit_record, type="visit")
+    #print("Added: " + str(customer_id) + " " + name + " " + phone_number)
 
 # Create a new record and store it in memory
 def new_inmem_db_store(in_mem_db, face_encoding, face_image):
@@ -185,8 +251,29 @@ def fetch_customer_record(in_mem_db, local_db, customer_id):
     record = local_db.cursor.fetchone()
     return record
 
+def load_into_inmem(parameters, num_records):
+    # Connect to local database
+    local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
+    local_db.connect()
+
+    # Connect to in memory database
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    in_mem_db.connect()
+
+    query = """
+            SELECT * FROM local_customer_db LIMIT %(num_records)s;
+            """
+    local_db.cursor.execute(query, {'num_records': num_records})
+    records = local_db.cursor.fetchall()
+
+    for record in records:
+        existing_inmem_db_store(record, in_mem_db)
+
+    # Disconnect from local database
+    local_db.disconnect()
+
 def build_local_database(parameters):
-    dataset_path = r"C:\Users\adity\OneDrive\Documents\Aditya\_CRAS_\face_dataset"
+    dataset_path = r"C:\Users\adity\OneDrive\Documents\Aditya\CRAS_main\face_dataset"
 
     local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
     local_db.connect()
@@ -203,6 +290,8 @@ def build_local_database(parameters):
                 image_path = os.path.join(root, file)
                 face_encoding, face_pixels = imgToFace.fullImagetoEncoding(detector, r, image_path)
                 face_image = imgToFace.get_face_image(face_pixels)
+                if face_image is None or face_image.size == 0:
+                    continue
                 if face_encoding is None:
                     continue
                 local_db_store(local_db, face_encoding, face_image)
@@ -233,8 +322,10 @@ def build_parameters(file):
 if __name__ == '__main__':
     # Use argparse to parse command line arguments
     parser = argparse.ArgumentParser(description='Test system at scale')
-    parser.add_argument('build_db', type=str, help='Load all images to local database') # Most time consuming
-    
+    parser.add_argument('-build_db', dest="build_db", type=str, required=False, help='Load all images to local database') # Most time consuming
+    parser.add_argument("-load_db_inmem", dest="load_db_inmem", type=str, required=False, help="Load x images to in memory database")
+    parser.add_argument("-num_records", dest="num_records", type=int, required=False, help="Number of records to load to in memory database")
+
     # Parse the command line arguments
     args = parser.parse_args()
 
@@ -242,4 +333,11 @@ if __name__ == '__main__':
 
     if (args.build_db):
         build_local_database(parameters)
+    
+    if (args.load_db_inmem):
+        if (args.num_records == None):
+            print("No num_records argument provided")
+            exit(1)
+        load_into_inmem(parameters, args.num_records)
+
 

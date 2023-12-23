@@ -21,3 +21,11 @@ class Utils:
 
     def generate_unique_id():
         return uuid.uuid4()
+    
+    # Write to status file
+    # 0: Success
+    # 1: Failure
+    # 2: Shutdown
+    def write_status(status):
+        with open("status", "w") as f:
+            f.write(status)

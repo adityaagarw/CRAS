@@ -397,11 +397,11 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
 
     # Insert exisitng record to in-mem   #DEBUG will face problems later
     existing_customer_record = InMemCustomer(
-        customer_id = customer_id,
+        customer_id = str(customer_id),
         name = name,
         phone_number = str(phone_number),
         encoding = face_encoding_np.tobytes(),
-        image = image.tobytes(),
+        image = image,
         return_customer = "1",
         last_visit = str(last_visit),
         average_time_spent = str(average_time_spent),
@@ -427,8 +427,8 @@ def insert_existing_record_inmem(new_record, record, in_mem_db):
     )
 
     modified_visit_record = InMemVisit(
-        customer_id=customer_id,
-        visit_id=existing_visit_id,
+        customer_id=str(customer_id),
+        visit_id=str(existing_visit_id),
         store_id=in_mem_db.fetch_store_id(),
         entry_time=str(new_record.entry_time),
         exit_time="",
@@ -472,6 +472,11 @@ def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
         record_data = in_mem_db.connection.hgetall(record_key)
         record_encoding_bytes = record_data.get(b'encoding')
 
+        if record_encoding_bytes is None or len(record_encoding_bytes) == 0:
+            continue
+        if face_encoding is None or len(face_encoding) == 0:
+            continue
+
         # Convert the face encodings to numpy arrays
         face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
         
@@ -500,6 +505,12 @@ def get_employee_face_record_from_mem(face_encoding, threshold, in_mem_db):
         # Retrieve the face encoding from the record
         record_data = in_mem_db.connection.hgetall(record_key)
         record_encoding_bytes = record_data.get(b'face_encoding')
+
+        if record_encoding_bytes is None or len(record_encoding_bytes) == 0:
+            continue
+
+        if face_encoding is None or len(face_encoding) == 0:
+            continue
 
         # Convert the face encodings to numpy arrays
         face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
@@ -658,6 +669,9 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
                     print("Employee " + record_from_mem.get(b'name').decode('utf-8') + " entered the store, welcome back!")
                     print_log(in_mem_db, "Backend", datetime.now(), "entry", "consume_face_data", "Success", "Employee entered the store", line_number(), "INFO")
                     update_employee_inmem(in_mem_db, record_from_mem)
+                    # Publish message employee entered
+                    message = BackendMessage.EmployeeEntered.value + ":" + record_from_mem.get(b'employee_id').decode('utf-8')
+                    in_mem_db.connection.publish(Channel.Employee.value, message)
                     continue
 
                 record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
@@ -708,14 +722,15 @@ def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
 
     lock = multiprocessing.Lock()
 
-    stream_process = Process(target = pipe_stream_process, args = (camera, parameters, pipe_q, stop,))
+    stream_process = Process(target = pipe_stream_process, args = (camera, parameters, pipe_q, stop,), daemon = True)
     stream_process.name = "Camera_stream_entry"
     stream_process.start()
 
     num_consumers = NUM_CONSUMER_PROCESSES
     consumers = []
+
     for _ in range(num_consumers):
-        consumer_process = Process(target = consume_face_data, args = (parameters, q, search_q, lock, stop,))
+        consumer_process = Process(target = consume_face_data, args = (parameters, q, search_q, lock, stop,), daemon = True)
         consumer_process.name = "Frame_iterator_entry"
         consumer_process.start()
         consumers.append(consumer_process)
@@ -723,10 +738,16 @@ def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
     num_search_process = NUM_SEARCH_PROCESSES
     search_processes = []
     for _ in range(num_search_process):
-        search_process = Process(target = search_face_data, args = (parameters, search_q, lock, stop,))
+        search_process = Process(target = search_face_data, args = (parameters, search_q, lock, stop,), daemon = True)
         search_process.name = "Face_search_entry"
         search_process.start()
         search_processes.append(search_process)
+
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    in_mem_db.connect()
+
+    #Publish message that entry cam is up
+    in_mem_db.connection.publish(Channel.Status.value, Status.EntryCamUp.value)
 
     while True:
         ret, frame = cap.read()

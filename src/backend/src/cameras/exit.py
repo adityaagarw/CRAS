@@ -200,6 +200,13 @@ def get_face_record_from_mem(face_encoding, threshold, in_mem_db):
         record_data = in_mem_db.connection.hgetall(record_key)
         record_encoding_bytes = record_data.get(b'encoding')
 
+
+        if record_encoding_bytes is None or len(record_encoding_bytes) == 0:
+            continue
+
+        if face_encoding is None or len(face_encoding) == 0:
+            continue
+
         # Convert the face encodings to numpy arrays
         face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
         
@@ -228,6 +235,12 @@ def get_employee_face_record_from_mem(face_encoding, threshold, in_mem_db):
         # Retrieve the face encoding from the record
         record_data = in_mem_db.connection.hgetall(record_key)
         record_encoding_bytes = record_data.get(b'face_encoding')
+
+        if record_encoding_bytes is None or len(record_encoding_bytes) == 0:
+            continue
+
+        if face_encoding is None or len(face_encoding) == 0:
+            continue
 
         # Convert the face encodings to numpy arrays
         face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
@@ -262,6 +275,12 @@ def get_face_record_from_incomplete_mem(face_encoding, threshold, in_mem_db):
         # Retrieve the face encoding from the record
         record_data = in_mem_db.connection.hgetall(record_key)
         record_encoding_bytes = record_data.get(b'encoding')
+
+        if record_encoding_bytes is None or len(record_encoding_bytes) == 0:
+            continue
+
+        if face_encoding is None or len(face_encoding) == 0:
+            continue
 
         # Convert the face encodings to numpy arrays
         face_encoding_np = np.frombuffer(face_encoding, dtype=np.float32)
@@ -695,6 +714,9 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
                 print("Employee exiting: ", record_from_mem.get(b'name').decode())
                 print_log(in_mem_db, "Backend", datetime.now(), "exit", "update_employee_inmem", record_from_mem.get(b'employee_id').decode(), "Employee exiting", line_number(), "INFO")
                 update_employee_inmem(in_mem_db, record_from_mem)
+                #Publish message employee exited
+                message = BackendMessage.EmployeeExited.value + ":" + record_from_mem.get(b'employee_id').decode()
+                in_mem_db.connection.publish(Channel.Employee.value, message)
                 continue
 
             record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
