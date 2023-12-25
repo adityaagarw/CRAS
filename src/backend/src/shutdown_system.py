@@ -1,5 +1,7 @@
 import os
 import psutil
+import fasteners
+from utils.utils import Utils
 
 def read_entry_pid():
     try:
@@ -59,8 +61,8 @@ def delete_employee_pid():
 
 if __name__ == "__main__":
 
-    with open("status", "w") as f:
-        f.write("2")
+    with fasteners.InterProcessLock(Utils.lock_file):
+        Utils.shutdown_system()
 
     entry_pid = read_entry_pid()
     billing_pid = read_billing_pid()

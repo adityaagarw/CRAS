@@ -6,6 +6,7 @@ import io
 import time
 import numpy as np
 import multiprocessing
+import fasteners
 from datetime import datetime, timedelta
 from PIL import Image
 from multiprocessing import Process
@@ -748,6 +749,9 @@ def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
 
     #Publish message that entry cam is up
     in_mem_db.connection.publish(Channel.Status.value, Status.EntryCamUp.value)
+    # Acquire status.lock
+    with fasteners.InterProcessLock(Utils.lock_file):
+        Utils.entry_up()
 
     while True:
         ret, frame = cap.read()

@@ -7,6 +7,7 @@ import threading
 import time
 import numpy as np
 import multiprocessing
+import fasteners
 from datetime import datetime, timedelta
 from PIL import Image
 from multiprocessing import Process
@@ -785,6 +786,13 @@ def start_exit_cam(parameters, camera, q, pipe_q, search_q, stop):
         search_process.name = "Face_search_exit"
         search_process.start()
         search_processes.append(search_process)
+
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    in_mem_db.connect()
+
+    in_mem_db.connection.publish(Channel.Status.value, Status.ExitCamUp.value)
+    with fasteners.InterProcessLock(Utils.lock_file):
+        Utils.exit_up()
 
     while True:
         ret, frame = cap.read()

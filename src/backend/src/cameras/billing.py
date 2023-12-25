@@ -5,6 +5,7 @@ import cv2
 import os
 import time
 import numpy as np
+import fasteners
 import multiprocessing
 
 from sklearn.metrics.pairwise import cosine_similarity
@@ -16,6 +17,8 @@ from config.params import Parameters
 from db.database import *
 from db.redis_pubsub import *
 from db.log import *
+
+from utils.utils import Utils
 
 CAMERA_FPS = 30
 
@@ -152,6 +155,8 @@ def start_billing_cam(parameters, camera, stop_event):
     p.subscribe(Channel.Frontend.value)
 
     in_mem_db.connection.publish(Channel.Status.value, Status.BillingCamUp.value)
+    with fasteners.InterProcessLock(Utils.lock_file):
+        Utils.billing_up()
 
     while True:
         if stop_event.is_set():

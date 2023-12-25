@@ -3,6 +3,7 @@ import base64
 import cv2
 import configparser
 import numpy as np
+import fasteners
 from config.params import Parameters
 from datetime import datetime, timedelta
 from db.database import *
@@ -162,6 +163,9 @@ def start_employee_process(parameters):
 
     detector = Detection(parameters)
     r = Recognition(parameters)
+
+    with fasteners.InterProcessLock(Utils.lock_file):
+        Utils.employee_up()
 
     while True:
         for message in p.listen():

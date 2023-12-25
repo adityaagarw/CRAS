@@ -7,6 +7,7 @@ import json
 import subprocess
 import shutil
 import psutil
+import fasteners
 
 from utils.utils import Utils
 from db.database import *
@@ -118,10 +119,6 @@ def check_create_db():
 
     return 0
 
-def write_status(status):
-    with open("status", "w") as f:
-        f.write(str(status))
-
 def start_status_check():
     # Start status check
     subprocess.Popen([get_python_command(), 'status_check.py'])
@@ -157,6 +154,7 @@ if __name__ == "__main__":
                 exit(1)
             else:
                 os.remove("entry_pid")
+
     if os.path.isfile("billing_pid"):
         # Check if process exists and is running
         with open("billing_pid", "r") as f:
@@ -167,6 +165,7 @@ if __name__ == "__main__":
                 exit(1)
             else:
                 os.remove("billing_pid")
+
     if os.path.isfile("exit_pid"):
         # Check if process exists and is running
         with open("exit_pid", "r") as f:
@@ -189,18 +188,23 @@ if __name__ == "__main__":
             else:
                 os.remove("employee_pid")
 
-    write_status(0)
-    start_status_check()
+    # Initialise status file
+    Utils.starting()
+
+    start_status_check() #TBD
+
     get_camera_ids()
+
     build_config()
+
     ret = start_docker()
     if ret:
         print("Docker failed to start")
         exit(1)
+
     ret = check_create_db()
     if ret:
         print("DB failed to start")
         exit(1)
 
     start_cameras()
-    start_ui()
