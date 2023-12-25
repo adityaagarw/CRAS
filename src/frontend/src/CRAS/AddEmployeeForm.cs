@@ -34,14 +34,15 @@ namespace CRAS
                 mobileTextBox.Text = customer.label2value.Text.ToString();
 
                 this.Text = ("Mark As Employee");
-                this.Icon = new Icon("Resources/MarkAsEmployee.ico");
+                //this.Icon = new Icon("Resources/MarkAsEmployee.ico");
+                this.Icon = Resources.MarkAsEmployee;
                 addEmployeeButton.Text = "Mark As Employee";
             }
 
             else if(source.Equals("AddNewEmployee"))
             {
                 this.Text = ("Add New Employee");
-                this.Icon = new Icon("Resources/AddEmployee.ico");
+                this.Icon = Resources.AddEmployee;
             }
         }
 
