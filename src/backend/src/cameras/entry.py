@@ -87,6 +87,11 @@ def load_employee_data():
     employee_records = fetch_all_employee_records(local_db)
     for record in employee_records:
 
+        # Check if employee already in in-mem db
+        employee_id = record[0]
+        employee_record = in_mem_db.connection.hgetall("employee_inmem_db:" + employee_id)
+        if employee_record:
+            continue
         # Format encoding from localdb to inmemdb
         encoding = "" if record[4] is None else record[4]
         encoding_str_list = encoding.strip("[]").split()
