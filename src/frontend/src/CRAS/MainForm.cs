@@ -36,10 +36,10 @@ namespace CRAS
         private NamedPipeClientStream pipeClient2;
         private Process pythonProcess1;
         private Process pythonProcess2;
-        
+
         public static string workingDirectoryFrontend;
         public static string workingDirectoryBackend;
-        
+
         public static ConnectionMultiplexer redisConnection;
         public static IDatabase redisDB;
         public static BindingList<redis_customer> customer_list;
@@ -60,12 +60,13 @@ namespace CRAS
         public static BindingList<bill_details> bills = new BindingList<bill_details>();
         public static BindingList<visit_details> visits = new BindingList<visit_details>();
         public static BindingList<redis_employee> employee_list = new BindingList<redis_employee>();
-
+        public static string backend_status = "";
         public static int bill_scanning = 0;
         public static BindingList<redis_customer> exited_customers = new BindingList<redis_customer>();
         //public static BindingList<> 
         public static NpgsqlConnection pgsql_connection;
 
+        //private System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
 
         public MainForm()
         {
@@ -106,6 +107,8 @@ namespace CRAS
 
             scanStatusLabel.Text = "Scan Completed";
 
+            CheckPreviousExit();
+
             if (loadingForm != null) loadingForm.SetLoadingLabel("Initiating Backend!");
             InitiateBackend();
 
@@ -133,7 +136,7 @@ namespace CRAS
 
             if (loadingForm != null) loadingForm.SetLoadingLabel("Connecting to PGSQL");
             pgsql_connection = pgsql_utilities.ConnectToPGSQL();
-            pgsql_connection.Open();
+            if (pgsql_connection != null) pgsql_connection.Open();
             Console.WriteLine("PGSQL Connected to Server Version: " + pgsql_connection.ServerVersion.ToString());
             pgsql_connection.Close();
 
@@ -157,6 +160,29 @@ namespace CRAS
             displayComboBox.Items.Add("Exited Customers");
             displayComboBox.Items.Add("Employees");
             displayComboBox.SelectedIndex = 0;
+
+
+        }
+
+        private void CheckPreviousExit()
+        {
+            backend_status = GetBackendStatus();
+
+            //64 means shudown was initiated
+            if (int.Parse(backend_status) >= 1000000)
+            {
+                Console.WriteLine("Program was shutdown gracefully!!!!!!!!!!!!!!!!!");
+            }
+
+            //Previous session closed improperly
+            else
+            {
+                if (int.Parse(backend_status) != 11111)
+                {
+                    MessageBox.Show("Program was not shutdown properly! Initiating Clean Up!");
+                    InitiateClosingSequence();
+                }
+            }
         }
 
         private void InitiateBackend()
@@ -187,7 +213,7 @@ namespace CRAS
                 Process process = new Process
                 {
                     StartInfo = startInfo
-                    
+
                 };
                 // Handle output and error asynchronously
                 process.OutputDataReceived += (sender, args) => Console.WriteLine(args.Data);
@@ -196,20 +222,44 @@ namespace CRAS
                 process.Start();
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
-                               
+
 
                 // Wait for the indicator files to be created
-                WaitForIndicatorFiles("creation");
+                //WaitForIndicatorFiles("creation");
+                WaitForStatusFile("starting");
 
                 // Continue with the next tasks...
                 //MessageBox.Show("Backend started successfully!");
                 Console.WriteLine("Backend Started Successfully!");
-              
+
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred: {ex.Message}");
             }
+        }
+
+        public static string GetBackendStatus()
+        {
+            string status;
+            try
+            {
+                string backendFile = workingDirectoryBackend + "\\status";
+
+                status = File.ReadAllText(backendFile);
+                int backend_status_int;
+                int.TryParse(status, out backend_status_int);
+                status = utilities.ConvertToBinary(backend_status_int);
+                return status;
+
+            }
+
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            return null;
+
         }
 
         public void ChangeEmployeeState(int index, string state)
@@ -222,12 +272,15 @@ namespace CRAS
             }
             else employeeFLP.Controls[index].BackColor = Color.White;
         }
+
+
         private void WaitForIndicatorFiles(string operation)
         {
             // Specify the paths to the indicator files
-            string entryFile = workingDirectoryBackend + "\\entry_pid";
-            string exitFile = workingDirectoryBackend + "\\exit_pid";
-            string billingFile = workingDirectoryBackend + "\\billing_pid";
+            //string entryFile = workingDirectoryBackend + "\\entry_pid";
+            //string exitFile = workingDirectoryBackend + "\\exit_pid";
+            //string billingFile = workingDirectoryBackend + "\\billing_pid";
+            string statusFile = workingDirectoryBackend + "\\status";
 
             // Wait for the files to be created (adjust the timeout as needed)
             int timeout = 30000; // 30 seconds timeout
@@ -235,23 +288,29 @@ namespace CRAS
 
             if (operation.Equals("creation"))
             {
-                while (!File.Exists(entryFile) || !File.Exists(exitFile) || !File.Exists(billingFile))
+                bool fileExists = true;
+                //while (!File.Exists(entryFile) || !File.Exists(exitFile) || !File.Exists(billingFile))
+                while (!File.Exists(statusFile))
                 {
                     if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(timeout))
                     {
                         // Timeout reached
                         MessageBox.Show("Timeout waiting for indicator files.");
+                        fileExists = false;
                         break;
                     }
 
                     // Sleep for a short interval before checking again
                     System.Threading.Thread.Sleep(100);
                 }
+                //while (MainForm.backend_status[])
+
             }
 
             else if (operation.Equals("deletion"))
             {
-                while (File.Exists(entryFile) || File.Exists(exitFile) || File.Exists(billingFile))
+                //while (File.Exists(entryFile) || File.Exists(exitFile) || File.Exists(billingFile))
+                while (File.Exists(statusFile))
                 {
                     if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(timeout))
                     {
@@ -265,6 +324,54 @@ namespace CRAS
                 }
             }
         }
+
+        public void WaitForStatusFile(string operation)
+        {
+            int backend_status_int = Convert.ToInt32(backend_status, 10);
+
+            int timeout = 30000; // 30 seconds timeout
+            DateTime startTime = DateTime.Now;
+
+            if (operation.Equals("starting"))
+            { 
+
+                while (backend_status_int >= 100000)
+                {
+                    /*if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(timeout))
+                    {
+                        // Timeout reached
+                        MessageBox.Show("Timeout waiting for status file to set staring flag!");
+                        break;
+                    }*/
+
+                    // Sleep for a short interval before checking again
+                    System.Threading.Thread.Sleep(1000);
+                    backend_status = GetBackendStatus();
+                    backend_status_int = Convert.ToInt32(backend_status, 10);
+                    Console.WriteLine("Backend Status: " + backend_status_int);
+                }
+                
+            } 
+
+            if(operation.Equals("shutdown"))
+            {
+                while (backend_status_int < 1000000)
+                {
+                    if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(timeout))
+                    {
+                        // Timeout reached
+                        MessageBox.Show("Timeout waiting for status file to set staring flag!");
+                        break;
+                    }
+
+                    // Sleep for a short interval before checking again
+                    System.Threading.Thread.Sleep(1000);
+                    backend_status = GetBackendStatus();
+                    backend_status_int = Convert.ToInt32(backend_status, 10);
+                }
+            }
+        }
+
         private void Employee_list_ListChanged(object sender, ListChangedEventArgs e)
         {
             //throw new NotImplementedException();
@@ -540,12 +647,24 @@ namespace CRAS
             {
                 //If Exit is Pressed from tray
                 DialogResult result;
-                result = MessageBox.Show("Pakka bandh kardu? Soch Le! Phir mat boliyo ke pehchaan kaun!","Tera ghar jayenga!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                if(result == DialogResult.No) e.Cancel = true;
+                result = MessageBox.Show("UI will be closed now!\nShutdown Backend?","Shutdown System", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
+                //Close the UI but not the backend
+                if (result == DialogResult.No) ;
+                //e.Cancel = true;
+
+                //Close the UI And Backend
                 else
                 {
                     InitiateClosingSequence();
+                }
+
+                // Stop the thread and close the named pipe when the form is closing
+                ClosePipes();
+                if (sqlDependency != null)
+                {
+                    sqlDependency.Stop();
+                    sqlDependency.Dispose();
                 }
             }
 
@@ -555,13 +674,6 @@ namespace CRAS
 
         private void InitiateClosingSequence()
         {
-            // Stop the thread and close the named pipe when the form is closing
-            ClosePipes();
-            if (sqlDependency != null)
-            {
-                sqlDependency.Stop();
-                sqlDependency.Dispose();
-            }
             //SqlDependency.Stop(posdb_utilities.GetConnectionString(POSSERVER, POSDB, POSUID, POSPWD, posdb));
             try
             {
@@ -599,8 +711,9 @@ namespace CRAS
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
 
-                WaitForIndicatorFiles("deletion");
-                // Continue with the next tasks...
+                //WaitForIndicatorFiles("deletion");
+                WaitForStatusFile("shutdown");
+
                 //MessageBox.Show("Backend started successfully!");
                 Console.WriteLine("Backend Shutdown Successfully!");
 
@@ -927,6 +1040,12 @@ namespace CRAS
             BillingForm billingForm = Application.OpenForms.OfType<BillingForm>().FirstOrDefault();
 
             return billingForm;
+        }
+
+        public static Live_Status GetLiveStatusFormIfOpen()
+        {
+            Live_Status liveStatus = Application.OpenForms.OfType<Live_Status>().FirstOrDefault();
+            return liveStatus;
         }
 
         public static LogViewerForm GetLogViewerFormIfOpen()

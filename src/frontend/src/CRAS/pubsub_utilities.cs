@@ -201,7 +201,7 @@ namespace CRAS
                 if (messageReceived.StartsWith("UpdateCustomer"))
                 {
                     //TEMPORARY FIX TO SLOW DOWN UPDATING OF CUSTOMER TBD****************************************************************
-                    Thread.Sleep(1000);
+                    //Thread.Sleep(1000);
                     var ids = messageReceived.Split(':', ',');
                     temp_customer_id = ids[1];
                     customer_id = ids[2];

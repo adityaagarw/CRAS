@@ -61,9 +61,6 @@ def delete_employee_pid():
 
 if __name__ == "__main__":
 
-    with fasteners.InterProcessLock(Utils.lock_file):
-        Utils.shutdown_system()
-
     entry_pid = read_entry_pid()
     billing_pid = read_billing_pid()
     exit_pid = read_exit_pid()
@@ -133,3 +130,6 @@ if __name__ == "__main__":
     else:
         print("Employee program already shut down")
         os.remove("employee_pid")
+
+    with fasteners.InterProcessLock(Utils.lock_file):
+        Utils.shutdown_system()

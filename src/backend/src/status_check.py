@@ -41,7 +41,7 @@ def check_status():
                     Utils.started()
             elif status & Utils.shutdown_system_bitmask:
                 # Shutdown case
-                os.remove('status')
+                #os.remove('status')
                 exit(0)
             else:
                 # Program is already up

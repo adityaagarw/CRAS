@@ -117,6 +117,11 @@ namespace CRAS
             }
         }
 
+        public void UpdateData()
+        {
+
+        }
+
         private void CustomerDataUC_MouseHover(object sender, EventArgs e)
         {
 

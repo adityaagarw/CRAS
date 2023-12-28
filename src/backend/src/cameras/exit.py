@@ -764,6 +764,7 @@ def send_faces_to_queue(faces, frame, q):
 def start_exit_cam(parameters, camera, q, pipe_q, search_q, stop):
 
     # Choose source
+    #cap = cv2.VideoCapture('rtsp://192.168.2.104:8080/h264_ulaw.sdp')
     cap = cv2.VideoCapture(camera)
     detector = Detection(parameters)
 

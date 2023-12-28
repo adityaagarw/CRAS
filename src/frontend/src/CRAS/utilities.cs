@@ -21,6 +21,18 @@ namespace CRAS
             return image;
         }
 
+        public static string StandardiseIntToString(int number, int sizeOfString)
+        {
+            string standardisedPrefix = number.ToString();
+
+            while (standardisedPrefix.Length < sizeOfString)
+            {
+                standardisedPrefix = "0" + standardisedPrefix;
+            }
+
+            return standardisedPrefix;
+        }
+
         public static byte[] ImagetoByte(Image image)
         {
             if (image == null)
@@ -144,6 +156,13 @@ namespace CRAS
             }
         }
 
+
+
+        public static string ConvertToBinary(int number)
+        {
+            string binary = Convert.ToString(number,2);
+            return binary;
+        }
         public static void StartDockerDaemon()
         {
             try
