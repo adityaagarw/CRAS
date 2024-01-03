@@ -227,6 +227,25 @@ class LocalPostgresDB(Database):
         self.cursor.execute(create_table_query)
         self.connection.commit()
 
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS Meta (
+            sessionid           INTEGER,
+            sub_sessionid       INTEGER,
+            start_time          TIMESTAMP,
+            end_time            TIMESTAMP,
+            detection           VARCHAR(255),
+            model               VARCHAR(255),
+            threshold           NUMERIC(10, 2),
+            yaw_threshold       INTEGER,
+            pitch_threshold     INTEGER, 
+            area_threshold      INTEGER,
+            billing_cam_time    INTEGER,
+            similarity_method   VARCHAR(255),
+        )
+        """
+        self.cursor.execute(create_table_query)
+        self.connection.commit()
+
     def insert_customer_record_old(self, record):
         with self.connection.cursor() as cursor:
             insert_query = """
