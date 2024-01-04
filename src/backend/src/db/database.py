@@ -99,7 +99,8 @@ class LocalVisit:
         self.return_customer = return_customer
 
 class Session:
-    def __init__(self, start_time, end_time, detection, model, threshold, yaw_threshold, pitch_threshold, area_threshold, billing_cam_time, similarity_method):
+    def __init__(self, start_time, end_time, detection, model, threshold, yaw_threshold, pitch_threshold, area_threshold, billing_cam_time, similarity_method,
+                 total_faces, same_faces, misidentified_faces, unidentified_faces):
         self.start_time = start_time
         self.end_time = end_time
         self.detection = detection
@@ -110,6 +111,10 @@ class Session:
         self.area_threshold = area_threshold
         self.billing_cam_time = billing_cam_time
         self.similarity_method = similarity_method
+        self.total_faces = total_faces
+        self.same_faces = same_faces
+        self.misidentified_faces = misidentified_faces
+        self.unidentified_faces = unidentified_faces
 
 # Class for the local PostgreSQL database
 class LocalPostgresDB(Database):
@@ -252,7 +257,11 @@ class LocalPostgresDB(Database):
             pitch_threshold     INTEGER, 
             area_threshold      INTEGER,
             billing_cam_time    INTEGER,
-            similarity_method   VARCHAR(255)
+            similarity_method   VARCHAR(255),
+            total_faces   INTEGER DEFAULT 0,
+            same_faces INTEGER DEFAULT 0,
+            misidentified_faces INTEGER DEFAULT 0,
+            unidentified_faces INTEGER DEFAULT 0
         )
         """
         self.cursor.execute(create_table_query)

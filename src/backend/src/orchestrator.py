@@ -186,7 +186,11 @@ def log_session(parameters):
                 pitch_threshold = parameters.pitch_threshold,
                 area_threshold = parameters.area_threshold,
                 billing_cam_time = parameters.billing_cam_time,
-                similarity_method = parameters.sim_method
+                similarity_method = parameters.sim_method,
+                total_faces=0,
+                same_faces=0,
+                misidentified_faces=0,
+                unidentified_faces=0
                 )
     
     local_db.insert_session_record(session)
