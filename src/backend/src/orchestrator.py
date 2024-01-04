@@ -7,10 +7,12 @@ import json
 import subprocess
 import shutil
 import psutil
-import fasteners
+import configparser
 
+from datetime import datetime
 from utils.utils import Utils
 from db.database import *
+from config.params import Parameters
 
 def get_python_command():
     python_commands = ['python3', 'python', 'py']
@@ -142,6 +144,54 @@ def get_camera_ids():
 def start_ui():
     pass
 
+def build_parameters(file):
+    config = configparser.ConfigParser()
+    config.read(file)
+    args = config['general']
+    parameters = Parameters(args['detection'], \
+                            args['library'], \
+                            args['model'], \
+                            args['threshold'], \
+                            args['yaw_threshold'], \
+                            args['pitch_threshold'], \
+                            args['area_threshold'], \
+                            args['billing_cam_time'], \
+                            args['sim_method'], \
+                            args['debug_mode'], \
+                            args['username'], \
+                            args['password'], \
+                            args['db_link'], \
+                            args['db_name'], \
+                            args['input_type'], \
+                            args['video_path'], \
+                            args['model_dir'])
+    return parameters
+
+def log_session(parameters):
+    local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
+    local_db.connect()
+    if not local_db.connection:
+            print("Local db connection failed while trying to log session!")
+            return 1
+
+    date_format = "%Y-%m-%d %H:%M:%S"
+    time_now = datetime.now().strftime(date_format)
+    session = Session(
+                start_time = str(time_now), 
+                end_time = "", 
+                detection = parameters.detection,
+                model = parameters.model,
+                threshold = parameters.threshold,
+                yaw_threshold = parameters.yaw_threshold,
+                pitch_threshold = parameters.pitch_threshold,
+                area_threshold = parameters.area_threshold,
+                billing_cam_time = parameters.billing_cam_time,
+                similarity_method = parameters.sim_method
+                )
+    
+    local_db.insert_session_record(session)
+    local_db.disconnect()
+
 if __name__ == "__main__":
     # Check if program is already running
     if os.path.isfile("entry_pid"):
@@ -196,6 +246,7 @@ if __name__ == "__main__":
     get_camera_ids()
 
     build_config()
+    parameters = build_parameters('config.ini')
 
     ret = start_docker()
     if ret:
@@ -205,6 +256,11 @@ if __name__ == "__main__":
     ret = check_create_db()
     if ret:
         print("DB failed to start")
+        exit(1)
+
+    # Log session details
+    if log_session(parameters) == 1:
+        print("Failed to log session details")
         exit(1)
 
     start_cameras()

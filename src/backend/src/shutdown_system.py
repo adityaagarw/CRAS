@@ -2,6 +2,8 @@ import os
 import psutil
 import fasteners
 from utils.utils import Utils
+from datetime import datetime
+from db.database import *
 
 def read_entry_pid():
     try:
@@ -58,6 +60,17 @@ def delete_exit_pid():
 def delete_employee_pid():
     # Delete the PID file
     os.remove("employee_pid")
+
+def log_session():
+    date_format = "%Y-%m-%d %H:%M:%S"
+    time_now = datetime.now().strftime(date_format)
+    local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
+    local_db.connect()
+    if not local_db.connection:
+            print("Local db connection failed while trying to log session!")
+            return 1
+    
+    local_db.update_shutdown_time(str(time_now))
 
 if __name__ == "__main__":
 
@@ -133,3 +146,6 @@ if __name__ == "__main__":
 
     with fasteners.InterProcessLock(Utils.lock_file):
         Utils.shutdown_system()
+
+    print("System shutdown complete")
+    log_session()

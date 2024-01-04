@@ -98,6 +98,19 @@ class LocalVisit:
         self.incomplete = incomplete
         self.return_customer = return_customer
 
+class Session:
+    def __init__(self, start_time, end_time, detection, model, threshold, yaw_threshold, pitch_threshold, area_threshold, billing_cam_time, similarity_method):
+        self.start_time = start_time
+        self.end_time = end_time
+        self.detection = detection
+        self.model = model
+        self.threshold = threshold
+        self.yaw_threshold = yaw_threshold
+        self.pitch_threshold = pitch_threshold
+        self.area_threshold = area_threshold
+        self.billing_cam_time = billing_cam_time
+        self.similarity_method = similarity_method
+
 # Class for the local PostgreSQL database
 class LocalPostgresDB(Database):
     def __init__(self, host, port, database, user, password):
@@ -228,9 +241,8 @@ class LocalPostgresDB(Database):
         self.connection.commit()
 
         create_table_query = """
-        CREATE TABLE IF NOT EXISTS Meta (
-            sessionid           INTEGER,
-            sub_sessionid       INTEGER,
+        CREATE TABLE IF NOT EXISTS Session (
+            sessionid           SERIAL PRIMARY KEY,
             start_time          TIMESTAMP,
             end_time            TIMESTAMP,
             detection           VARCHAR(255),
@@ -240,7 +252,18 @@ class LocalPostgresDB(Database):
             pitch_threshold     INTEGER, 
             area_threshold      INTEGER,
             billing_cam_time    INTEGER,
-            similarity_method   VARCHAR(255),
+            similarity_method   VARCHAR(255)
+        )
+        """
+        self.cursor.execute(create_table_query)
+        self.connection.commit()
+
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS SubSession (
+            sessionid           INTEGER,
+            sub_sessionid       INTEGER,
+            start_time          TIMESTAMP,
+            end_time            TIMESTAMP
         )
         """
         self.cursor.execute(create_table_query)
@@ -390,6 +413,26 @@ class LocalPostgresDB(Database):
             self.connection.commit()
             #print(insert_query)
 
+    def insert_session_record(self, record):
+        fields = [
+            'start_time', 'end_time', 'detection', 'model', 'threshold', 'yaw_threshold',
+            'pitch_threshold', 'area_threshold', 'billing_cam_time', 'similarity_method'
+        ]
+
+        with self.connection.cursor() as cursor:
+            insert_query = """
+            INSERT INTO Session ({})
+            VALUES ({})
+            """.format(','.join(fields), ','.join(['%s']*len(fields)))
+
+            values = []
+            for field in fields:
+                value = getattr(record, field)
+                values.append(value if value != "" else None)
+            
+            cursor.execute(insert_query, tuple(values))
+            self.connection.commit()
+
     def update_customer_record_old(self, record):
         with self.connection.cursor() as cursor:
             update_query = """
@@ -472,6 +515,15 @@ class LocalPostgresDB(Database):
             record.billed, record.bill_amount, record.time_spent, record.visit_remark, record.customer_rating,
             record.customer_feedback, record.incomplete, record.visit_id
         ))
+        self.connection.commit()
+
+    def update_shutdown_time(self, shutdown_time):
+        update_query = """
+        UPDATE Session
+        SET end_time = %s
+        WHERE sessionid = (SELECT MAX(sessionid) FROM Session)
+        """
+        self.cursor.execute(update_query, (shutdown_time,))
         self.connection.commit()
 
     def delete_customer_record(self, record_id):
