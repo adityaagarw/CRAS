@@ -56,7 +56,7 @@ namespace CRAS
                 webCamListBox.Items.Add(device.Name + " Index: " + index++ );
             }
 
-            MainForm.backend_status = MainForm.GetBackendStatus();
+            MainForm.backend_status = MainForm.GetBackendStatus ();
             backendString.Text = MainForm.backend_status;
             DisplayIndividualStatus(MainForm.backend_status);
 

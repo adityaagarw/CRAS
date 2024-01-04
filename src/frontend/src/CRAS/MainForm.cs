@@ -66,6 +66,9 @@ namespace CRAS
         //public static BindingList<> 
         public static NpgsqlConnection pgsql_connection;
 
+        public static int session = 0;
+        public static int subSession = 0;
+
         //private System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
 
         public MainForm()
@@ -161,7 +164,19 @@ namespace CRAS
             displayComboBox.Items.Add("Employees");
             displayComboBox.SelectedIndex = 0;
 
+            CreateNewSubSession();
+        }
 
+        private void CreateNewSubSession()
+        {
+            session = pgsql_utilities.GetMaxSessionId(pgsql_connection);
+            
+            subSession = pgsql_utilities.GetMaxSubSessionId(pgsql_connection, session);
+
+            subSession++;
+
+            int success = pgsql_utilities.InsertSubSession(pgsql_connection, session, subSession, DateTime.Now.ToString());
+            if(success == 1) { Console.WriteLine($"Created new subsession: {subSession} under session: {session}"); }
         }
 
         private void CheckPreviousExit()
@@ -333,7 +348,8 @@ namespace CRAS
             DateTime startTime = DateTime.Now;
 
             if (operation.Equals("starting"))
-            { 
+            {
+                loadingForm.Invoke(new Action(() => { loadingForm.loadingLabel.Text = "Initialising Backend Modules"; }));
 
                 while (backend_status_int >= 100000)
                 {
@@ -349,6 +365,9 @@ namespace CRAS
                     backend_status = GetBackendStatus();
                     backend_status_int = Convert.ToInt32(backend_status, 10);
                     Console.WriteLine("Backend Status: " + backend_status_int);
+                    if (loadingForm.InvokeRequired)
+                        loadingForm.Invoke(new Action(() => { loadingForm.DisplayIndividualStatus(backend_status); }));
+                    
                 }
                 
             } 
@@ -645,6 +664,8 @@ namespace CRAS
 
             else
             {
+                pgsql_utilities.UpdateSubSession(pgsql_connection, session, subSession, DateTime.Now.ToString());
+
                 //If Exit is Pressed from tray
                 DialogResult result;
                 result = MessageBox.Show("UI will be closed now!\nShutdown Backend?","Shutdown System", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);

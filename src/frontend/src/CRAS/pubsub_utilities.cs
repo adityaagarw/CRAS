@@ -333,7 +333,7 @@ namespace CRAS
 
 
                     log logger = new log(source, module, actionType, actionValue, messageRecv, line);
-                    //logger.Print();
+                    logger.Print();
                     logger.LogToFile();
                     logger.LogToSQL();
 

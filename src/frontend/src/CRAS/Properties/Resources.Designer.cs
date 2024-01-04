@@ -113,6 +113,16 @@ namespace CRAS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap green_tick_2 {
+            get {
+                object obj = ResourceManager.GetObject("green tick 2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap log_icon {
             get {
                 object obj = ResourceManager.GetObject("log_icon", resourceCulture);
@@ -166,6 +176,16 @@ namespace CRAS.Properties {
         internal static System.Drawing.Bitmap pngwing_com {
             get {
                 object obj = ResourceManager.GetObject("pngwing.com", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap red_cross_2 {
+            get {
+                object obj = ResourceManager.GetObject("red cross 2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

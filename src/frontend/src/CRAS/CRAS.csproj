@@ -391,6 +391,8 @@
     </None>
     <None Include="Resources\log_icon1.ico" />
     <None Include="Resources\cras.ico" />
+    <None Include="Resources\green tick 2.png" />
+    <None Include="Resources\red cross 2.png" />
     <Content Include="Resources\StarHover.png" />
     <Content Include="Resources\StarSelected.png" />
   </ItemGroup>

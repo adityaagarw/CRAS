@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -113,7 +114,9 @@ namespace CRAS
 
             connection.Open();
 
-            string query = "SELECT COUNT(visit_id) as TotalVisits, COUNT(customer_id) as TotalVisitors, COUNT(DISTINCT customer_id) as UniqueVisitors, MAX(time_spent) as MaxTime, MIN(time_spent) as MinTime, SUM(time_spent) as TotalTime FROM local_visit_db WHERE incomplete = '0'";
+            string query = $"SELECT COUNT(visit_id) as TotalVisits, COUNT(customer_id) as TotalVisitors, COUNT(DISTINCT customer_id) as UniqueVisitors, MAX(time_spent) as MaxTime, MIN(time_spent) as MinTime, SUM(time_spent) as TotalTime, SUM(return_customer) as ReturnCustomers  FROM local_visit_db WHERE incomplete = '0' AND CAST(exit_time AS DATE) = '{date}'";
+
+            Console.WriteLine(query);
 
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
 
@@ -470,6 +473,106 @@ namespace CRAS
             command.ExecuteNonQuery();
             connection.Close();
 
+        }
+
+        public static int GetMaxSessionId(NpgsqlConnection connection)
+        {
+            int maxSessionId = 0;
+
+            connection.Open();
+
+                string query = "SELECT MAX(sessionid) AS MaxSessionId FROM Session";
+            Console.WriteLine(query);
+
+                using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+                {
+                    using (NpgsqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            // Check if the returned value is not DBNull
+                            if (reader["MaxSessionId"] != DBNull.Value)
+                            {
+                                maxSessionId = Convert.ToInt32(reader["MaxSessionId"]);
+                            }
+                        }
+                    }
+                }
+                connection.Close();
+            return maxSessionId;
+        }
+
+        public static int GetMaxSubSessionId(NpgsqlConnection connection, int sessionId)
+        {
+            int maxSubSessionId = 0;
+
+            connection.Open();
+
+            string query = $"SELECT MAX(sub_sessionid) AS MaxSubSessionId FROM SubSession WHERE sessionid = '{sessionId}'";
+            Console.WriteLine(query);
+
+            using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+            {
+                using (NpgsqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        // Check if the returned value is not DBNull
+                        if (reader["MaxSubSessionId"] != DBNull.Value)
+                        {
+                            maxSubSessionId = Convert.ToInt32(reader["MaxSubSessionId"]);
+                        }
+                    }
+                }
+            }
+
+            connection.Close(); 
+            return maxSubSessionId;
+        }
+
+        public static int InsertSubSession(NpgsqlConnection connection, int sessionId, int subSessionId, string startTime = "")
+        {
+            int success = 0;
+            if(startTime.Length == 0) startTime = DateTime.Now.ToString();
+            
+                connection.Open();
+
+                string query = $"INSERT INTO SubSession (sessionid, sub_sessionid, start_time) " +
+                               $"VALUES ('{sessionId}', '{subSessionId}', '{startTime}')";
+
+                Console.WriteLine(query);
+                using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+                {
+                    /*command.Parameters.AddWithValue("@sessionId", sessionId);
+                    command.Parameters.AddWithValue("@subSessionId", subSessionId);
+                    command.Parameters.AddWithValue("@startTime", startTime);
+                    command.Parameters.AddWithValue("@endTime", endTime);*/
+
+                    command.ExecuteNonQuery();
+                success = 1;
+                }
+            connection.Close();
+            return success;
+        }
+
+        public static void UpdateSubSession(NpgsqlConnection connection, int sessionId, int subSessionId, string endTime = "")
+        {
+            if(endTime.Length == 0) endTime = DateTime.Now.ToString();
+            connection.Open();
+
+            string query = $"UPDATE SubSession SET end_time = '{endTime.ToString()}' WHERE sessionid = '{sessionId.ToString()}' AND sub_sessionid = '{subSessionId.ToString()}'";
+
+            Console.WriteLine(query);
+
+            using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+            {
+                /*command.Parameters.AddWithValue("@sessionId", sessionId);
+                command.Parameters.AddWithValue("@subSessionId", subSessionId);
+                command.Parameters.AddWithValue("@startTime", startTime);
+                command.Parameters.AddWithValue("@endTime", endTime);*/
+
+                command.ExecuteNonQuery();
+            }
         }
 
         public static void InsertBillDetails(NpgsqlConnection connection,bill_details bill, string table_name = "local_billing_db")

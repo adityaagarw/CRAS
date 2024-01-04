@@ -19,13 +19,13 @@ namespace CRAS
 
         private void dailyDatePicker_ValueChanged(object sender, EventArgs e)
         {
-
+            PopulateStatistics(dailyDatePicker.Value.Date);
         }
 
         public void PopulateStatistics(DateTime date)
         {
             DataTable overview = new DataTable();
-            overview = pgsql_utilities.GetDailyOverview(MainForm.pgsql_connection, date.ToString("dd-MM-yyyy"));
+            overview = pgsql_utilities.GetDailyOverview(MainForm.pgsql_connection, date.ToString("MM-dd-yyyy"));
 
             int totalTime = 0;
             int.TryParse(overview.Rows[0]["TotalTime"].ToString(),out totalTime);
@@ -42,6 +42,12 @@ namespace CRAS
             int uniqueVisitors = 0;
             int.TryParse(overview.Rows[0]["UniqueVisitors"].ToString(), out uniqueVisitors);
 
+            int returnVisitors = 0;
+            int.TryParse(overview.Rows[0]["ReturnCustomers"].ToString(), out  returnVisitors);
+
+            int newVisitors = 0;
+            newVisitors = uniqueVisitors - returnVisitors;
+
             int avgTime = 0;
             if( totalVisits > 0) avgTime = totalTime / totalVisits;
 
@@ -51,6 +57,8 @@ namespace CRAS
             minTimeSpentLabel.Text = (minTime/60.0).ToString() + " Minutes";
             totalVisitsLabel.Text = totalVisits.ToString();
             totalUniqueVisitorsLabel.Text = uniqueVisitors.ToString();
+            totalRepeatVisitorsLabel.Text = returnVisitors.ToString();
+            totalNewVisitorsLabel.Text = newVisitors.ToString();
 
         }
 
