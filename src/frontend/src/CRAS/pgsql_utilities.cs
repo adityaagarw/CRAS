@@ -108,13 +108,15 @@ namespace CRAS
             return customer_list;
         }
 
-        public static DataTable GetDailyOverview(NpgsqlConnection connection, string date)
+        public static DataTable GetDailyOverview(NpgsqlConnection connection, string fromDate, string toDate = "")
         {
             DataTable overview = new DataTable();
 
+            if (toDate.Length == 0) toDate = fromDate;
+
             connection.Open();
 
-            string query = $"SELECT COUNT(visit_id) as TotalVisits, COUNT(customer_id) as TotalVisitors, COUNT(DISTINCT customer_id) as UniqueVisitors, MAX(time_spent) as MaxTime, MIN(time_spent) as MinTime, SUM(time_spent) as TotalTime, SUM(return_customer) as ReturnCustomers  FROM local_visit_db WHERE incomplete = '0' AND CAST(exit_time AS DATE) = '{date}'";
+            string query = $"SELECT COUNT(visit_id) as TotalVisits, COUNT(customer_id) as TotalVisitors, COUNT(DISTINCT customer_id) as UniqueVisitors, MAX(time_spent) as MaxTime, MIN(time_spent) as MinTime, SUM(time_spent) as TotalTime, SUM(return_customer) as ReturnCustomers  FROM local_visit_db WHERE incomplete = '0' AND CAST(exit_time AS DATE) >= '{fromDate}' AND CAST(exit_time AS DATE) <= '{toDate}'";
 
             Console.WriteLine(query);
 
@@ -573,6 +575,40 @@ namespace CRAS
 
                 command.ExecuteNonQuery();
             }
+            connection.Close();
+        }
+
+        public static void IncrementTotalFaces(NpgsqlConnection connection, int sessionId = -1, int noOfFaces = 1)
+        {
+            if (sessionId == -1) sessionId = MainForm.session;
+            connection.Open();
+
+            string query = $"UPDATE Session SET total_faces = total_faces + {noOfFaces} WHERE sessionid = '{sessionId}'";
+
+            Console.WriteLine(query);
+
+            using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+            {
+
+                command.ExecuteNonQuery();
+            }
+            connection.Close();
+        }
+
+        public static void UpdateSessionAccuracy(NpgsqlConnection connection, int sessionId, int sameFaces, int unidentifiedFaces, int misidentifiedFaces, int accuracy)
+        {
+            connection.Open();
+
+            string query = $"UPDATE Session SET same_faces = '{sameFaces}', unidentified_faces = '{unidentifiedFaces}', misidentified_faces = '{misidentifiedFaces}', accuracy = '{accuracy}' WHERE sessionid = '{sessionId}'";
+
+            Console.WriteLine(query);
+
+            using (NpgsqlCommand command = new NpgsqlCommand(query, connection))
+            {
+         
+                command.ExecuteNonQuery();
+            }
+            connection.Close();
         }
 
         public static void InsertBillDetails(NpgsqlConnection connection,bill_details bill, string table_name = "local_billing_db")

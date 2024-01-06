@@ -57,6 +57,7 @@
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.exitMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.configPictureBox = new System.Windows.Forms.PictureBox();
             this.customerFlowLayout.SuspendLayout();
             this.exitedCustomerFLP.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -64,6 +65,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.addEmployee)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.logPictureBox)).BeginInit();
             this.contextMenu.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.configPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -308,7 +310,7 @@
             // logPictureBox
             // 
             this.logPictureBox.Image = global::CRAS.Properties.Resources.log_icon;
-            this.logPictureBox.Location = new System.Drawing.Point(994, 15);
+            this.logPictureBox.Location = new System.Drawing.Point(689, 15);
             this.logPictureBox.Name = "logPictureBox";
             this.logPictureBox.Size = new System.Drawing.Size(25, 24);
             this.logPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -363,12 +365,24 @@
             this.exitMenu.Size = new System.Drawing.Size(93, 22);
             this.exitMenu.Text = "Exit";
             // 
+            // configPictureBox
+            // 
+            this.configPictureBox.Image = global::CRAS.Properties.Resources.config;
+            this.configPictureBox.Location = new System.Drawing.Point(989, 15);
+            this.configPictureBox.Name = "configPictureBox";
+            this.configPictureBox.Size = new System.Drawing.Size(27, 24);
+            this.configPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.configPictureBox.TabIndex = 25;
+            this.configPictureBox.TabStop = false;
+            this.configPictureBox.Click += new System.EventHandler(this.configPictureBox_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1028, 647);
+            this.Controls.Add(this.configPictureBox);
             this.Controls.Add(this.totalEmployeesValue);
             this.Controls.Add(this.totalEmployeesLabel);
             this.Controls.Add(this.logPictureBox);
@@ -403,6 +417,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.addEmployee)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.logPictureBox)).EndInit();
             this.contextMenu.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.configPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -437,5 +452,6 @@
         private System.Windows.Forms.NotifyIcon notifyIcon;
         private System.Windows.Forms.ContextMenuStrip contextMenu;
         private System.Windows.Forms.ToolStripMenuItem exitMenu;
+        private System.Windows.Forms.PictureBox configPictureBox;
     }
 }

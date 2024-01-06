@@ -211,6 +211,7 @@
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xml" />
     <Reference Include="TableDependency.SqlClient, Version=8.5.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SqlTableDependency.8.5.8\lib\net451\TableDependency.SqlClient.dll</HintPath>
@@ -238,11 +239,23 @@
     <Compile Include="BillingForm.Designer.cs">
       <DependentUpon>BillingForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ConfigManager.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfigManager.Designer.cs">
+      <DependentUpon>ConfigManager.cs</DependentUpon>
+    </Compile>
     <Compile Include="DBDisplayForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="DBDisplayForm.Designer.cs">
       <DependentUpon>DBDisplayForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DeleteReasonForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DeleteReasonForm.Designer.cs">
+      <DependentUpon>DeleteReasonForm.cs</DependentUpon>
     </Compile>
     <Compile Include="log.cs" />
     <Compile Include="LogViewerForm.cs">
@@ -312,6 +325,9 @@
     <EmbeddedResource Include="BillingForm.resx">
       <DependentUpon>BillingForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ConfigManager.resx">
+      <DependentUpon>ConfigManager.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="CustomerDataUC.resx">
       <DependentUpon>CustomerDataUC.cs</DependentUpon>
     </EmbeddedResource>
@@ -320,6 +336,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="DBDisplayForm.resx">
       <DependentUpon>DBDisplayForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DeleteReasonForm.resx">
+      <DependentUpon>DeleteReasonForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Live Status.resx">
       <DependentUpon>Live Status.cs</DependentUpon>
@@ -393,6 +412,9 @@
     <None Include="Resources\cras.ico" />
     <None Include="Resources\green tick 2.png" />
     <None Include="Resources\red cross 2.png" />
+    <None Include="Resources\red_triangle.png" />
+    <None Include="Resources\green_triangle.png" />
+    <None Include="Resources\config.png" />
     <Content Include="Resources\StarHover.png" />
     <Content Include="Resources\StarSelected.png" />
   </ItemGroup>

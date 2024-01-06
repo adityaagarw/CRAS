@@ -347,7 +347,7 @@ namespace CRAS
             int timeout = 30000; // 30 seconds timeout
             DateTime startTime = DateTime.Now;
 
-            if (operation.Equals("starting"))
+            if (operation.Equals("starting") && loadingForm!=null)
             {
                 loadingForm.Invoke(new Action(() => { loadingForm.loadingLabel.Text = "Initialising Backend Modules"; }));
 
@@ -861,6 +861,9 @@ namespace CRAS
 
             if (customer != null) 
             {
+                DeleteReasonForm deleteReasonForm = new DeleteReasonForm();
+                deleteReasonForm.ShowDialog();
+
                 customer_list.RemoveAt(index);
                 customerFlowLayout.Controls.RemoveAt(index);
                 redis_utilities.DeleteRedisEntry(redisConnection, customer.key);
@@ -1217,6 +1220,12 @@ namespace CRAS
             {
                 this.Close();                
             }
+        }
+
+        private void configPictureBox_Click(object sender, EventArgs e)
+        {
+            ConfigManager configManager = new ConfigManager();
+            configManager.ShowDialog();
         }
     }
 }

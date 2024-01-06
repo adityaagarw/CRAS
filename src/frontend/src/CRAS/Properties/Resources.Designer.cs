@@ -101,6 +101,16 @@ namespace CRAS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap config {
+            get {
+                object obj = ResourceManager.GetObject("config", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon cras {
@@ -116,6 +126,16 @@ namespace CRAS.Properties {
         internal static System.Drawing.Bitmap green_tick_2 {
             get {
                 object obj = ResourceManager.GetObject("green tick 2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap green_triangle {
+            get {
+                object obj = ResourceManager.GetObject("green_triangle", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -186,6 +206,16 @@ namespace CRAS.Properties {
         internal static System.Drawing.Bitmap red_cross_2 {
             get {
                 object obj = ResourceManager.GetObject("red cross 2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap red_triangle {
+            get {
+                object obj = ResourceManager.GetObject("red_triangle", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

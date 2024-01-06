@@ -1,0 +1,108 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Linq;
+
+namespace CRAS
+{
+    public partial class ConfigManager : Form
+    {
+        private Dictionary<string, string> appSettings;
+        string xmlFilePath = MainForm.workingDirectoryBackend + "\\CRAS\\App.config";
+
+        public ConfigManager()
+        {
+            InitializeComponent();
+        }
+
+        private void LoadXmlData()
+        {
+            appSettings = new Dictionary<string, string>();
+
+            try
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.Load(xmlFilePath);
+
+                XmlNodeList appSettingsNodes = doc.SelectNodes("/configuration/appSettings/add");
+
+                foreach (XmlNode node in appSettingsNodes)
+                {
+                    string key = node.Attributes["key"].Value;
+                    string value = node.Attributes["value"].Value;
+                    appSettings[key] = value;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading XML file: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void PopulateDataGridView()
+        {
+            configDataGrid.Columns.Add("Key", "Key");
+            configDataGrid.Columns.Add("Value", "Value");   
+            
+            configDataGrid.Rows.Clear();
+            //configDataGrid.AllowUserToAddRows = false;
+
+            foreach (var kvp in appSettings)
+            {
+                configDataGrid.Rows.Add(kvp.Key, kvp.Value);
+            }
+        }
+
+        private void SaveChangesToXml()
+        {
+            try
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.Load(xmlFilePath);
+
+                XmlNode appSettingsNode = doc.SelectSingleNode("/configuration/appSettings");
+                appSettingsNode.RemoveAll(); // Clear existing nodes
+
+                foreach (DataGridViewRow row in configDataGrid.Rows)
+                {
+                    string key = row.Cells[0].Value?.ToString() ?? string.Empty;
+
+                    if (!key.Equals(string.Empty))
+                    {
+                        string value = row.Cells[1].Value?.ToString() ?? string.Empty;
+
+                        XmlElement element = doc.CreateElement("add");
+                        element.SetAttribute("key", key);
+                        element.SetAttribute("value", value);
+                        appSettingsNode.AppendChild(element);
+                    }
+                }
+
+                doc.Save(xmlFilePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error saving changes: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void configDataGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            SaveChangesToXml();
+        }
+
+        private void ConfigManager_Load(object sender, EventArgs e)
+        {
+            LoadXmlData();
+            PopulateDataGridView();
+            
+        }
+    }
+}

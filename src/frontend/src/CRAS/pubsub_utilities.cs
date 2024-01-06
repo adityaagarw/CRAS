@@ -193,6 +193,8 @@ namespace CRAS
 
                 if (messageReceived.StartsWith("NewCustomer"))
                 {
+                    //Increment total_faces in Session table by 1
+                    pgsql_utilities.IncrementTotalFaces(MainForm.pgsql_connection);
                     customer_id = messageReceived.Split(':')[1];
                     Console.WriteLine("New Customer Entered! Customer Id:" + customer_id);
                     NewCustomerIdentified(customer_id);
@@ -200,8 +202,6 @@ namespace CRAS
                 }
                 if (messageReceived.StartsWith("UpdateCustomer"))
                 {
-                    //TEMPORARY FIX TO SLOW DOWN UPDATING OF CUSTOMER TBD****************************************************************
-                    //Thread.Sleep(1000);
                     var ids = messageReceived.Split(':', ',');
                     temp_customer_id = ids[1];
                     customer_id = ids[2];
@@ -252,6 +252,9 @@ namespace CRAS
                 }
                 if (messageReceived.StartsWith("DeleteCustomer"))
                 {
+                    //Increment total_faces in Session table by 1
+                    pgsql_utilities.IncrementTotalFaces(MainForm.pgsql_connection);
+
                     customer_id = messageReceived.Split(':')[1];
                     Console.WriteLine("Customer Exited: " + customer_id);
                     CustomerExited(customer_id, mainForm);
@@ -306,6 +309,9 @@ namespace CRAS
 
                 if(messageReceived.StartsWith("EmployeeEntered"))
                 {
+                    //Increment total_faces in Session table by 1
+                    pgsql_utilities.IncrementTotalFaces(MainForm.pgsql_connection);
+
                     string employee_id = messageReceived.Split(':')[1];
                     Console.WriteLine($"Employee Entered: {employee_id}");
                     EmployeeEnteredOrExited(mainForm, employee_id, "entry");
@@ -313,6 +319,9 @@ namespace CRAS
 
                 if (messageReceived.StartsWith("EmployeeExited"))
                 {
+                    //Increment total_faces in Session table by 1
+                    pgsql_utilities.IncrementTotalFaces(MainForm.pgsql_connection);
+
                     string employee_id = messageReceived.Split(':')[1];
                     Console.WriteLine($"Employee Entered: {employee_id}");
                     EmployeeEnteredOrExited(mainForm, employee_id, "exit");
