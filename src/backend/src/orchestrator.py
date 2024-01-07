@@ -129,9 +129,9 @@ def start_status_check():
 def start_cameras():
     # Start entry camera
     py_cmd = get_python_command()
-    subprocess.Popen([py_cmd, 'cameras/entry.py', '-camera', '1'])
+    subprocess.Popen([py_cmd, 'cameras/entry.py', '-camera', '0'])
     subprocess.Popen([py_cmd, 'cameras/billing.py', '-camera', '2'])
-    subprocess.Popen([py_cmd, 'cameras/exit.py', '-camera', '0'])
+    subprocess.Popen([py_cmd, 'cameras/exit.py', '-camera', '1'])
     
     subprocess.Popen([py_cmd, 'employee/employee.py'])
 
@@ -195,6 +195,65 @@ def log_session(parameters):
     
     local_db.insert_session_record(session)
     local_db.disconnect()
+
+def add_params_inmem(parameters):
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    in_mem_db.connect()
+
+    #TBD remove hardcoding
+    params_record = InMemParams(
+                detection = str(parameters.detection),
+                model = str(parameters.model),
+                threshold = str(parameters.threshold),
+                yaw_threshold = str(parameters.yaw_threshold),
+                pitch_threshold = str(parameters.pitch_threshold),
+                area_threshold = str(parameters.area_threshold),
+                billing_cam_time = str(parameters.billing_cam_time),
+                similarity_method = str(parameters.sim_method),
+                periodic_sleep_time="0.100",
+                num_threads_per_process="1",
+                frames_per_second="30",
+                )
+    in_mem_db.insert_params(params_record)
+
+    in_mem_db.set_detection(str(parameters.detection))
+    in_mem_db.set_model(str(parameters.model))
+    in_mem_db.set_threshold(str(parameters.threshold))
+    in_mem_db.set_yaw_threshold(str(parameters.yaw_threshold))
+    in_mem_db.set_pitch_threshold(str(parameters.pitch_threshold))
+    in_mem_db.set_area_threshold(str(parameters.area_threshold))
+    in_mem_db.set_billing_cam_time(str(parameters.billing_cam_time))
+    in_mem_db.set_similarity_method(str(parameters.sim_method))
+    in_mem_db.set_periodic_sleep_time("0.100")
+    in_mem_db.set_num_threads_per_process("1")
+    in_mem_db.set_frames_per_second("30")
+
+    in_mem_db.disconnect()
+
+def set_boot_time_start():
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    in_mem_db.connect()
+    time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    in_mem_db.set_boot_time_start(str(time_now))
+    in_mem_db.disconnect()
+
+def purge_redis(setting):
+    # Depending on setting delete all redis data on startup
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    in_mem_db.connect()
+    if setting == "every_session":
+        in_mem_db.connection.flushall()
+    elif setting == "every_day":
+        # Check if it is first session of the day:
+        local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
+        local_db.connect()
+
+        date_format = "%Y-%m-%d %H:%M:%S"
+        time_now = datetime.now().strftime(date_format)
+
+        latest_session_date = local_db.get_latest_session_date()
+        if not latest_session_date or latest_session_date != time_now.split(" ")[0]:
+            in_mem_db.connection.flushall()
 
 if __name__ == "__main__":
     # Check if program is already running
@@ -261,6 +320,16 @@ if __name__ == "__main__":
     if ret:
         print("DB failed to start")
         exit(1)
+
+    # Delete in mem data on startup
+    #purge_setting = "every_session"
+    #purge_redis(purge_setting)
+
+    # Set boot time start
+    set_boot_time_start()
+
+    # Add parameters inmemory
+    add_params_inmem(parameters)
 
     # Log session details
     if log_session(parameters) == 1:

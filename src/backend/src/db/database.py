@@ -254,14 +254,17 @@ class LocalPostgresDB(Database):
             model               VARCHAR(255),
             threshold           NUMERIC(10, 2),
             yaw_threshold       INTEGER,
-            pitch_threshold     INTEGER, 
+            pitch_threshold     INTEGER,
             area_threshold      INTEGER,
             billing_cam_time    INTEGER,
             similarity_method   VARCHAR(255),
-            total_faces   INTEGER DEFAULT 0,
-            same_faces INTEGER DEFAULT 0,
+            total_faces         INTEGER DEFAULT 0,
+            same_faces          INTEGER DEFAULT 0,
             misidentified_faces INTEGER DEFAULT 0,
-            unidentified_faces INTEGER DEFAULT 0
+            unidentified_faces  INTEGER DEFAULT 0,
+            junk_image          INTEGER DEFAULT 0,
+            accuracy            NUMERIC(10, 2),
+            boot_up_time        NUMERIC(10, 2)
         )
         """
         self.cursor.execute(create_table_query)
@@ -535,6 +538,22 @@ class LocalPostgresDB(Database):
         self.cursor.execute(update_query, (shutdown_time,))
         self.connection.commit()
 
+    def update_boot_up_time(self, boot_up_time):
+        update_query = """
+        UPDATE Session
+        SET boot_up_time = %s
+        WHERE sessionid = (SELECT MAX(sessionid) FROM Session)
+        """
+        self.cursor.execute(update_query, (boot_up_time,))
+        self.connection.commit()
+
+    def get_latest_session_date(self):
+        select_query = """
+        SELECT MAX(start_time) FROM Session
+        """
+        self.cursor.execute(select_query)
+        return self.cursor.fetchone()
+
     def delete_customer_record(self, record_id):
         with self.connection.cursor() as cursor:
             delete_query = """
@@ -717,11 +736,123 @@ class InMemExited:
     def __init__(self, customer_id):
         self.customer_id = customer_id
 
+class InMemParams:
+    def __init__(self, detection, model, threshold, yaw_threshold, pitch_threshold, area_threshold, billing_cam_time, similarity_method, periodic_sleep_time,
+                 num_threads_per_process, frames_per_second):
+        self.detection = detection
+        self.model = model
+        self.threshold = threshold
+        self.yaw_threshold = yaw_threshold
+        self.pitch_threshold = pitch_threshold
+        self.area_threshold = area_threshold
+        self.billing_cam_time = billing_cam_time
+        self.similarity_method = similarity_method
+        self.periodic_sleep_time = periodic_sleep_time
+        self.num_threads_per_process = num_threads_per_process
+        self.frames_per_second = frames_per_second
+
+class InMemParamNames:
+    detection = "param_detection"
+    model = "param_model"
+    threshold = "param_threshold"
+    yaw_threshold = "param_yaw_threshold"
+    pitch_threshold = "param_pitch_threshold"
+    area_threshold = "param_area_threshold"
+    billing_cam_time = "param_billing_cam_time"
+    similarity_method = "param_similarity_method"
+    periodic_sleep_time = "param_periodic_sleep_time"
+    num_threads_per_process = "param_num_threads_per_process"
+    frames_per_second = "param_frames_per_second"
+
+BOOT_TIME_START = "inmem_boot_time_start"
+BOOT_TIME_END = "inmem_boot_time_end"
+INMEM_PARAMS = "inmem_parameters"
+
 # Class for the in-memory Redis database
 class InMemoryRedisDB(Database):
     def __init__(self, host, port):
         super().__init__(host, port)
         self.connection = None
+
+    ################################### SET & GET PARAM METHODS #########################################
+    def set_detection(self, detection):
+        self.connection.set(InMemParamNames.detection, str(detection))
+
+    def get_detection(self):
+        return self.connection.get(InMemParamNames.detection).decode()
+    
+    def set_model(self, model):
+        self.connection.set(InMemParamNames.model, str(model))
+
+    def get_model(self):
+        return self.connection.get(InMemParamNames.model).decode()
+    
+    def set_threshold(self, threshold):
+        self.connection.set(InMemParamNames.threshold, str(threshold))
+
+    def get_threshold(self):
+        return self.connection.get(InMemParamNames.threshold).decode()
+
+    def set_yaw_threshold(self, yaw_threshold):
+        self.connection.set(InMemParamNames.yaw_threshold, str(yaw_threshold))
+
+    def get_yaw_threshold(self):
+        return self.connection.get(InMemParamNames.yaw_threshold).decode()
+    
+    def set_pitch_threshold(self, pitch_threshold):
+        self.connection.set(InMemParamNames.pitch_threshold, str(pitch_threshold))
+
+    def get_pitch_threshold(self):
+        return self.connection.get(InMemParamNames.pitch_threshold).decode()
+    
+    def set_area_threshold(self, area_threshold):
+        self.connection.set(InMemParamNames.area_threshold, str(area_threshold))
+
+    def get_area_threshold(self):
+        return self.connection.get(InMemParamNames.area_threshold).decode()
+    
+    def set_billing_cam_time(self, billing_cam_time):
+        self.connection.set(InMemParamNames.billing_cam_time, str(billing_cam_time))
+
+    def get_billing_cam_time(self):
+        return self.connection.get(InMemParamNames.billing_cam_time).decode()
+    
+    def set_similarity_method(self, similarity_method):
+        self.connection.set(InMemParamNames.similarity_method, str(similarity_method))
+
+    def get_similarity_method(self):
+        return self.connection.get(InMemParamNames.similarity_method).decode()
+    
+    def set_periodic_sleep_time(self, periodic_sleep_time):
+        self.connection.set(InMemParamNames.periodic_sleep_time, str(periodic_sleep_time))
+
+    def get_periodic_sleep_time(self):
+        return self.connection.get(InMemParamNames.periodic_sleep_time).decode()
+    
+    def set_num_threads_per_process(self, num_threads_per_process):
+        self.connection.set(InMemParamNames.num_threads_per_process, str(num_threads_per_process))
+
+    def get_num_threads_per_process(self):
+        return self.connection.get(InMemParamNames.num_threads_per_process).decode()
+    
+    def set_frames_per_second(self, frames_per_second):
+        self.connection.set(InMemParamNames.frames_per_second, str(frames_per_second))
+
+    def get_frames_per_second(self):
+        return self.connection.get(InMemParamNames.frames_per_second).decode()
+    
+    def set_boot_time_start(self, boot_time_start):
+        self.connection.set(BOOT_TIME_START, str(boot_time_start))
+
+    def get_boot_time_start(self):
+        return self.connection.get(BOOT_TIME_START).decode()
+    
+    def set_boot_time_end(self, boot_time_end):
+        self.connection.set(BOOT_TIME_END, str(boot_time_end))
+
+    def get_boot_time_end(self):
+        return self.connection.get(BOOT_TIME_END).decode()
+    ####################################################################################################
 
     def insert_record(self, record, type='customer'):
         with self.connection.pipeline() as pipe:
@@ -823,6 +954,16 @@ class InMemoryRedisDB(Database):
             return visit_id.decode()
         return None
 
+    def insert_params(self, params):
+        with self.connection.pipeline() as pipe:
+            pipe.hmset(INMEM_PARAMS, vars(params))
+            pipe.execute()
+
+    def insert_boot_time_start(self, boot_time_start):
+        with self.connection.pipeline() as pipe:
+            pipe.hmset(BOOT_TIME_START, vars(boot_time_start))
+            pipe.execute()
+
     def connect(self):
         self.connection = redis.Redis(host=self.host, port=self.port)
 
@@ -830,8 +971,8 @@ class InMemoryRedisDB(Database):
 
 # Class for mapping and inserting in-memory records to the local database
 class MapInMemtoLocal:
-    def __init__(self, redis_db):
-        self.redis_db = redis_db
+    def __init__(self, local_db):
+        self.local_db = local_db
 
     def map_customer_inmem_to_local(self, inmem_customer):
         local_customer = LocalCustomer(
@@ -898,8 +1039,6 @@ class MapInMemtoLocal:
             return_customer=inmem_visit.return_customer
         )
         self.local_db.insert_record(local_visit)
-
-
 
 class MapLocaltoInMem:
     def __init__(self, local_db):

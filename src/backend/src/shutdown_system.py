@@ -72,6 +72,29 @@ def log_session():
     
     local_db.update_shutdown_time(str(time_now))
 
+def dump_incomplete_data():
+    # Dump incomplete data to local db
+    in_mem_db = InMemoryRedisDB(host="127.0.0.1", port=6379)
+    in_mem_db.connect()
+    local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
+    local_db.connect()
+
+    map_inmem_local = MapInMemtoLocal(local_db)
+    # Fetch customer details
+    customer_keys = in_mem_db.connection.keys('customer_inmem_db:*')
+    for key in customer_keys:
+        record = in_mem_db.connection.hgetall(key)
+        map_inmem_local.map_customer_inmem_to_local(record)
+
+    # Fetch visit details
+    visit_keys = in_mem_db.connection.keys('visit_inmem_db:*')
+    for key in visit_keys:
+        record = in_mem_db.connection.hgetall(key)
+        map_inmem_local.map_visit_inmem_to_local(record)
+
+    # TBD complete mapping
+    # TBD Check incomplete inmem
+
 if __name__ == "__main__":
 
     entry_pid = read_entry_pid()
@@ -143,6 +166,9 @@ if __name__ == "__main__":
     else:
         print("Employee program already shut down")
         os.remove("employee_pid")
+
+    # Dump incomplete data to local db TBD
+    #dump_incomplete_data()
 
     with fasteners.InterProcessLock(Utils.lock_file):
         Utils.shutdown_system()

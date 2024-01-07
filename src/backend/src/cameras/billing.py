@@ -65,11 +65,15 @@ def find_and_publish_records(in_mem_db, faces, frame, r, p, parameters, type):
     # For each face, first see if it exists in mem
     for face in faces:
         # Constraints start
+        # current_yaw = in_mem_db.get_yaw_threshold()
+        # current_pitch = in_mem_db.get_pitch_threshold()
         #yaw, pitch, roll = r.calculate_yaw_pitch_roll(frame, face, p)
-        #if abs(yaw) > float(parameters.yaw_threshold) or abs(pitch) < float(parameters.pitch_threshold):
+        #if abs(yaw) > float(current_yaw) or abs(pitch) < float(current_pitch):
         #    return
+        current_area = in_mem_db.get_area_threshold()
+        current_threshold = in_mem_db.get_threshold()
         area = (face.right() - face.left()) * (face.bottom() - face.top())
-        if area < float(parameters.area_threshold):
+        if area < float(current_area):
             return
         # Constraints end
 
@@ -77,7 +81,7 @@ def find_and_publish_records(in_mem_db, faces, frame, r, p, parameters, type):
         if face_encoding is None:
             return
 
-        record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
+        record_from_mem = get_face_record_from_mem(face_encoding, current_threshold, in_mem_db)
 
         if not record_from_mem:
             # Record is not found in memory
@@ -101,7 +105,8 @@ def get_billing_frames(cam_time):
     return int(cam_time) * CAMERA_FPS
 
 def capture_and_publish(in_mem_db, cap, detector, r, p, parameters, type):
-    billing_frames = get_billing_frames(parameters.billing_cam_time)
+    current_billing_cam_time = in_mem_db.get_billing_cam_time()
+    billing_frames = get_billing_frames(current_billing_cam_time)
     billing_frames_counter = 0
     frame_count = 0
     while billing_frames_counter <= billing_frames:

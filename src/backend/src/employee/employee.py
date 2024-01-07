@@ -44,8 +44,9 @@ def create_new_employee(data_string, in_mem_db, parameters, detector, r):
     name = data[1]
     phone_number = data[2]
 
+    current_threshold = in_mem_db.get_threshold()
     face_encoding, pixels = ImToFace.imageToEncoding(detector, r, image)
-    record = get_employee_face_record_from_localdb(face_encoding, parameters.threshold, local_db)
+    record = get_employee_face_record_from_localdb(face_encoding, current_threshold, local_db)
     if record is not None:
         print("Employee already exists in local db")
         pub_message = f"{BackendMessage.EmployeeExists.value}:{record[0]}"

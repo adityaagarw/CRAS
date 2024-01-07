@@ -613,8 +613,9 @@ def search_face_data(parameters, search_q, lock, camfeed_break_flag):
         except:
             continue
 
+        current_threshold = in_mem_db.get_threshold()
         # Check if we have the record in localdb i.e. the customer has visited before
-        record_from_localdb = get_face_record_from_localdb(face_encoding, parameters.threshold, local_db)
+        record_from_localdb = get_face_record_from_localdb(face_encoding, current_threshold, local_db)
         if record_from_localdb:
             # Overwrite everything
             # Delete new record and add existing record
@@ -652,10 +653,15 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
         for face in faces:
             # Constraints start
             yaw, pitch, roll = r.calculate_yaw_pitch_roll(frame, face, p)
-            if abs(yaw) > float(parameters.yaw_threshold) or abs(pitch) < float(parameters.pitch_threshold):
+            current_yaw = in_mem_db.get_yaw_threshold()
+            current_pitch = in_mem_db.get_pitch_threshold()
+            current_area = in_mem_db.get_area_threshold()
+            current_threshold = in_mem_db.get_threshold()
+
+            if abs(yaw) > float(current_yaw) or abs(pitch) < float(current_pitch):
                 continue
             area = (face.right() - face.left()) * (face.bottom() - face.top())
-            if area < float(parameters.area_threshold):
+            if area < float(current_area):
                 continue
             # Constraints end
 
@@ -665,7 +671,7 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
 
             with lock:
                 # First check employee db
-                record_from_mem = get_employee_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
+                record_from_mem = get_employee_face_record_from_mem(face_encoding, current_threshold, in_mem_db)
                 if record_from_mem:
                     # Update employee record
                     if check_if_employee_instore(record_from_mem):
@@ -680,7 +686,7 @@ def consume_face_data(parameters, q, search_q, lock, camfeed_break_flag):
                     in_mem_db.connection.publish(Channel.Employee.value, message)
                     continue
 
-                record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
+                record_from_mem = get_face_record_from_mem(face_encoding, current_threshold, in_mem_db)
                 if record_from_mem:
                     exited = record_from_mem.get(b'exited').decode('utf-8')
                     if exited == '1':

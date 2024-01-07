@@ -1,0 +1,5 @@
+# Ignore Python cache files and folders
+__pycache__
+db/data/
+*.pyc
+log.txt

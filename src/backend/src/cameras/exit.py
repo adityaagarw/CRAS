@@ -619,8 +619,9 @@ def search_face_data(parameters, search_q, camfeed_break_flag):
         except:
             continue
 
+        current_threshold = in_mem_db.get_threshold()
         # Check if we have the record in localdb i.e. the customer has visited before
-        record_from_localdb = get_face_record_from_localdb(face_encoding, parameters.threshold, local_db)
+        record_from_localdb = get_face_record_from_localdb(face_encoding, current_threshold, local_db)
         if record_from_localdb:
             # Overwrite everything
             # Delete new record and add existing record
@@ -692,11 +693,16 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
         # For each face, first see if it exists in mem otherwise try and fetch it from localdb
         for face in faces:
             # Constraints start
+            current_yaw = in_mem_db.get_yaw_threshold()
+            current_pitch = in_mem_db.get_pitch_threshold()
+            current_area = in_mem_db.get_area_threshold()
+            current_threshold = in_mem_db.get_threshold()
+
             yaw, pitch, roll = r.calculate_yaw_pitch_roll(frame, face, p)
-            if abs(yaw) > float(parameters.yaw_threshold) or abs(pitch) < float(parameters.pitch_threshold):
+            if abs(yaw) > float(current_yaw) or abs(pitch) < float(current_pitch):
                 continue
             area = (face.right() - face.left()) * (face.bottom() - face.top())
-            if area < float(parameters.area_threshold):
+            if area < float(current_area):
                 continue
             # Constraints end
 
@@ -705,7 +711,7 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
                 continue
 
             # Employee handling
-            record_from_mem = get_employee_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
+            record_from_mem = get_employee_face_record_from_mem(face_encoding, current_threshold, in_mem_db)
             if record_from_mem:
                 # If employee has already exited do nothing
                 if check_if_employee_instore(record_from_mem) is False:
@@ -720,7 +726,7 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
                 in_mem_db.connection.publish(Channel.Employee.value, message)
                 continue
 
-            record_from_mem = get_face_record_from_mem(face_encoding, parameters.threshold, in_mem_db)
+            record_from_mem = get_face_record_from_mem(face_encoding, current_threshold, in_mem_db)
 
             if record_from_mem:
                 customer_id = str(record_from_mem.get(b'customer_id').decode())
@@ -739,7 +745,7 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
                     print("Found in exited memory: ", str(id_from_exited_mem))
 
             elif not record_from_mem:
-                record_from_incomplete_mem = get_face_record_from_incomplete_mem(face_encoding, parameters.threshold, in_mem_db)
+                record_from_incomplete_mem = get_face_record_from_incomplete_mem(face_encoding, current_threshold, in_mem_db)
                 # Add new record id and face encoding to search queue for local db search
                 if not record_from_incomplete_mem:
                     insert_record_to_incomplete_mem(face_encoding, in_mem_db)
@@ -759,6 +765,13 @@ def send_faces_to_queue(faces, frame, q):
     q.put(item)
     # Concerning if it keeps rising
     print("Exit Queue size:", q.qsize())
+
+def update_boot_up_time(time_delta):
+    local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
+    local_db.connect()
+
+    local_db.update_boot_up_time(time_delta)
+    local_db.disconnect()
 
 # Start entry camera
 def start_exit_cam(parameters, camera, q, pipe_q, search_q, stop):
@@ -794,6 +807,21 @@ def start_exit_cam(parameters, camera, q, pipe_q, search_q, stop):
     in_mem_db.connection.publish(Channel.Status.value, Status.ExitCamUp.value)
     with fasteners.InterProcessLock(Utils.lock_file):
         Utils.exit_up()
+
+    # Set boot time end
+    time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    in_mem_db.set_boot_time_end(str(time_now))
+
+    # Calculate time delta
+    boot_time_start = in_mem_db.get_boot_time_start()
+    boot_time_end = in_mem_db.get_boot_time_end()
+    boot_time_start = datetime.strptime(boot_time_start, "%Y-%m-%d %H:%M:%S")
+    boot_time_end = datetime.strptime(boot_time_end, "%Y-%m-%d %H:%M:%S")
+    boot_time_delta = boot_time_end - boot_time_start
+    boot_time_delta = boot_time_delta.total_seconds()
+    
+    # Update boot time
+    update_boot_up_time(boot_time_delta)
 
     while True:
         ret, frame = cap.read()
