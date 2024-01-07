@@ -296,29 +296,6 @@ def build_local_database(parameters):
                     continue
                 local_db_store(local_db, face_encoding, face_image)
 
-def build_parameters(file):
-    config = configparser.ConfigParser()
-    config.read(file)
-    args = config['general']
-    parameters = Parameters(args['detection'], \
-                            args['library'], \
-                            args['model'], \
-                            args['threshold'], \
-                            args['yaw_threshold'], \
-                            args['pitch_threshold'], \
-                            args['area_threshold'], \
-                            args['billing_cam_time'], \
-                            args['sim_method'], \
-                            args['debug_mode'], \
-                            args['username'], \
-                            args['password'], \
-                            args['db_link'], \
-                            args['db_name'], \
-                            args['input_type'], \
-                            args['video_path'], \
-                            args['model_dir'])
-    return parameters
-
 if __name__ == '__main__':
     # Use argparse to parse command line arguments
     parser = argparse.ArgumentParser(description='Test system at scale')
@@ -329,7 +306,7 @@ if __name__ == '__main__':
     # Parse the command line arguments
     args = parser.parse_args()
 
-    parameters = build_parameters("config.ini")
+    parameters = Parameters.build_parameters("config.ini")
 
     if (args.build_db):
         build_local_database(parameters)

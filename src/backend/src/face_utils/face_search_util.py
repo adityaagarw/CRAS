@@ -200,29 +200,6 @@ def start_image_process(image_path, source):
     # Start image process
     pass
 
-def build_parameters(file):
-    config = configparser.ConfigParser()
-    config.read(file)
-    args = config['general']
-    parameters = Parameters(args['detection'], \
-                            args['library'], \
-                            args['model'], \
-                            args['threshold'], \
-                            args['yaw_threshold'], \
-                            args['pitch_threshold'], \
-                            args['area_threshold'], \
-                            args['billing_cam_time'], \
-                            args['sim_method'], \
-                            args['debug_mode'], \
-                            args['username'], \
-                            args['password'], \
-                            args['db_link'], \
-                            args['db_name'], \
-                            args['input_type'], \
-                            args['video_path'], \
-                            args['model_dir'])
-    return parameters
-
 if __name__ == "__main__":
     # Parse aguments from command line, input should be either image or camera feed.
     # Output option should be either from localdb or inmemdb
@@ -235,6 +212,6 @@ if __name__ == "__main__":
 
     # Parsing arguments
     args = parser.parse_args()
-    parameters = build_parameters("config.ini")
+    parameters = Parameters.build_parameters("config.ini")
 
     start_camera_process(parameters, args.source)

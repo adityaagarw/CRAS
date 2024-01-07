@@ -774,10 +774,12 @@ def update_boot_up_time(time_delta):
     local_db.disconnect()
 
 # Start entry camera
-def start_exit_cam(parameters, camera, q, pipe_q, search_q, stop):
+def start_exit_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
 
     # Choose source
     #cap = cv2.VideoCapture('rtsp://192.168.2.104:8080/h264_ulaw.sdp')
+    if cam_type == "Index":
+        camera = int(camera)
     cap = cv2.VideoCapture(camera)
     detector = Detection(parameters)
 
@@ -858,29 +860,6 @@ def start_exit_cam(parameters, camera, q, pipe_q, search_q, stop):
     cap.release()
     cv2.destroyAllWindows()
 
-def build_parameters(file):
-    config = configparser.ConfigParser()
-    config.read(file)
-    args = config['general']
-    parameters = Parameters(args['detection'], \
-                            args['library'], \
-                            args['model'], \
-                            args['threshold'], \
-                            args['yaw_threshold'], \
-                            args['pitch_threshold'], \
-                            args['area_threshold'], \
-                            args['billing_cam_time'], \
-                            args['sim_method'], \
-                            args['debug_mode'], \
-                            args['username'], \
-                            args['password'], \
-                            args['db_link'], \
-                            args['db_name'], \
-                            args['input_type'], \
-                            args['video_path'], \
-                            args['model_dir'])
-    return parameters
-
 def write_exit_pid():
     with open("exit_pid", "w") as f:
         f.write(str(os.getpid()))
@@ -888,10 +867,12 @@ def write_exit_pid():
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-camera", type=int, help="Camera number for exit", required = True)
+    parser.add_argument("-camera", type=str, help="Camera number for exit", required = True)
+    parser.add_argument("-cam_type", type=str, help="Camera Type: Stream/Index", required = True)
+
     args = parser.parse_args()
 
-    parameters = build_parameters("config.ini")
+    parameters = Parameters.build_parameters("config.ini")
 
     write_exit_pid()
 
@@ -902,4 +883,4 @@ if __name__ == "__main__":
     pipe_queue = manager.Queue(maxsize = QUEUE_MAX_SIZE)
     search_queue = manager.Queue(maxsize = SEARCH_QUEUE_SIZE)
 
-    start_exit_cam(parameters, args.camera, message_queue, pipe_queue, search_queue, camfeed_break_flag)
+    start_exit_cam(parameters, args.camera, args.cam_type, message_queue, pipe_queue, search_queue, camfeed_break_flag)

@@ -205,7 +205,7 @@ namespace CRAS
             try
             {
                 // Specify the path to the Python script
-                string pythonScriptPath = @"C:\Users\snehn\source\repos\CRAS_main\src\backend\src\orchestrator.py";
+                string pythonScriptPath = workingDirectoryBackend + "\\orchestrator.py";
 
                 // Specify the Python interpreter executable (e.g., python.exe or python3.exe)
                 string pythonInterpreter = "python";
@@ -693,6 +693,20 @@ namespace CRAS
             logger.LogToSQL();
         }
 
+        public void InitiateRestart()
+        {
+            pgsql_utilities.UpdateSubSession(pgsql_connection, session, subSession, DateTime.Now.ToString());
+            ClosePipes();
+            if (sqlDependency != null)
+            {
+                sqlDependency.Stop();
+                sqlDependency.Dispose();
+            }
+            log logger = new log("Front End", "Main Form", "Application Closed", "", "UI Closed!", "MainForm.cs Line 333");
+            logger.LogToSQL();
+            Application.Restart();
+            Environment.Exit(0);
+        }
         private void InitiateClosingSequence()
         {
             //SqlDependency.Stop(posdb_utilities.GetConnectionString(POSSERVER, POSDB, POSUID, POSPWD, posdb));
@@ -1221,10 +1235,53 @@ namespace CRAS
                 this.Close();                
             }
         }
+        private void InitiateParamsTuning()
+        {
+            try
+            {
+                // Specify the path to the Python script
+                string pythonScriptPath = workingDirectoryBackend + "\\config\\tune_params.py";
 
+                // Specify the Python interpreter executable (e.g., python.exe or python3.exe)
+                string pythonInterpreter = "python";
+
+                // Arguments for the Python script (if any)
+                string scriptArguments = "";
+
+                // Create a process start info
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = pythonInterpreter,
+                    Arguments = $"{pythonScriptPath} {scriptArguments}",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = false
+                };
+
+                // Start the process
+                Process process = new Process
+                {
+                    StartInfo = startInfo
+
+                };
+                // Handle output and error asynchronously
+                process.OutputDataReceived += (sender, args) => Console.WriteLine(args.Data);
+                process.ErrorDataReceived += (sender, args) => Console.WriteLine(args.Data);
+
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+            }
+        }
         private void configPictureBox_Click(object sender, EventArgs e)
         {
-            ConfigManager configManager = new ConfigManager();
+            ConfigManager configManager = new ConfigManager(this);
+            InitiateParamsTuning();
             configManager.ShowDialog();
         }
     }

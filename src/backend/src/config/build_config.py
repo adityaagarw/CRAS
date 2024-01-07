@@ -23,6 +23,16 @@ def build_configuration_file(p):
     config.set('general', 'input_type', p.input_type)
     config.set('general', 'video_path', p.video_path)
     config.set('general', 'model_dir', p.model_dir)
+    config.set('general', 'num_entry_cams', str(p.num_entry_cams))
+    config.set('general', 'num_billing_cams', str(p.num_billing_cams))
+    config.set('general', 'num_exit_cams', str(p.num_exit_cams))
+    config.set('general', 'entry_cam', str(p.entry_cam))
+    config.set('general', 'entry_cam_type', str(p.entry_cam_type))
+    config.set('general', 'billing_cam', str(p.billing_cam))
+    config.set('general', 'billing_cam_type', str(p.billing_cam_type))
+    config.set('general', 'exit_cam', str(p.exit_cam))
+    config.set('general', 'exit_cam_type', str(p.exit_cam_type))
+
 
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
@@ -47,6 +57,15 @@ if __name__ == "__main__":
     parser.add_argument("-input_type", type=str, help="Specify whether using camera or video stream", required = True)
     parser.add_argument("-video_path", type=str, help="Specify the path where video is located", required = True)
     parser.add_argument("-model_dir", type=str, help="Specify where trained models are stored", required = True)
+    parser.add_argument("-num_entry_cams", type=str, help="Specify number of entry_cams", required = True)
+    parser.add_argument("-num_billing_cams", type=str, help="Specify number of billing_cams", required = True)
+    parser.add_argument("-num_exit_cams", type=str, help="Specify number of exit_cams", required = True)
+    parser.add_argument("-entry_cam", type=str, help="Specify entry_cam", required = True)
+    parser.add_argument("-entry_cam_type", type=str, help="Specify entry_cam_type", required = True)
+    parser.add_argument("-billing_cam", type=str, help="Specify billing_cam", required = True)
+    parser.add_argument("-billing_cam_type", type=str, help="Specify billing_cam_type", required = True)
+    parser.add_argument("-exit_cam", type=str, help="Specify exit_cam", required = True)
+    parser.add_argument("-exit_cam_type", type=str, help="Specify exit_cam_type", required = True)
 
     args = parser.parse_args()
     parameters = Parameters(args.detection, \
@@ -65,6 +84,15 @@ if __name__ == "__main__":
                             args.db_name, \
                             args.input_type, \
                             args.video_path, \
-                            args.model_dir)
+                            args.model_dir, \
+                            args.num_entry_cams, \
+                            args.num_billing_cams, \
+                            args.num_exit_cams, \
+                            args.entry_cam, \
+                            args.entry_cam_type, \
+                            args.billing_cam, \
+                            args.billing_cam_type, \
+                            args.exit_cam, \
+                            args.exit_cam_type)
 
     build_configuration_file(parameters)

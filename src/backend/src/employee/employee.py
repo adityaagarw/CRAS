@@ -209,5 +209,5 @@ def build_parameters(file):
 
 if __name__ == "__main__":
     write_employee_pid()
-    parameters = build_parameters("config.ini")
+    parameters = Parameters.build_parameters("config.ini")
     start_employee_process(parameters)

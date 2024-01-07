@@ -15,10 +15,12 @@ namespace CRAS
     public partial class ConfigManager : Form
     {
         private Dictionary<string, string> appSettings;
-        string xmlFilePath = MainForm.workingDirectoryBackend + "\\CRAS\\App.config";
+        string xmlFilePath = MainForm.workingDirectoryFrontend + "\\CRAS\\Cras.config";
+        MainForm mainForm;
 
-        public ConfigManager()
+        public ConfigManager(MainForm mainFormObj)
         {
+            mainForm = mainFormObj;
             InitializeComponent();
         }
 
@@ -31,7 +33,7 @@ namespace CRAS
                 XmlDocument doc = new XmlDocument();
                 doc.Load(xmlFilePath);
 
-                XmlNodeList appSettingsNodes = doc.SelectNodes("/configuration/appSettings/add");
+                XmlNodeList appSettingsNodes = doc.SelectNodes("/configuration/Settings/add");
 
                 foreach (XmlNode node in appSettingsNodes)
                 {
@@ -67,7 +69,7 @@ namespace CRAS
                 XmlDocument doc = new XmlDocument();
                 doc.Load(xmlFilePath);
 
-                XmlNode appSettingsNode = doc.SelectSingleNode("/configuration/appSettings");
+                XmlNode appSettingsNode = doc.SelectSingleNode("/configuration/Settings");
                 appSettingsNode.RemoveAll(); // Clear existing nodes
 
                 foreach (DataGridViewRow row in configDataGrid.Rows)
@@ -103,6 +105,13 @@ namespace CRAS
             LoadXmlData();
             PopulateDataGridView();
             
+        }
+
+        private void saveRestart_Click(object sender, EventArgs e)
+        {
+            SaveChangesToXml();
+            mainForm.InitiateRestart();
+
         }
     }
 }

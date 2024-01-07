@@ -10,7 +10,7 @@ r = redis.Redis(host='127.0.0.1', port=6379)
 def update_redis(key, var):
     value = var.get()
     r.set(key, value)
-    print(f"Updated {key} in Redis with value {value}")
+    #print(f"Updated {key} in Redis with value {value}")
 
 # Function to create a slider with a value from Redis
 def create_slider(root, key, from_, to_, resolution=0.01, length=300):

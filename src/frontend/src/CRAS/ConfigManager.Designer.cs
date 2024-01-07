@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.configDataGrid = new System.Windows.Forms.DataGridView();
+            this.save_restart = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.configDataGrid)).BeginInit();
             this.SuspendLayout();
             // 
@@ -41,11 +42,22 @@
             this.configDataGrid.TabIndex = 0;
             this.configDataGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.configDataGrid_CellEndEdit);
             // 
+            // save_restart
+            // 
+            this.save_restart.Location = new System.Drawing.Point(12, 461);
+            this.save_restart.Name = "save_restart";
+            this.save_restart.Size = new System.Drawing.Size(351, 23);
+            this.save_restart.TabIndex = 1;
+            this.save_restart.Text = "Save and Restart";
+            this.save_restart.UseVisualStyleBackColor = true;
+            this.save_restart.Click += new System.EventHandler(this.saveRestart_Click);
+            // 
             // ConfigManager
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(379, 453);
+            this.ClientSize = new System.Drawing.Size(384, 496);
+            this.Controls.Add(this.save_restart);
             this.Controls.Add(this.configDataGrid);
             this.Name = "ConfigManager";
             this.Text = "ConfigManager";
@@ -58,5 +70,6 @@
         #endregion
 
         private System.Windows.Forms.DataGridView configDataGrid;
+        private System.Windows.Forms.Button save_restart;
     }
 }

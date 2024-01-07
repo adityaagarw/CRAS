@@ -142,9 +142,11 @@ def capture_and_publish(in_mem_db, cap, detector, r, p, parameters, type):
 
 
 # Start entry camera
-def start_billing_cam(parameters, camera, stop_event):
+def start_billing_cam(parameters, camera, cam_type, stop_event):
 
     # Choose source
+    if cam_type == "Index":
+        camera = int(camera)
     cap = cv2.VideoCapture(camera)
     detector = Detection(parameters)
     recognition = Recognition(parameters)
@@ -179,41 +181,20 @@ def start_billing_cam(parameters, camera, stop_event):
     cap.release()
     cv2.destroyAllWindows()
 
-def build_parameters(file):
-    config = configparser.ConfigParser()
-    config.read(file)
-    args = config['general']
-    parameters = Parameters(args['detection'], \
-                            args['library'], \
-                            args['model'], \
-                            args['threshold'], \
-                            args['yaw_threshold'], \
-                            args['pitch_threshold'], \
-                            args['area_threshold'], \
-                            args['billing_cam_time'], \
-                            args['sim_method'], \
-                            args['debug_mode'], \
-                            args['username'], \
-                            args['password'], \
-                            args['db_link'], \
-                            args['db_name'], \
-                            args['input_type'], \
-                            args['video_path'], \
-                            args['model_dir'])
-    return parameters
-
 def write_billing_pid():
     with open("billing_pid", "w") as f:
         f.write(str(os.getpid()))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-camera", type=int, help="Camera number for billing", required = True)
+    parser.add_argument("-camera", type=str, help="Camera number for billing", required = True)
+    parser.add_argument("-cam_type", type=str, help="Camera Type: Stream/Index", required = True)
+
     args = parser.parse_args()
 
-    parameters = build_parameters("config.ini")
+    parameters = Parameters.build_parameters("config.ini")
 
     write_billing_pid()
 
     stop_event = multiprocessing.Event()
-    start_billing_cam(parameters, args.camera, stop_event)
+    start_billing_cam(parameters, args.camera, args.cam_type, stop_event)

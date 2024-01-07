@@ -131,29 +131,6 @@ def load_default_image_and_store_encoding():
     
     return default_face_encoding
 
-def build_parameters(file):
-    config = configparser.ConfigParser()
-    config.read(file)
-    args = config['general']
-    parameters = Parameters(args['detection'], \
-                            args['library'], \
-                            args['model'], \
-                            args['threshold'], \
-                            args['yaw_threshold'], \
-                            args['pitch_threshold'], \
-                            args['area_threshold'], \
-                            args['billing_cam_time'], \
-                            args['sim_method'], \
-                            args['debug_mode'], \
-                            args['username'], \
-                            args['password'], \
-                            args['db_link'], \
-                            args['db_name'], \
-                            args['input_type'], \
-                            args['video_path'], \
-                            args['model_dir'])
-    return parameters
-
 if __name__ == "__main__":
-    parameters = build_parameters("config.ini")
+    parameters = Parameters.build_parameters("config.ini")
     start_cam_test(parameters)

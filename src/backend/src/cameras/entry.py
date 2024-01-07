@@ -719,12 +719,14 @@ def send_faces_to_queue(faces, frame, q):
     #print("Entry Queue size:", q.qsize())
 
 # Start entry camera
-def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
+def start_entry_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
 
     # Load employee data
     load_employee_data()
 
     # Choose source
+    if cam_type == "Index":
+        camera = int(camera)
     cap = cv2.VideoCapture(camera)
     #cap = cv2.VideoCapture("rtsp://crasadmin:strongpass123@192.168.2.109:554/cam/realmonitor?channel=7&subtype=0")
     #cap = cv2.VideoCapture('rtsp://crasadmin:lol12345@192.168.2.108:554/cam/realmonitor?channel=4&subtype=0&proto=tcp')
@@ -798,29 +800,6 @@ def start_entry_cam(parameters, camera, q, pipe_q, search_q, stop):
     cap.release()
     cv2.destroyAllWindows()
 
-def build_parameters(file):
-    config = configparser.ConfigParser()
-    config.read(file)
-    args = config['general']
-    parameters = Parameters(args['detection'], \
-                            args['library'], \
-                            args['model'], \
-                            args['threshold'], \
-                            args['yaw_threshold'], \
-                            args['pitch_threshold'], \
-                            args['area_threshold'], \
-                            args['billing_cam_time'], \
-                            args['sim_method'], \
-                            args['debug_mode'], \
-                            args['username'], \
-                            args['password'], \
-                            args['db_link'], \
-                            args['db_name'], \
-                            args['input_type'], \
-                            args['video_path'], \
-                            args['model_dir'])
-    return parameters
-
 def write_entry_pid():
     with open("entry_pid", "w") as f:
         f.write(str(os.getpid()))
@@ -828,10 +807,11 @@ def write_entry_pid():
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-camera", type=int, help="Camera number for entry", required = True)
+    parser.add_argument("-camera", type=str, help="Camera number for entry", required = True)
+    parser.add_argument("-cam_type", type=str, help="Camera Type: Stream/Index", required = True)
     args = parser.parse_args()
 
-    parameters = build_parameters("config.ini")
+    parameters = Parameters.build_parameters("config.ini")
 
     write_entry_pid()
 
@@ -842,4 +822,4 @@ if __name__ == "__main__":
     pipe_queue = manager.Queue(maxsize = QUEUE_MAX_SIZE)
     search_queue = manager.Queue(maxsize = SEARCH_QUEUE_SIZE)
 
-    start_entry_cam(parameters, args.camera, message_queue, pipe_queue, search_queue, camfeed_break_flag)
+    start_entry_cam(parameters, args.camera, args.cam_type, message_queue, pipe_queue, search_queue, camfeed_break_flag)

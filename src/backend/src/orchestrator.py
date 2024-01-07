@@ -126,12 +126,12 @@ def start_status_check():
     subprocess.Popen([get_python_command(), 'status_check.py'])
 
 # Start cameras - Producer 
-def start_cameras():
+def start_cameras(p):
     # Start entry camera
     py_cmd = get_python_command()
-    subprocess.Popen([py_cmd, 'cameras/entry.py', '-camera', '0'])
-    subprocess.Popen([py_cmd, 'cameras/billing.py', '-camera', '2'])
-    subprocess.Popen([py_cmd, 'cameras/exit.py', '-camera', '1'])
+    subprocess.Popen([py_cmd, 'cameras/entry.py', '-camera', p.entry_cam, '-cam_type', p.entry_cam_type])
+    subprocess.Popen([py_cmd, 'cameras/billing.py', '-camera', p.billing_cam, '-cam_type', p.billing_cam_type])
+    subprocess.Popen([py_cmd, 'cameras/exit.py', '-camera', p.exit_cam, '-cam_type', p.exit_cam_type])
     
     subprocess.Popen([py_cmd, 'employee/employee.py'])
 
@@ -143,29 +143,6 @@ def get_camera_ids():
 # Start the UI - Consumer
 def start_ui():
     pass
-
-def build_parameters(file):
-    config = configparser.ConfigParser()
-    config.read(file)
-    args = config['general']
-    parameters = Parameters(args['detection'], \
-                            args['library'], \
-                            args['model'], \
-                            args['threshold'], \
-                            args['yaw_threshold'], \
-                            args['pitch_threshold'], \
-                            args['area_threshold'], \
-                            args['billing_cam_time'], \
-                            args['sim_method'], \
-                            args['debug_mode'], \
-                            args['username'], \
-                            args['password'], \
-                            args['db_link'], \
-                            args['db_name'], \
-                            args['input_type'], \
-                            args['video_path'], \
-                            args['model_dir'])
-    return parameters
 
 def log_session(parameters):
     local_db = LocalPostgresDB(host='127.0.0.1', port=5432, database='localdb', user='cras_admin', password='admin')
@@ -309,7 +286,7 @@ if __name__ == "__main__":
     get_camera_ids()
 
     build_config()
-    parameters = build_parameters('config.ini')
+    parameters = Parameters.build_parameters('config.ini')
 
     ret = start_docker()
     if ret:
@@ -336,4 +313,4 @@ if __name__ == "__main__":
         print("Failed to log session details")
         exit(1)
 
-    start_cameras()
+    start_cameras(parameters)
