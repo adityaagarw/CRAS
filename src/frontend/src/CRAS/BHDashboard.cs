@@ -8,33 +8,239 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using Tmds.DBus.Protocol;
+using LiveCharts;
+using LiveCharts.Wpf;
 
 namespace CRAS
 {
     public partial class BHDashboard : Form
     {
+        public class BHData
+        {
+            public int totalTime;
+            public int avgTime;
+            public int maxTime;
+            public int minTime;
+            public int totalVisits;
+            public int uniqueVisitors;
+            public int returnVisitors;
+            public int newVisitors;
+
+            public BHData(int totalTime, int avgTime, int maxTime, int minTime, int totalVisits, int uniqueVisitors, int returnVisitors, int newVisitors)
+            {
+                this.totalTime = totalTime;
+                this.avgTime = avgTime;
+                this.maxTime = maxTime;
+                this.minTime = minTime;
+                this.totalVisits = totalVisits;
+                this.uniqueVisitors = uniqueVisitors;
+                this.returnVisitors = returnVisitors;
+                this.newVisitors = newVisitors;
+            }
+        }
         public BHDashboard()
         {
             InitializeComponent();
+
+            dailyOverviewTimeChart.AxisX.Add(new Axis
+            {
+                Title = "Values",
+                LabelFormatter = value => value.ToString()
+
+
+            });
+
+            dailyOverviewTimeChart.AxisY.Add(new Axis
+            {
+                Title = "Days",
+                Labels = new[] { "Today", "3-day", "7-day", "30-day" }
+            });
+
+            dailyOverviewVisitChart.AxisX.Add(new Axis
+            {
+                Title = "Values",
+                LabelFormatter = value => value.ToString()
+
+
+            });
+
+            dailyOverviewVisitChart.AxisY.Add(new Axis
+            {
+                Title = "Days",
+                Labels = new[] { "Today", "3-day", "7-day", "30-day" }
+            });
         }
 
-        private void dailyDatePicker_ValueChanged(object sender, EventArgs e)
+        private void datePicker_ValueChanged(object sender, EventArgs e)
         {
-            PopulateStatistics(fromDatePicker.Value.Date, toDatePicker.Value.Date);
+            PopulateStatistics_Historical(fromDatePicker.Value.Date, toDatePicker.Value.Date);
         }
 
-        public void PopulateStatistics(DateTime fromDate, DateTime toDate)
+        public BHData getVisitorData(DateTime fromDate, DateTime toDate)
+        {
+
+            DataTable overview = new DataTable();
+            DataTable avgOverview = new DataTable();
+            overview = pgsql_utilities.GetDailyOverview(MainForm.pgsql_connection, fromDate.ToString("MM-dd-yyyy"), toDate.ToString("MM-dd-yyyy"));
+            int totalTime;
+            int avgTime = 0;
+            int maxTime = 0;
+            int minTime = 0;
+            int totalVisits = 0;
+            int uniqueVisitors = 0;
+            int returnVisitors = 0;
+            int newVisitors = 0;
+
+            int.TryParse(overview.Rows[0]["TotalTime"].ToString(), out totalTime);
+            int.TryParse(overview.Rows[0]["MaxTime"].ToString(), out maxTime);
+            int.TryParse(overview.Rows[0]["MinTime"].ToString(), out minTime);
+            int.TryParse(overview.Rows[0]["TotalVisits"].ToString(), out totalVisits);
+            int.TryParse(overview.Rows[0]["UniqueVisitors"].ToString(), out uniqueVisitors);
+            int.TryParse(overview.Rows[0]["ReturnCustomers"].ToString(), out returnVisitors);
+
+            newVisitors = uniqueVisitors - returnVisitors;
+            if (totalVisits > 0) avgTime = totalTime / totalVisits;
+            BHData data = new BHData(totalTime, avgTime, maxTime, minTime, totalVisits, uniqueVisitors, returnVisitors, newVisitors);
+            return data;
+        }
+
+        public void PopulateStatistics_Daily(DateTime fromDate, DateTime toDate)
+        {
+            DataTable overview = new DataTable();
+            DataTable avgOverview = new DataTable();
+            BHData dailyData = getVisitorData(fromDate, toDate);
+            BHData avgData = getVisitorData(DateTime.MinValue, DateTime.MaxValue);
+            BHData threeDayData = getVisitorData(fromDate.AddDays(-3), toDate);
+            BHData sevenDayData = getVisitorData(fromDate.AddDays(-7), toDate);
+            BHData thirtyDayData = getVisitorData(fromDate.AddDays(-30), toDate);
+
+            totalTimePB.Image = dailyData.totalTime > avgData.totalTime ? Resources.green_triangle : Resources.red_triangle;
+            maxTimePB.Image = dailyData.maxTime > avgData.maxTime ? Resources.green_triangle : Resources.red_triangle;
+            minTimePB.Image = dailyData.minTime > avgData.minTime ? Resources.green_triangle : Resources.red_triangle;
+            avgTimePB.Image = dailyData.avgTime > avgData.avgTime ? Resources.green_triangle : Resources.red_triangle;
+
+            totalVisitsPB.Image = dailyData.totalVisits > avgData.totalVisits ? Resources.green_triangle : Resources.red_triangle;
+            uniqueVisitorsPB.Image = dailyData.uniqueVisitors > avgData.uniqueVisitors ? Resources.green_triangle : Resources.red_triangle;
+            repeatVisitorsPB.Image = dailyData.returnVisitors > avgData.returnVisitors ? Resources.green_triangle : Resources.red_triangle;
+            newVisitorsPB.Image = dailyData.newVisitors > avgData.newVisitors ? Resources.green_triangle : Resources.red_triangle;
+
+
+            totalTimeSpentLabelDaily.Text = Math.Round((dailyData.totalTime /60.0),2).ToString();
+            avgTimeSpentLabelDaily.Text = Math.Round((dailyData.avgTime /60.0),2).ToString();
+            maxTimeSpentLabelDaily.Text = Math.Round((dailyData.maxTime / 60.0), 2).ToString();
+            minTimeSpentLabelDaily.Text = Math.Round((dailyData.minTime / 60.0), 2).ToString();
+            totalVisitsLabelDaily.Text = dailyData.totalVisits.ToString();
+            totalUniqueVisitorsLabelDaily.Text = dailyData.uniqueVisitors.ToString();
+            totalRepeatVisitorsLabelDaily.Text = dailyData.returnVisitors.ToString();
+            totalNewVisitorsLabelDaily.Text = dailyData.newVisitors.ToString();
+
+            dailyData.totalTime = 400;
+            dailyData.avgTime = 30;
+            dailyData.maxTime = 60;
+            dailyData.minTime = 10;
+
+            threeDayData.totalTime = 700;
+            threeDayData.avgTime = 100;
+            threeDayData.maxTime = 150;
+            threeDayData.minTime = 50;
+
+            sevenDayData.totalTime = 300;
+            sevenDayData.avgTime = 40;
+            sevenDayData.maxTime = 60;
+            sevenDayData.minTime = 20;
+
+            thirtyDayData.totalTime = 200;
+            thirtyDayData.avgTime = 30;
+            thirtyDayData.maxTime = 60;
+            thirtyDayData.minTime = 10;
+
+            dailyData.totalVisits = 50;
+            dailyData.uniqueVisitors = 45;
+            dailyData.returnVisitors = 5;
+            dailyData.newVisitors = 40;
+
+            threeDayData.totalVisits = 60;
+            threeDayData.uniqueVisitors = 60;
+            threeDayData.returnVisitors = 50;
+            threeDayData.newVisitors = 10;
+
+            sevenDayData.totalVisits = 40;
+            sevenDayData.uniqueVisitors = 39;
+            sevenDayData.returnVisitors = 1;
+            sevenDayData.newVisitors = 38;
+
+            thirtyDayData.totalVisits = 48;
+            thirtyDayData.uniqueVisitors = 45;
+            thirtyDayData.returnVisitors = 3;
+            thirtyDayData.newVisitors = 42;
+
+            dailyOverviewTimeChart.Series.Clear();
+            LiveCharts.SeriesCollection timeSeries = new LiveCharts.SeriesCollection
+            {
+                new StackedRowSeries
+                {
+                    Title = "Minimum Time",
+                    Values = new LiveCharts.ChartValues<int> {dailyData.minTime, threeDayData.minTime , sevenDayData.minTime , thirtyDayData.minTime }
+                },
+                new StackedRowSeries
+                {
+                    Title = "Average Time",
+                    Values = new LiveCharts.ChartValues<int> {dailyData.avgTime, threeDayData.avgTime , sevenDayData.avgTime , thirtyDayData.avgTime }
+                },
+                new StackedRowSeries
+                {
+                    Title = "Maximum Time",
+                    Values = new LiveCharts.ChartValues<int> {dailyData.maxTime, threeDayData.maxTime , sevenDayData.maxTime , thirtyDayData.maxTime }
+                },
+                new StackedRowSeries
+                {
+                    Title = "Total Time",
+                    Values = new LiveCharts.ChartValues<int> {dailyData.totalTime, threeDayData.totalTime , sevenDayData.totalTime , thirtyDayData.totalTime }
+                }
+            };
+            dailyOverviewTimeChart.Series = timeSeries;
+
+            dailyOverviewVisitChart.Series.Clear();
+            LiveCharts.SeriesCollection visitSeries = new LiveCharts.SeriesCollection
+            {
+                new StackedRowSeries
+                {
+                    Title = "Return Visitors",
+                    Values = new LiveCharts.ChartValues<int> {dailyData.returnVisitors, threeDayData.returnVisitors, sevenDayData.returnVisitors, thirtyDayData.returnVisitors }
+                },
+                new StackedRowSeries
+                {
+                    Title = "New Visitors",
+                    Values = new LiveCharts.ChartValues<int> {dailyData.newVisitors, threeDayData.newVisitors, sevenDayData.newVisitors, thirtyDayData.newVisitors }
+                },
+                new StackedRowSeries
+                {
+                    Title = "Unique Visitors",
+                    Values = new LiveCharts.ChartValues<int> {dailyData.uniqueVisitors, threeDayData.uniqueVisitors, sevenDayData.uniqueVisitors, thirtyDayData.uniqueVisitors }
+                },
+                new StackedRowSeries
+                {
+                    Title = "Total Visitors",
+                    Values = new LiveCharts.ChartValues<int> {dailyData.totalVisits, threeDayData.totalVisits, sevenDayData.totalVisits, thirtyDayData.totalVisits }
+                }
+            };
+
+            dailyOverviewVisitChart.Series = visitSeries;
+
+
+        }
+
+        public void PopulateStatistics_Historical(DateTime fromDate, DateTime toDate)
         {
             DataTable overview = new DataTable();
             DataTable avgOverview = new DataTable();
             overview = pgsql_utilities.GetDailyOverview(MainForm.pgsql_connection, fromDate.ToString("MM-dd-yyyy"), toDate.ToString("MM-dd-yyyy"));
-
+            BHData historicalData = getVisitorData(fromDate, toDate);
             avgOverview = pgsql_utilities.GetDailyOverview(MainForm.pgsql_connection, DateTime.MinValue.ToString("MM-dd-yyyy"), DateTime.MaxValue.ToString("MM-dd-yyyy"));
 
             int totalTime = 0;
-            int.TryParse(overview.Rows[0]["TotalTime"].ToString(),out totalTime);
+            int.TryParse(overview.Rows[0]["TotalTime"].ToString(), out totalTime);
 
             int maxTime = 0;
             int.TryParse(overview.Rows[0]["MaxTime"].ToString(), out maxTime);
@@ -49,13 +255,13 @@ namespace CRAS
             int.TryParse(overview.Rows[0]["UniqueVisitors"].ToString(), out uniqueVisitors);
 
             int returnVisitors = 0;
-            int.TryParse(overview.Rows[0]["ReturnCustomers"].ToString(), out  returnVisitors);
+            int.TryParse(overview.Rows[0]["ReturnCustomers"].ToString(), out returnVisitors);
 
             int newVisitors = 0;
             newVisitors = uniqueVisitors - returnVisitors;
 
             int avgTime = 0;
-            if( totalVisits > 0) avgTime = totalTime / totalVisits;
+            if (totalVisits > 0) avgTime = totalTime / totalVisits;
 
             int avgTotalTime = 0;
             int.TryParse(avgOverview.Rows[0]["TotalTime"].ToString(), out avgTotalTime);
@@ -81,113 +287,43 @@ namespace CRAS
             int avgAvgTime = 0;
             if (avgTotalVisits > 0) avgAvgTime = avgTotalTime / avgTotalVisits;
 
-            totalTimePB.Image = totalTime > avgTotalTime ? Resources.green_triangle : Resources.red_triangle;
-            maxTimePB.Image = maxTime > avgMaxTime ? Resources.green_triangle : Resources.red_triangle;
-            minTimePB.Image = minTime > avgMinTime ? Resources.green_triangle : Resources.red_triangle;
-            avgTimePB.Image = avgTime > avgAvgTime ? Resources.green_triangle : Resources.red_triangle;
+            totalTimePBHistorical.Image = totalTime > avgTotalTime ? Resources.green_triangle : Resources.red_triangle;
+            maxTimePBHistorical.Image = maxTime > avgMaxTime ? Resources.green_triangle : Resources.red_triangle;
+            minTimePBHistorical.Image = minTime > avgMinTime ? Resources.green_triangle : Resources.red_triangle;
+            avgTimePBHistorical.Image = avgTime > avgAvgTime ? Resources.green_triangle : Resources.red_triangle;
 
-            totalVisitsPB.Image = totalVisits > avgTotalVisits ? Resources.green_triangle : Resources.red_triangle;
-            uniqueVisitorsPB.Image = uniqueVisitors > avgUniqueVisitors ? Resources.green_triangle : Resources.red_triangle;
-            repeatVisitorsPB.Image = returnVisitors > avgReturnVisitors ? Resources.green_triangle : Resources.red_triangle;
-            newVisitorsPB.Image = newVisitors > avgNewVisitors ? Resources.green_triangle : Resources.red_triangle;
+            totalVisitsPBHistorical.Image = totalVisits > avgTotalVisits ? Resources.green_triangle : Resources.red_triangle;
+            uniqueVisitorsPBHistorical.Image = uniqueVisitors > avgUniqueVisitors ? Resources.green_triangle : Resources.red_triangle;
+            repeatVisitorsPBHistorical.Image = returnVisitors > avgReturnVisitors ? Resources.green_triangle : Resources.red_triangle;
+            newVisitorsPBHistorical.Image = newVisitors > avgNewVisitors ? Resources.green_triangle : Resources.red_triangle;
 
 
-            totalTimeSpentLabel.Text = Math.Round((totalTime/60.0),2).ToString();
-            avgTimeSpentLabel.Text = Math.Round((avgTime/60.0),2).ToString();
-            maxTimeSpentLabel.Text = Math.Round((maxTime / 60.0), 2).ToString();
-            minTimeSpentLabel.Text = Math.Round((minTime / 60.0), 2).ToString();
-            totalVisitsLabel.Text = totalVisits.ToString();
-            totalUniqueVisitorsLabel.Text = uniqueVisitors.ToString();
-            totalRepeatVisitorsLabel.Text = returnVisitors.ToString();
-            totalNewVisitorsLabel.Text = newVisitors.ToString();
+            totalTimeSpentLabelHistorical.Text = Math.Round((totalTime / 60.0), 2).ToString();
+            avgTimeSpentLabelHistorical.Text = Math.Round((avgTime / 60.0), 2).ToString();
+            maxTimeSpentLabelHistorical.Text = Math.Round((maxTime / 60.0), 2).ToString();
+            minTimeSpentLabelHistorical.Text = Math.Round((minTime / 60.0), 2).ToString();
+            totalVisitsLabelHistorical.Text = totalVisits.ToString();
+            totalUniqueVisitorsLabelHistorical.Text = uniqueVisitors.ToString();
+            totalRepeatVisitorsLabelHistorical.Text = returnVisitors.ToString();
+            totalNewVisitorsLabelHistorical.Text = newVisitors.ToString();
 
             string[] categories = { "Time Spent", "Visitors" };
             int[] min = { minTime, uniqueVisitors };
             int[] max = { maxTime, returnVisitors };
             int[] avg = { avgTime, newVisitors };
             int[] total = { totalTime, totalVisits };
-
-            PopulateChart();
         }
 
         private void dailyOverviewTab_Enter(object sender, EventArgs e)
         {
-            PopulateStatistics(fromDatePicker.Value.Date, toDatePicker.Value.Date);
+            DateTime today = DateTime.Now.Date;
+            dateLabel.Text = today.ToString("dddd, MMMM dd, yyyy");
+            PopulateStatistics_Daily(today, today);
+        }
+        private void historicalTab_Enter(object sender, EventArgs e)
+        {
+            PopulateStatistics_Historical(fromDatePicker.Value.Date, toDatePicker.Value.Date);
         }
 
-        private void PopulateChart()
-        {/*
-            // Clear any existing data in the chart
-            dailyChart.Series.Clear();
-            dailyChart.Legends.Clear();
-
-            // Create a single series for stacked columns
-            Series series = new Series("Data");
-            series.ChartType = SeriesChartType.StackedColumn;
-
-            // Add data points to the series
-            for (int i = 0; i < categories.Length; i++)
-            {
-                // Add data points for min, max, avg, and sum
-                series.Points.AddXY(categories[i], minValues[i]);
-                series.Points.AddXY(categories[i], maxValues[i]);
-                series.Points.AddXY(categories[i], avgValues[i]);
-                series.Points.AddXY(categories[i], totalValues[i]);
-            }
-
-            // Add the series to the chart
-            dailyChart.Series.Add(series);
-
-            // Customize chart appearance
-            dailyChart.ChartAreas[0].AxisX.Interval = 1; // Display each category separately
-            dailyChart.ChartAreas[0].AxisX.MajorGrid.Enabled = false; // Disable grid lines for better visibility
-            dailyChart.ChartAreas[0].AxisY.Title = "Values";
-            dailyChart.Legends.Add(new Legend("Legend"));
-            dailyChart.Legends["Legend"].Docking = Docking.Bottom;*/
-            // Assuming you have data for categories and corresponding min, max, avg, sum values
-            string[] categories = { "Category1", "Category2", "Category3" };
-            double[] minValues = { 10, 20, 15 };
-            double[] maxValues = { 30, 40, 25 };
-            double[] avgValues = { 15, 30, 20 };
-            double[] sumValues = { 45, 90, 60 };
-
-            // Clear any existing data in the chart
-            dailyChart.Series.Clear();
-            dailyChart.Legends.Clear();
-
-            // Create separate series for min, max, avg, and sum
-            Series seriesMin = new Series("Min");
-            Series seriesMax = new Series("Max");
-            Series seriesAvg = new Series("Average");
-            Series seriesSum = new Series("Sum");
-
-            // Set chart type to StackedColumn
-            seriesMin.ChartType = SeriesChartType.StackedColumn;
-            seriesMax.ChartType = SeriesChartType.StackedColumn;
-            seriesAvg.ChartType = SeriesChartType.StackedColumn;
-            seriesSum.ChartType = SeriesChartType.StackedColumn;
-
-            // Add data points to each series
-            for (int i = 0; i < categories.Length; i++)
-            {
-                seriesMin.Points.AddXY(categories[i], minValues[i]);
-                seriesMax.Points.AddXY(categories[i], maxValues[i]);
-                seriesAvg.Points.AddXY(categories[i], avgValues[i]);
-                seriesSum.Points.AddXY(categories[i], sumValues[i]);
-            }
-
-            // Add series to the chart
-            dailyChart.Series.Add(seriesMin);
-            dailyChart.Series.Add(seriesMax);
-            dailyChart.Series.Add(seriesAvg);
-            dailyChart.Series.Add(seriesSum);
-
-            // Customize chart appearance
-            dailyChart.ChartAreas[0].AxisX.Interval = 1; // Display each category separately
-            dailyChart.ChartAreas[0].AxisX.MajorGrid.Enabled = false; // Disable grid lines for better visibility
-            dailyChart.ChartAreas[0].AxisY.Title = "Values";
-            dailyChart.Legends.Add(new Legend("Legend"));
-            dailyChart.Legends["Legend"].Docking = Docking.Bottom;
-        }
     }
 }
