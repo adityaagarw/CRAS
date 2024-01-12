@@ -773,6 +773,17 @@ def update_boot_up_time(time_delta):
     local_db.update_boot_up_time(time_delta)
     local_db.disconnect()
 
+class CameraThread(threading.Thread):
+    def __init__(self, camera, name='CameraThread'):
+        self.camera = camera
+        self.last_frame = None
+        super(CameraThread, self).__init__(name=name)
+        self.start()
+
+    def run(self):
+        while True:
+            ret, self.last_frame = self.camera.read()
+
 # Start entry camera
 def start_exit_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
 
@@ -781,6 +792,7 @@ def start_exit_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
     if cam_type == "Index":
         camera = int(camera)
     cap = cv2.VideoCapture(camera)
+
     detector = Detection(parameters)
 
     stream_process = Process(target = pipe_stream_process, args = (camera, parameters, pipe_q, stop,))
@@ -825,10 +837,14 @@ def start_exit_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
     # Update boot time
     update_boot_up_time(boot_time_delta)
 
+    cam_thread = CameraThread(cap)
     while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+        # ret, frame = cap.read()
+        # if not ret:
+        #     break
+        frame = cam_thread.last_frame
+        if frame is None:
+            continue
 
         if camfeed_break_flag is True:
             break

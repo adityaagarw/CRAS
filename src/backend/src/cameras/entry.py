@@ -7,6 +7,7 @@ import time
 import numpy as np
 import multiprocessing
 import fasteners
+import threading
 from datetime import datetime, timedelta
 from PIL import Image
 from multiprocessing import Process
@@ -718,6 +719,17 @@ def send_faces_to_queue(faces, frame, q):
     # Concerning if it keeps rising
     #print("Entry Queue size:", q.qsize())
 
+class CameraThread(threading.Thread):
+    def __init__(self, camera, name='CameraThread'):
+        self.camera = camera
+        self.last_frame = None
+        super(CameraThread, self).__init__(name=name)
+        self.start()
+
+    def run(self):
+        while True:
+            ret, self.last_frame = self.camera.read()
+
 # Start entry camera
 def start_entry_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
 
@@ -766,9 +778,13 @@ def start_entry_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
     with fasteners.InterProcessLock(Utils.lock_file):
         Utils.entry_up()
 
+    cam_thread = CameraThread(cap)
     while True:
-        ret, frame = cap.read()
-        if not ret:
+        # ret, frame = cap.read()
+        # if not ret:
+        #     continue
+        frame = cam_thread.last_frame
+        if frame is None:
             continue
 
         if camfeed_break_flag is True:
