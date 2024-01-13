@@ -33,8 +33,16 @@ EXIT_EXPIRY_TIME = 30.0
 def get_face_image(face_pixels, target_size=(160, 160)):
     #face_8bit = np.clip(face_pixels, 0, 255).astype(np.uint8)
     #face_image = Image.fromarray(face_8bit)
-    face_pixels_rgb = cv2.cvtColor(face_pixels, cv2.COLOR_BGR2RGB)
-    face_image = Image.fromarray(face_pixels_rgb)
+    try:
+        face_pixels_rgb = cv2.cvtColor(face_pixels, cv2.COLOR_BGR2RGB)
+    except:
+        face_pixels_rgb = face_pixels
+
+    try:
+        face_image = Image.fromarray(face_pixels_rgb)
+    except:
+        return None
+
     face_image = face_image.resize(target_size)
     img_bytes = io.BytesIO()
     face_image.save(img_bytes, format='PNG')
@@ -352,18 +360,18 @@ def commit_record(customer_id):
             phone_number = customer_record.get(b'phone_number').decode(),
             encoding = face_encoding,
             image = customer_record.get(b'image'),
-            return_customer = int(customer_record.get(b'return_customer').decode()),
+            return_customer = 0 if customer_record.get(b'return_customer') is None else int(customer_record.get(b'return_customer').decode()),
             last_visit = customer_record.get(b'last_visit').decode(),
-            average_time_spent = int(float(customer_record.get(b'average_time_spent').decode())),
+            average_time_spent = 0 if customer_record.get(b'average_time_spent') is None else int(float(customer_record.get(b'average_time_spent').decode())),
             average_bill_value = customer_record.get(b'average_bill_value').decode(),
             average_bill_per_visit = customer_record.get(b'average_bill_per_visit').decode(),
             average_bill_per_billed_visit = customer_record.get(b'average_bill_per_billed_visit').decode(),
             maximum_purchase = customer_record.get(b'maximum_purchase').decode(),
             remarks = customer_record.get(b'remarks').decode(),
             loyalty_level = customer_record.get(b'loyalty_level').decode(),
-            num_bills = int(customer_record.get(b'num_bills').decode()),
-            num_visits = int(customer_record.get(b'num_visits').decode()),
-            num_billed_visits = int(customer_record.get(b'num_billed_visits').decode()),
+            num_bills = 0 if customer_record.get(b'num_bills') is None else int(customer_record.get(b'num_bills').decode()),
+            num_visits = 0 if customer_record.get(b'num_visits') is None else int(customer_record.get(b'num_visits').decode()),
+            num_billed_visits = 0 if customer_record.get(b'num_billed_visits') is None else int(customer_record.get(b'num_billed_visits').decode()),
             last_location = customer_record.get(b'last_location').decode(),
             location_list = customer_record.get(b'location_list').decode(),
             category = customer_record.get(b'category').decode(),
@@ -389,17 +397,17 @@ def commit_record(customer_id):
             store_id = visit_record.get(b'store_id').decode(),
             entry_time = visit_record.get(b'entry_time').decode(),
             exit_time = visit_record.get(b'exit_time').decode(),
-            billed = int(visit_record.get(b'billed').decode()),
+            billed = 0 if visit_record.get(b'billed') is None else int(visit_record.get(b'billed').decode()),
             bill_no = visit_record.get(b'bill_no').decode(),
             bill_date = visit_record.get(b'bill_date').decode(),
             bill_amount = visit_record.get(b'bill_amount').decode(),
             return_amount = visit_record.get(b'return_amount').decode(),
-            time_spent = int(float(visit_record.get(b'time_spent').decode())),
+            time_spent = 0 if visit_record.get(b'time_spent')is None else int(float(visit_record.get(b'time_spent').decode())),
             visit_remark = visit_record.get(b'visit_remark').decode(),
             customer_rating = visit_record.get(b'customer_rating').decode(),
             customer_feedback = visit_record.get(b'customer_feedback').decode(),
-            incomplete = int(visit_record.get(b'incomplete').decode()),
-            return_customer = int(visit_record.get(b'return_customer').decode())
+            incomplete = 0 if visit_record.get(b'incomplete') is None else int(visit_record.get(b'incomplete').decode()),
+            return_customer = 0 if visit_record.get(b'return_customer') is None else int(visit_record.get(b'return_customer').decode())
         )
 
         if (customer_record.get(b'return_customer').decode() == "1"):
