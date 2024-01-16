@@ -175,7 +175,7 @@ namespace CRAS
 
             subSession++;
 
-            int success = pgsql_utilities.InsertSubSession(pgsql_connection, session, subSession, DateTime.Now.ToString());
+            int success = pgsql_utilities.InsertSubSession(pgsql_connection, session, subSession, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             if(success == 1) { Console.WriteLine($"Created new subsession: {subSession} under session: {session}"); }
         }
 
@@ -664,7 +664,7 @@ namespace CRAS
 
             else
             {
-                pgsql_utilities.UpdateSubSession(pgsql_connection, session, subSession, DateTime.Now.ToString());
+                pgsql_utilities.UpdateSubSession(pgsql_connection, session, subSession, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
                 //If Exit is Pressed from tray
                 DialogResult result;
@@ -695,7 +695,7 @@ namespace CRAS
 
         public void InitiateRestart()
         {
-            pgsql_utilities.UpdateSubSession(pgsql_connection, session, subSession, DateTime.Now.ToString());
+            pgsql_utilities.UpdateSubSession(pgsql_connection, session, subSession, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             ClosePipes();
             if (sqlDependency != null)
             {

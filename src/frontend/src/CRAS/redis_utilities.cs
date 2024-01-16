@@ -208,10 +208,13 @@ namespace CRAS
                 {
                     //Da
                     //Console.WriteLine(hashKey);
-                    HashEntry[] hash = db.HashGetAll(hashKey);
-                    
-                    hashes.Add(hashKey, hash);
-                    //foreach (HashEntry value in values) { if (!(value.Name.Equals("encoding") || value.Name.Equals("image"))) Console.WriteLine(value.Name + ": " + value.Value.ToString()); }
+                    RedisType type = db.KeyType(hashKey);
+                    if (type == RedisType.Hash)
+                    {
+                        HashEntry[] hash = db.HashGetAll(hashKey);
+
+                        hashes.Add(hashKey, hash);
+                    }//foreach (HashEntry value in values) { if (!(value.Name.Equals("encoding") || value.Name.Equals("image"))) Console.WriteLine(value.Name + ": " + value.Value.ToString()); }
                 }
             }
             return hashes;

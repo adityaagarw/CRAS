@@ -219,7 +219,7 @@
             // displayComboBox
             // 
             this.displayComboBox.FormattingEnabled = true;
-            this.displayComboBox.Location = new System.Drawing.Point(436, 26);
+            this.displayComboBox.Location = new System.Drawing.Point(440, 17);
             this.displayComboBox.Margin = new System.Windows.Forms.Padding(2);
             this.displayComboBox.Name = "displayComboBox";
             this.displayComboBox.Size = new System.Drawing.Size(148, 21);

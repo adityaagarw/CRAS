@@ -535,7 +535,7 @@ namespace CRAS
         public static int InsertSubSession(NpgsqlConnection connection, int sessionId, int subSessionId, string startTime = "")
         {
             int success = 0;
-            if(startTime.Length == 0) startTime = DateTime.Now.ToString();
+            if(startTime.Length == 0) startTime = DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss");
             
                 connection.Open();
 
@@ -559,7 +559,7 @@ namespace CRAS
 
         public static void UpdateSubSession(NpgsqlConnection connection, int sessionId, int subSessionId, string endTime = "")
         {
-            if(endTime.Length == 0) endTime = DateTime.Now.ToString();
+            if(endTime.Length == 0) endTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             connection.Open();
 
             string query = $"UPDATE SubSession SET end_time = '{endTime.ToString()}' WHERE sessionid = '{sessionId.ToString()}' AND sub_sessionid = '{subSessionId.ToString()}'";
