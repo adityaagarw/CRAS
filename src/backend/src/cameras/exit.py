@@ -794,6 +794,7 @@ class CameraThread(threading.Thread):
 
 # Start entry camera
 def start_exit_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
+    roi = (320, 200, 900, 600)
 
     # Choose source
     #cap = cv2.VideoCapture('rtsp://192.168.2.104:8080/h264_ulaw.sdp')
@@ -853,6 +854,9 @@ def start_exit_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
         frame = cam_thread.last_frame
         if frame is None:
             continue
+
+        cropped_frame = frame[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]]
+        frame = cv2.resize(cropped_frame, (1*roi[2], 2*roi[3]))
 
         if camfeed_break_flag is True:
             break
