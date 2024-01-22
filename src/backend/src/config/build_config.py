@@ -32,6 +32,7 @@ def build_configuration_file(p):
     config.set('general', 'billing_cam_type', str(p.billing_cam_type))
     config.set('general', 'exit_cam', str(p.exit_cam))
     config.set('general', 'exit_cam_type', str(p.exit_cam_type))
+    config.set('general', 'exit_threshold', str(p.exit_threshold))
 
 
     with open('config.ini', 'w') as configfile:
@@ -66,6 +67,7 @@ if __name__ == "__main__":
     parser.add_argument("-billing_cam_type", type=str, help="Specify billing_cam_type", required = True)
     parser.add_argument("-exit_cam", type=str, help="Specify exit_cam", required = True)
     parser.add_argument("-exit_cam_type", type=str, help="Specify exit_cam_type", required = True)
+    parser.add_argument("-exit_threshold", type=float, help="Specify exit threshold", required = True)
 
     args = parser.parse_args()
     parameters = Parameters(args.detection, \
@@ -93,6 +95,7 @@ if __name__ == "__main__":
                             args.billing_cam, \
                             args.billing_cam_type, \
                             args.exit_cam, \
-                            args.exit_cam_type)
+                            args.exit_cam_type, \
+                            args.exit_threshold)
 
     build_configuration_file(parameters)

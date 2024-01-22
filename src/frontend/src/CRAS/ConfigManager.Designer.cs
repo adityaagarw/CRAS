@@ -35,18 +35,26 @@
             // 
             // configDataGrid
             // 
+            this.configDataGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.configDataGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            this.configDataGrid.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            this.configDataGrid.BackgroundColor = System.Drawing.Color.White;
             this.configDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.configDataGrid.Location = new System.Drawing.Point(12, 43);
             this.configDataGrid.Name = "configDataGrid";
-            this.configDataGrid.Size = new System.Drawing.Size(351, 401);
+            this.configDataGrid.Size = new System.Drawing.Size(585, 640);
             this.configDataGrid.TabIndex = 0;
             this.configDataGrid.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.configDataGrid_CellEndEdit);
             // 
             // save_restart
             // 
-            this.save_restart.Location = new System.Drawing.Point(12, 461);
+            this.save_restart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.save_restart.Location = new System.Drawing.Point(12, 700);
             this.save_restart.Name = "save_restart";
-            this.save_restart.Size = new System.Drawing.Size(351, 23);
+            this.save_restart.Size = new System.Drawing.Size(585, 23);
             this.save_restart.TabIndex = 1;
             this.save_restart.Text = "Save and Restart";
             this.save_restart.UseVisualStyleBackColor = true;
@@ -56,7 +64,8 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(384, 496);
+            this.AutoSize = true;
+            this.ClientSize = new System.Drawing.Size(618, 735);
             this.Controls.Add(this.save_restart);
             this.Controls.Add(this.configDataGrid);
             this.Name = "ConfigManager";

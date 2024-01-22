@@ -627,7 +627,7 @@ def search_face_data(parameters, search_q, camfeed_break_flag):
         except:
             continue
 
-        current_threshold = in_mem_db.get_threshold()
+        current_threshold = in_mem_db.get_exit_threshold()
         # Check if we have the record in localdb i.e. the customer has visited before
         record_from_localdb = get_face_record_from_localdb(face_encoding, current_threshold, local_db)
         if record_from_localdb:
@@ -701,18 +701,18 @@ def consume_face_data(parameters, q, search_q, camfeed_break_flag):
         # For each face, first see if it exists in mem otherwise try and fetch it from localdb
         for face in faces:
             # Constraints start
-            current_yaw = in_mem_db.get_yaw_threshold()
-            current_pitch = in_mem_db.get_pitch_threshold()
-            current_area = in_mem_db.get_area_threshold()
-            current_threshold = in_mem_db.get_threshold()
+            # current_yaw = in_mem_db.get_yaw_threshold()
+            # current_pitch = in_mem_db.get_pitch_threshold()
+            # current_area = in_mem_db.get_area_threshold()
+            current_threshold = in_mem_db.get_exit_threshold()
 
-            yaw, pitch, roll = r.calculate_yaw_pitch_roll(frame, face, p)
-            if abs(yaw) > float(current_yaw) or abs(pitch) < float(current_pitch):
-                continue
-            area = (face.right() - face.left()) * (face.bottom() - face.top())
-            if area < float(current_area):
-                continue
-            # Constraints end
+            # yaw, pitch, roll = r.calculate_yaw_pitch_roll(frame, face, p)
+            # if abs(yaw) > float(current_yaw) or abs(pitch) < float(current_pitch):
+            #     continue
+            # area = (face.right() - face.left()) * (face.bottom() - face.top())
+            # if area < float(current_area):
+            #     continue
+            # # Constraints end
 
             face_encoding, face_pixels = get_face_image_encoding(r, face, frame)
             if face_encoding is None:
@@ -856,7 +856,7 @@ def start_exit_cam(parameters, camera, cam_type, q, pipe_q, search_q, stop):
             continue
 
         cropped_frame = frame[roi[1]:roi[1]+roi[3], roi[0]:roi[0]+roi[2]]
-        frame = cv2.resize(cropped_frame, (1*roi[2], 2*roi[3]))
+        frame = cv2.resize(cropped_frame, (1*roi[2], 1*roi[3]))
 
         if camfeed_break_flag is True:
             break

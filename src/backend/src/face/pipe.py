@@ -18,7 +18,7 @@ class FacePipe:
                 self.pipe_name,
                 win32pipe.PIPE_ACCESS_OUTBOUND,
                 win32pipe.PIPE_TYPE_BYTE | win32pipe.PIPE_WAIT,
-                1, 262144, 262144,
+                1, 2621440, 2621440,
                 0,
                 None
             )

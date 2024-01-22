@@ -232,6 +232,7 @@
             this.customerPictureBox.Margin = new System.Windows.Forms.Padding(2);
             this.customerPictureBox.Name = "customerPictureBox";
             this.customerPictureBox.Size = new System.Drawing.Size(89, 97);
+            this.customerPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.customerPictureBox.TabIndex = 0;
             this.customerPictureBox.TabStop = false;
             // 

@@ -37,5 +37,6 @@ create_slider(root, 'param_area_threshold', 0, 50000, 100)
 create_slider(root, 'param_threshold', 0, 1, 0.01)
 create_slider(root, 'param_yaw_threshold', 0, 180, 1)
 create_slider(root, 'param_pitch_threshold', 0, 180, 1)
+create_slider(root, 'param_exit_threshold', 0, 1, 0.01)
 
 root.mainloop()

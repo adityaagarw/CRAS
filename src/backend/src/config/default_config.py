@@ -102,6 +102,7 @@ default_billing_cam = settings['billing_cam']
 default_billing_cam_type = settings['billing_cam_type']
 default_exit_cam = settings['exit_cam']
 default_exit_cam_type = settings['exit_cam_type']
+default_exit_threshold = settings['exit_threshold']
 
 command = " -detection " + default_detection_method + \
           " -library " + default_recognition_library + \
@@ -128,7 +129,8 @@ command = " -detection " + default_detection_method + \
           " -billing_cam " + str(default_billing_cam) + \
           " -billing_cam_type " + str(default_billing_cam_type) + \
           " -exit_cam " + str(default_exit_cam) + \
-          " -exit_cam_type " + str(default_exit_cam_type)
+          " -exit_cam_type " + str(default_exit_cam_type) + \
+          " -exit_threshold " + str(default_exit_threshold)
 
 command = get_python_command() + " config/build_config.py" + command
 os.system(command)

@@ -50,9 +50,14 @@ namespace CRAS
 
         private void PopulateDataGridView()
         {
+            configDataGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            configDataGrid.AutoSize = true;
+            this.AutoSize = true;
+
             configDataGrid.Columns.Add("Key", "Key");
-            configDataGrid.Columns.Add("Value", "Value");   
+            configDataGrid.Columns.Add("Value", "Value");
             
+
             configDataGrid.Rows.Clear();
             //configDataGrid.AllowUserToAddRows = false;
 

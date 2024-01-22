@@ -738,7 +738,7 @@ class InMemExited:
 
 class InMemParams:
     def __init__(self, detection, model, threshold, yaw_threshold, pitch_threshold, area_threshold, billing_cam_time, similarity_method, periodic_sleep_time,
-                 num_threads_per_process, frames_per_second):
+                 num_threads_per_process, frames_per_second, exit_threshold):
         self.detection = detection
         self.model = model
         self.threshold = threshold
@@ -750,6 +750,7 @@ class InMemParams:
         self.periodic_sleep_time = periodic_sleep_time
         self.num_threads_per_process = num_threads_per_process
         self.frames_per_second = frames_per_second
+        self.exit_threshold = exit_threshold
 
 class InMemParamNames:
     detection = "param_detection"
@@ -763,6 +764,7 @@ class InMemParamNames:
     periodic_sleep_time = "param_periodic_sleep_time"
     num_threads_per_process = "param_num_threads_per_process"
     frames_per_second = "param_frames_per_second"
+    exit_threshold = "param_exit_threshold"
 
 BOOT_TIME_START = "inmem_boot_time_start"
 BOOT_TIME_END = "inmem_boot_time_end"
@@ -852,6 +854,12 @@ class InMemoryRedisDB(Database):
 
     def get_boot_time_end(self):
         return self.connection.get(BOOT_TIME_END).decode()
+    
+    def get_exit_threshold(self):
+        return self.connection.get(InMemParamNames.exit_threshold).decode()
+    
+    def set_exit_threshold(self, exit_threshold):
+        return self.connection.set(InMemParamNames.exit_threshold, str(exit_threshold))
     ####################################################################################################
 
     def insert_record(self, record, type='customer'):

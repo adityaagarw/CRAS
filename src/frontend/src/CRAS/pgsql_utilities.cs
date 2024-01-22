@@ -28,18 +28,25 @@ namespace CRAS
         }
 
         
-        public static BindingList<redis_customer> GetCustomerDetails(NpgsqlConnection connection, string customer_id = "*")
+        public static BindingList<redis_customer> GetCustomerDetails(NpgsqlConnection connection, string whereClause = "")
         {
             BindingList<redis_customer> customer_list = new BindingList<redis_customer>();
             if(connection.State == System.Data.ConnectionState.Closed) connection.Open();
 
             string condition = "";
 
-            if(customer_id != "*" && customer_id.Length > 0)
+            if(whereClause.Length > 0)
+            {
+                condition = $" WHERE {whereClause}";
+            }
+
+            /*if(customer_id != "*" && customer_id.Length > 0)
             {
                 condition = $" WHERE customer_id = '{customer_id}'";
-            }
-            string query = "SELECT * FROM local_customer_db" + condition;
+            }*/
+
+            string query = "SELECT customer_id, name, phone_number, image, return_customer, last_visit, average_time_spent, average_bill_value, average_bill_per_visit, average_bill_per_billed_visit, maximum_purchase, remarks, loyalty_level, num_bills, num_visits, num_billed_visits, last_location, category, creation_date, group_id FROM local_customer_db" + condition;
+            //string query = "SELECT customer_id, image FROM local_customer_db" + condition;
 
             Console.WriteLine("Get Customer details from local_db: " + query);
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
@@ -80,11 +87,11 @@ namespace CRAS
                 customer.group_id = reader.GetInt32(reader.GetOrdinal("group_id"));
                 */
                 customer.customer_id = reader.IsDBNull(reader.GetOrdinal("customer_id")) ? null : reader.GetGuid(reader.GetOrdinal("customer_id")).ToString();
-                customer.name = reader.IsDBNull(reader.GetOrdinal("name")) ? null : reader.GetString(reader.GetOrdinal("name"));
+                customer.name = reader.IsDBNull(reader.GetOrdinal("name")) ? "" : reader.GetString(reader.GetOrdinal("name"));
                 customer.phone_number = reader.IsDBNull(reader.GetOrdinal("phone_number")) ? null : reader.GetString(reader.GetOrdinal("phone_number"));
                 customer.image = reader.IsDBNull(reader.GetOrdinal("image")) ? null : (byte[])reader["image"];
                 customer.return_customer = reader.IsDBNull(reader.GetOrdinal("return_customer")) ? null : reader.GetInt32(reader.GetOrdinal("return_customer")).ToString();
-                customer.last_visit = reader.IsDBNull(reader.GetOrdinal("last_visit")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("last_visit"));
+                customer.last_visit = reader.IsDBNull(reader.GetOrdinal("last_visit")) ? default : reader.GetDateTime(reader.GetOrdinal("last_visit"));
                 customer.average_time_spent = reader.IsDBNull(reader.GetOrdinal("average_time_spent")) ? 0 : (int)reader.GetInt32(reader.GetOrdinal("average_time_spent"));
                 customer.average_bill_value = reader.IsDBNull(reader.GetOrdinal("average_bill_value")) ? 0 : (float)reader.GetFloat(reader.GetOrdinal("average_bill_value"));
                 customer.average_bill_per_visit = reader.IsDBNull(reader.GetOrdinal("average_bill_per_visit")) ? 0 : (float)reader.GetFloat(reader.GetOrdinal("average_bill_per_visit"));
@@ -96,14 +103,15 @@ namespace CRAS
                 customer.num_visits = reader.IsDBNull(reader.GetOrdinal("num_visits")) ? 0 : (int)reader.GetInt32(reader.GetOrdinal("num_visits"));
                 customer.num_billed_visits = reader.IsDBNull(reader.GetOrdinal("num_billed_visits")) ? 0 : (int)reader.GetInt32(reader.GetOrdinal("num_billed_visits"));
                 customer.last_location = reader.IsDBNull(reader.GetOrdinal("last_location")) ? null : reader.GetString(reader.GetOrdinal("last_location"));
-                //string locationListString = reader.GetString(reader.GetOrdinal("location_list"));
+                /*//string locationListString = reader.GetString(reader.GetOrdinal("location_list"));
                 //customer.location_list = locationListString.Split(',');
+                */
                 customer.category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString(reader.GetOrdinal("category"));
                 customer.creation_date = reader.GetDateTime(reader.GetOrdinal("creation_date"));
                 customer.group_id = reader.IsDBNull(reader.GetOrdinal("group_id")) ? 0 : (int)reader.GetInt32(reader.GetOrdinal("group_id"));
                 customer_list.Add(customer);
             }
-
+            connection.Close();
 
             return customer_list;
         }
@@ -282,20 +290,26 @@ namespace CRAS
             command.ExecuteNonQuery();
         }
 
-        public static BindingList<visit_details> GetVisitDetails(NpgsqlConnection connection, string customer_id = "*")
+        public static BindingList<visit_details> GetVisitDetails(NpgsqlConnection connection, string whereClause = "")
         {
             BindingList<visit_details> visits = new BindingList<visit_details>();
             connection.Open();
 
             string condition = "";
 
-            if (customer_id != "*" && customer_id.Length > 0)
+            /*if (customer_id != "*" && customer_id.Length > 0)
             {
                 condition = $"WHERE customer_id = '{customer_id}'";
+            }*/
+
+            if (whereClause.Length > 0)
+            {
+                condition = $"WHERE {whereClause}";
             }
+
             string query = "SELECT * FROM local_visit_db " + condition + " ORDER BY entry_time DESC";
 
-            Console.WriteLine("Get Visit details from local_db: " + query);
+            Console.WriteLine("Get Visit details from local_visit_db: " + query);
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
 
             NpgsqlDataReader reader = command.ExecuteReader();
@@ -303,26 +317,26 @@ namespace CRAS
             while (reader.Read())
             {
                 visit_details visit = new visit_details();
-                visit.key = reader.GetString(reader.GetOrdinal("key"));
-                visit.customer_id = reader.GetString(reader.GetOrdinal("customer_id"));
-                visit.visit_id = reader.GetString(reader.GetOrdinal("visit_id"));
-                visit.store_id = reader.GetString(reader.GetOrdinal("store_id"));
-                visit.entry_time = reader.GetDateTime(reader.GetOrdinal("entry_time"));
-                visit.exit_time = reader.GetDateTime(reader.GetOrdinal("exit_time"));
-                visit.billed = reader.GetInt32(reader.GetOrdinal("billed"));
-                visit.bill_no = reader.GetString(reader.GetOrdinal("bill_no"));
-                visit.bill_date = reader.GetDateTime(reader.GetOrdinal("bill_date"));
-                visit.bill_amount = reader.GetInt32(reader.GetOrdinal("bill_amount"));
-                visit.return_amount = reader.GetInt32(reader.GetOrdinal("return_amount"));
-                visit.time_spent = reader.GetInt32(reader.GetOrdinal("time_spent"));
-                visit.visit_remark = reader.GetString(reader.GetOrdinal("visit_remark"));
-                visit.customer_rating = reader.GetInt32(reader.GetOrdinal("customer_rating"));
-                visit.customer_feedback = reader.GetInt32(reader.GetOrdinal("customer_feedback"));
-                visit.incomplete = reader.GetInt32(reader.GetOrdinal("incomplete"));
+                //visit.key = reader.GetString(reader.GetOrdinal("key"));
+                visit.customer_id = reader.IsDBNull(reader.GetOrdinal("customer_id")) ? default : reader.GetGuid(reader.GetOrdinal("customer_id")).ToString();
+                visit.visit_id = reader.IsDBNull(reader.GetOrdinal("visit_id")) ? default : reader.GetGuid(reader.GetOrdinal("visit_id")).ToString();
+                visit.store_id = reader.IsDBNull(reader.GetOrdinal("store_id")) ? default : reader.GetGuid(reader.GetOrdinal("store_id")).ToString();
+                visit.entry_time = reader.IsDBNull(reader.GetOrdinal("entry_time")) ? default : reader.GetDateTime(reader.GetOrdinal("entry_time"));
+                visit.exit_time = reader.IsDBNull(reader.GetOrdinal("exit_time"))? default : reader.GetDateTime(reader.GetOrdinal("exit_time"));
+                visit.billed = reader.IsDBNull(reader.GetOrdinal("billed")) ? default : reader.GetInt32(reader.GetOrdinal("billed"));
+                visit.bill_no = reader.IsDBNull(reader.GetOrdinal("bill_no")) ? null: reader.GetString(reader.GetOrdinal("bill_no"));
+                visit.bill_date = reader.IsDBNull(reader.GetOrdinal("bill_date")) ? default : reader.GetDateTime(reader.GetOrdinal("bill_date"));
+                visit.bill_amount = reader.IsDBNull(reader.GetOrdinal("bill_amount")) ? default : reader.GetInt32(reader.GetOrdinal("bill_amount"));
+                visit.return_amount = reader.IsDBNull(reader.GetOrdinal("return_amount")) ? default : reader.GetInt32(reader.GetOrdinal("return_amount"));
+                visit.time_spent = reader.IsDBNull(reader.GetOrdinal("time_spent")) ? default : reader.GetInt32(reader.GetOrdinal("time_spent"));
+                visit.visit_remark = reader.IsDBNull(reader.GetOrdinal("visit_remark")) ? default : reader.GetString(reader.GetOrdinal("visit_remark"));
+                visit.customer_rating = reader.IsDBNull(reader.GetOrdinal("customer_rating")) ? default : reader.GetInt32(reader.GetOrdinal("customer_rating"));
+                visit.customer_feedback = reader.IsDBNull(reader.GetOrdinal("customer_feedback")) ? default : reader.GetInt32(reader.GetOrdinal("customer_feedback"));
+                visit.incomplete = reader.IsDBNull(reader.GetOrdinal("incomplete")) ? default : reader.GetInt32(reader.GetOrdinal("incomplete"));
 
                 visits.Add(visit);
             }
-            
+            connection.Close();
             return visits;
         }
 

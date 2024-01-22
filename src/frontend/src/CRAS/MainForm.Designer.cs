@@ -58,6 +58,7 @@
             this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.exitMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.configPictureBox = new System.Windows.Forms.PictureBox();
+            this.incompleteButton = new System.Windows.Forms.Button();
             this.customerFlowLayout.SuspendLayout();
             this.exitedCustomerFLP.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -376,12 +377,23 @@
             this.configPictureBox.TabStop = false;
             this.configPictureBox.Click += new System.EventHandler(this.configPictureBox_Click);
             // 
+            // incompleteButton
+            // 
+            this.incompleteButton.Location = new System.Drawing.Point(593, 17);
+            this.incompleteButton.Name = "incompleteButton";
+            this.incompleteButton.Size = new System.Drawing.Size(75, 23);
+            this.incompleteButton.TabIndex = 26;
+            this.incompleteButton.Text = "Incomplete";
+            this.incompleteButton.UseVisualStyleBackColor = true;
+            this.incompleteButton.Click += new System.EventHandler(this.incompleteButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(1028, 647);
+            this.Controls.Add(this.incompleteButton);
             this.Controls.Add(this.configPictureBox);
             this.Controls.Add(this.totalEmployeesValue);
             this.Controls.Add(this.totalEmployeesLabel);
@@ -453,5 +465,6 @@
         private System.Windows.Forms.ContextMenuStrip contextMenu;
         private System.Windows.Forms.ToolStripMenuItem exitMenu;
         private System.Windows.Forms.PictureBox configPictureBox;
+        private System.Windows.Forms.Button incompleteButton;
     }
 }

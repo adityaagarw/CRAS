@@ -1284,5 +1284,11 @@ namespace CRAS
             InitiateParamsTuning();
             configManager.ShowDialog();
         }
+
+        private void incompleteButton_Click(object sender, EventArgs e)
+        {
+            IncompleteManager incompleteManager = new IncompleteManager();
+            incompleteManager.ShowDialog();
+        }
     }
 }

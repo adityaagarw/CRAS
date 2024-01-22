@@ -3,7 +3,7 @@ import configparser
 class Parameters:
     def __init__(self, detection, library, model, threshold, yaw_threshold, pitch_threshold, area_threshold, billing_cam_time, sim_method, debug_mode, 
                  username, password, db_link, db_name, input_type, video_path, model_dir, 
-                 num_entry_cams, num_billing_cams, num_exit_cams, entry_cam, entry_cam_type, billing_cam, billing_cam_type, exit_cam, exit_cam_type):
+                 num_entry_cams, num_billing_cams, num_exit_cams, entry_cam, entry_cam_type, billing_cam, billing_cam_type, exit_cam, exit_cam_type, exit_threshold):
         self.detection = detection
         self.library = library
         self.model = model
@@ -30,6 +30,7 @@ class Parameters:
         self.billing_cam_type = billing_cam_type
         self.exit_cam = exit_cam
         self.exit_cam_type = exit_cam_type
+        self.exit_threshold = exit_threshold
 
     @classmethod
     def build_parameters(cls, file):
@@ -61,5 +62,6 @@ class Parameters:
                                 args['billing_cam'], \
                                 args['billing_cam_type'], \
                                 args['exit_cam'], \
-                                args['exit_cam_type'])
+                                args['exit_cam_type'], \
+                                args['exit_threshold'])
         return parameters

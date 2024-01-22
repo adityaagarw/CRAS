@@ -15,6 +15,7 @@ namespace CRAS
     {
         public static Image BytetoImage(byte[] data) 
         {
+            if(data == null) return null;
             Image image;
             var ms = new MemoryStream(data);
             image = Image.FromStream(ms);
@@ -87,7 +88,7 @@ namespace CRAS
 
             else
             {
-                visit_list = pgsql_utilities.GetVisitDetails(pgsql_utilities.ConnectToPGSQL(), customer_id);
+                visit_list = pgsql_utilities.GetVisitDetails(pgsql_utilities.ConnectToPGSQL(), $"customer_id = '{customer_id}'");
                 if (visit_list.Count > 0)
                 {
                     visit_source = "local";
@@ -110,7 +111,7 @@ namespace CRAS
 
             else
             {
-                customer_list = pgsql_utilities.GetCustomerDetails(pgsql_utilities.ConnectToPGSQL(), customer_id);
+                customer_list = pgsql_utilities.GetCustomerDetails(pgsql_utilities.ConnectToPGSQL(), $"customer_id = '{customer_id}'");
                 if (customer_list.Count > 0)
                 {
                     customer_source = "local";
