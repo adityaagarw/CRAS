@@ -30,6 +30,7 @@
         {
             this.bhTab = new System.Windows.Forms.TabControl();
             this.dailyOverviewTab = new System.Windows.Forms.TabPage();
+            this.dailyOverviewVisitChart = new LiveCharts.WinForms.CartesianChart();
             this.dailyOverviewTimeChart = new LiveCharts.WinForms.CartesianChart();
             this.dateLabel = new System.Windows.Forms.Label();
             this.repeatVisitorsPB = new System.Windows.Forms.PictureBox();
@@ -94,7 +95,7 @@
             this.toDatePicker = new System.Windows.Forms.DateTimePicker();
             this.fromDatePicker = new System.Windows.Forms.DateTimePicker();
             this.label14 = new System.Windows.Forms.Label();
-            this.dailyOverviewVisitChart = new LiveCharts.WinForms.CartesianChart();
+            this.importDataButton = new System.Windows.Forms.Button();
             this.bhTab.SuspendLayout();
             this.dailyOverviewTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.repeatVisitorsPB)).BeginInit();
@@ -118,13 +119,15 @@
             // 
             // bhTab
             // 
+            this.bhTab.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.bhTab.Controls.Add(this.dailyOverviewTab);
             this.bhTab.Controls.Add(this.historicalTab);
-            this.bhTab.Location = new System.Drawing.Point(9, 10);
+            this.bhTab.Location = new System.Drawing.Point(11, 39);
             this.bhTab.Margin = new System.Windows.Forms.Padding(2);
             this.bhTab.Name = "bhTab";
             this.bhTab.SelectedIndex = 0;
-            this.bhTab.Size = new System.Drawing.Size(683, 462);
+            this.bhTab.Size = new System.Drawing.Size(767, 467);
             this.bhTab.TabIndex = 0;
             // 
             // dailyOverviewTab
@@ -165,11 +168,19 @@
             this.dailyOverviewTab.Margin = new System.Windows.Forms.Padding(2);
             this.dailyOverviewTab.Name = "dailyOverviewTab";
             this.dailyOverviewTab.Padding = new System.Windows.Forms.Padding(2);
-            this.dailyOverviewTab.Size = new System.Drawing.Size(675, 436);
+            this.dailyOverviewTab.Size = new System.Drawing.Size(759, 441);
             this.dailyOverviewTab.TabIndex = 0;
             this.dailyOverviewTab.Text = "Daily Overview";
             this.dailyOverviewTab.UseVisualStyleBackColor = true;
             this.dailyOverviewTab.Enter += new System.EventHandler(this.dailyOverviewTab_Enter);
+            // 
+            // dailyOverviewVisitChart
+            // 
+            this.dailyOverviewVisitChart.Location = new System.Drawing.Point(59, 247);
+            this.dailyOverviewVisitChart.Name = "dailyOverviewVisitChart";
+            this.dailyOverviewVisitChart.Size = new System.Drawing.Size(340, 132);
+            this.dailyOverviewVisitChart.TabIndex = 34;
+            this.dailyOverviewVisitChart.Text = "cartesianChart1";
             // 
             // dailyOverviewTimeChart
             // 
@@ -192,7 +203,7 @@
             // repeatVisitorsPB
             // 
             this.repeatVisitorsPB.Image = global::CRAS.Properties.Resources.red_triangle;
-            this.repeatVisitorsPB.Location = new System.Drawing.Point(606, 382);
+            this.repeatVisitorsPB.Location = new System.Drawing.Point(673, 376);
             this.repeatVisitorsPB.Name = "repeatVisitorsPB";
             this.repeatVisitorsPB.Size = new System.Drawing.Size(20, 20);
             this.repeatVisitorsPB.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -202,7 +213,7 @@
             // newVisitorsPB
             // 
             this.newVisitorsPB.Image = global::CRAS.Properties.Resources.red_triangle;
-            this.newVisitorsPB.Location = new System.Drawing.Point(606, 332);
+            this.newVisitorsPB.Location = new System.Drawing.Point(673, 326);
             this.newVisitorsPB.Name = "newVisitorsPB";
             this.newVisitorsPB.Size = new System.Drawing.Size(20, 20);
             this.newVisitorsPB.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -212,7 +223,7 @@
             // uniqueVisitorsPB
             // 
             this.uniqueVisitorsPB.Image = global::CRAS.Properties.Resources.red_triangle;
-            this.uniqueVisitorsPB.Location = new System.Drawing.Point(606, 284);
+            this.uniqueVisitorsPB.Location = new System.Drawing.Point(673, 278);
             this.uniqueVisitorsPB.Name = "uniqueVisitorsPB";
             this.uniqueVisitorsPB.Size = new System.Drawing.Size(20, 20);
             this.uniqueVisitorsPB.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -222,7 +233,7 @@
             // totalVisitsPB
             // 
             this.totalVisitsPB.Image = global::CRAS.Properties.Resources.red_triangle;
-            this.totalVisitsPB.Location = new System.Drawing.Point(606, 241);
+            this.totalVisitsPB.Location = new System.Drawing.Point(673, 235);
             this.totalVisitsPB.Name = "totalVisitsPB";
             this.totalVisitsPB.Size = new System.Drawing.Size(20, 20);
             this.totalVisitsPB.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -232,7 +243,7 @@
             // minTimePB
             // 
             this.minTimePB.Image = global::CRAS.Properties.Resources.red_triangle;
-            this.minTimePB.Location = new System.Drawing.Point(609, 196);
+            this.minTimePB.Location = new System.Drawing.Point(676, 190);
             this.minTimePB.Name = "minTimePB";
             this.minTimePB.Size = new System.Drawing.Size(20, 20);
             this.minTimePB.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -242,7 +253,7 @@
             // maxTimePB
             // 
             this.maxTimePB.Image = global::CRAS.Properties.Resources.red_triangle;
-            this.maxTimePB.Location = new System.Drawing.Point(609, 146);
+            this.maxTimePB.Location = new System.Drawing.Point(676, 140);
             this.maxTimePB.Name = "maxTimePB";
             this.maxTimePB.Size = new System.Drawing.Size(20, 20);
             this.maxTimePB.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -252,7 +263,7 @@
             // avgTimePB
             // 
             this.avgTimePB.Image = global::CRAS.Properties.Resources.red_triangle;
-            this.avgTimePB.Location = new System.Drawing.Point(609, 98);
+            this.avgTimePB.Location = new System.Drawing.Point(676, 92);
             this.avgTimePB.Name = "avgTimePB";
             this.avgTimePB.Size = new System.Drawing.Size(20, 20);
             this.avgTimePB.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -262,7 +273,7 @@
             // totalTimePB
             // 
             this.totalTimePB.Image = global::CRAS.Properties.Resources.red_triangle;
-            this.totalTimePB.Location = new System.Drawing.Point(609, 55);
+            this.totalTimePB.Location = new System.Drawing.Point(676, 49);
             this.totalTimePB.Name = "totalTimePB";
             this.totalTimePB.Size = new System.Drawing.Size(20, 20);
             this.totalTimePB.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -272,7 +283,7 @@
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(487, 218);
+            this.label12.Location = new System.Drawing.Point(554, 212);
             this.label12.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(50, 13);
@@ -282,7 +293,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(487, 168);
+            this.label11.Location = new System.Drawing.Point(554, 162);
             this.label11.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(50, 13);
@@ -292,7 +303,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(487, 121);
+            this.label10.Location = new System.Drawing.Point(554, 115);
             this.label10.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(50, 13);
@@ -302,7 +313,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(487, 77);
+            this.label9.Location = new System.Drawing.Point(554, 71);
             this.label9.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(50, 13);
@@ -313,7 +324,7 @@
             // 
             this.totalRepeatVisitorsLabelDaily.AutoSize = true;
             this.totalRepeatVisitorsLabelDaily.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.totalRepeatVisitorsLabelDaily.Location = new System.Drawing.Point(551, 383);
+            this.totalRepeatVisitorsLabelDaily.Location = new System.Drawing.Point(618, 377);
             this.totalRepeatVisitorsLabelDaily.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.totalRepeatVisitorsLabelDaily.Name = "totalRepeatVisitorsLabelDaily";
             this.totalRepeatVisitorsLabelDaily.Size = new System.Drawing.Size(17, 17);
@@ -325,7 +336,7 @@
             // 
             this.totalNewVisitorsLabelDaily.AutoSize = true;
             this.totalNewVisitorsLabelDaily.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.totalNewVisitorsLabelDaily.Location = new System.Drawing.Point(551, 334);
+            this.totalNewVisitorsLabelDaily.Location = new System.Drawing.Point(618, 328);
             this.totalNewVisitorsLabelDaily.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.totalNewVisitorsLabelDaily.Name = "totalNewVisitorsLabelDaily";
             this.totalNewVisitorsLabelDaily.Size = new System.Drawing.Size(26, 17);
@@ -337,7 +348,7 @@
             // 
             this.totalUniqueVisitorsLabelDaily.AutoSize = true;
             this.totalUniqueVisitorsLabelDaily.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.totalUniqueVisitorsLabelDaily.Location = new System.Drawing.Point(551, 287);
+            this.totalUniqueVisitorsLabelDaily.Location = new System.Drawing.Point(618, 281);
             this.totalUniqueVisitorsLabelDaily.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.totalUniqueVisitorsLabelDaily.Name = "totalUniqueVisitorsLabelDaily";
             this.totalUniqueVisitorsLabelDaily.Size = new System.Drawing.Size(26, 17);
@@ -349,7 +360,7 @@
             // 
             this.totalVisitsLabelDaily.AutoSize = true;
             this.totalVisitsLabelDaily.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.totalVisitsLabelDaily.Location = new System.Drawing.Point(551, 243);
+            this.totalVisitsLabelDaily.Location = new System.Drawing.Point(618, 237);
             this.totalVisitsLabelDaily.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.totalVisitsLabelDaily.Name = "totalVisitsLabelDaily";
             this.totalVisitsLabelDaily.Size = new System.Drawing.Size(35, 17);
@@ -361,7 +372,7 @@
             // 
             this.minTimeSpentLabelDaily.AutoSize = true;
             this.minTimeSpentLabelDaily.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.minTimeSpentLabelDaily.Location = new System.Drawing.Point(550, 199);
+            this.minTimeSpentLabelDaily.Location = new System.Drawing.Point(617, 193);
             this.minTimeSpentLabelDaily.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.minTimeSpentLabelDaily.Name = "minTimeSpentLabelDaily";
             this.minTimeSpentLabelDaily.Size = new System.Drawing.Size(44, 17);
@@ -373,7 +384,7 @@
             // 
             this.maxTimeSpentLabelDaily.AutoSize = true;
             this.maxTimeSpentLabelDaily.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.maxTimeSpentLabelDaily.Location = new System.Drawing.Point(550, 148);
+            this.maxTimeSpentLabelDaily.Location = new System.Drawing.Point(617, 142);
             this.maxTimeSpentLabelDaily.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.maxTimeSpentLabelDaily.Name = "maxTimeSpentLabelDaily";
             this.maxTimeSpentLabelDaily.Size = new System.Drawing.Size(44, 17);
@@ -385,7 +396,7 @@
             // 
             this.avgTimeSpentLabelDaily.AutoSize = true;
             this.avgTimeSpentLabelDaily.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.avgTimeSpentLabelDaily.Location = new System.Drawing.Point(550, 101);
+            this.avgTimeSpentLabelDaily.Location = new System.Drawing.Point(617, 95);
             this.avgTimeSpentLabelDaily.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.avgTimeSpentLabelDaily.Name = "avgTimeSpentLabelDaily";
             this.avgTimeSpentLabelDaily.Size = new System.Drawing.Size(44, 17);
@@ -397,7 +408,7 @@
             // 
             this.totalTimeSpentLabelDaily.AutoSize = true;
             this.totalTimeSpentLabelDaily.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.totalTimeSpentLabelDaily.Location = new System.Drawing.Point(550, 57);
+            this.totalTimeSpentLabelDaily.Location = new System.Drawing.Point(617, 51);
             this.totalTimeSpentLabelDaily.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.totalTimeSpentLabelDaily.Name = "totalTimeSpentLabelDaily";
             this.totalTimeSpentLabelDaily.Size = new System.Drawing.Size(44, 17);
@@ -408,7 +419,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(434, 388);
+            this.label8.Location = new System.Drawing.Point(501, 382);
             this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(105, 13);
@@ -418,7 +429,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(447, 339);
+            this.label7.Location = new System.Drawing.Point(514, 333);
             this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(92, 13);
@@ -428,7 +439,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(435, 292);
+            this.label6.Location = new System.Drawing.Point(502, 286);
             this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(104, 13);
@@ -438,7 +449,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(433, 202);
+            this.label5.Location = new System.Drawing.Point(500, 196);
             this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(105, 13);
@@ -448,7 +459,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(430, 151);
+            this.label4.Location = new System.Drawing.Point(497, 145);
             this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(108, 13);
@@ -458,7 +469,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(434, 104);
+            this.label3.Location = new System.Drawing.Point(501, 98);
             this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(104, 13);
@@ -468,7 +479,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(449, 59);
+            this.label2.Location = new System.Drawing.Point(516, 53);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(88, 13);
@@ -478,7 +489,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(479, 247);
+            this.label1.Location = new System.Drawing.Point(546, 241);
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(58, 13);
@@ -533,7 +544,7 @@
             this.historicalTab.Margin = new System.Windows.Forms.Padding(2);
             this.historicalTab.Name = "historicalTab";
             this.historicalTab.Padding = new System.Windows.Forms.Padding(2);
-            this.historicalTab.Size = new System.Drawing.Size(925, 384);
+            this.historicalTab.Size = new System.Drawing.Size(675, 436);
             this.historicalTab.TabIndex = 1;
             this.historicalTab.Text = "Historical";
             this.historicalTab.UseVisualStyleBackColor = true;
@@ -877,19 +888,22 @@
             this.label14.TabIndex = 1;
             this.label14.Text = "From";
             // 
-            // dailyOverviewVisitChart
+            // importDataButton
             // 
-            this.dailyOverviewVisitChart.Location = new System.Drawing.Point(59, 247);
-            this.dailyOverviewVisitChart.Name = "dailyOverviewVisitChart";
-            this.dailyOverviewVisitChart.Size = new System.Drawing.Size(340, 132);
-            this.dailyOverviewVisitChart.TabIndex = 34;
-            this.dailyOverviewVisitChart.Text = "cartesianChart1";
+            this.importDataButton.Location = new System.Drawing.Point(636, 12);
+            this.importDataButton.Name = "importDataButton";
+            this.importDataButton.Size = new System.Drawing.Size(135, 44);
+            this.importDataButton.TabIndex = 1;
+            this.importDataButton.Text = "Import Sales Data";
+            this.importDataButton.UseVisualStyleBackColor = true;
+            this.importDataButton.Click += new System.EventHandler(this.importDataButton_Click);
             // 
             // BHDashboard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(709, 483);
+            this.ClientSize = new System.Drawing.Size(789, 517);
+            this.Controls.Add(this.importDataButton);
             this.Controls.Add(this.bhTab);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "BHDashboard";
@@ -988,5 +1002,6 @@
         private System.Windows.Forms.Label label14;
         private LiveCharts.WinForms.CartesianChart dailyOverviewTimeChart;
         private LiveCharts.WinForms.CartesianChart dailyOverviewVisitChart;
+        private System.Windows.Forms.Button importDataButton;
     }
 }

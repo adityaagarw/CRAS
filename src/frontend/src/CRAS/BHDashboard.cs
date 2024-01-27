@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Tmds.DBus.Protocol;
 using LiveCharts;
 using LiveCharts.Wpf;
+using OfficeOpenXml;
 
 namespace CRAS
 {
@@ -42,6 +43,8 @@ namespace CRAS
         public BHDashboard()
         {
             InitializeComponent();
+
+            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
             dailyOverviewTimeChart.AxisX.Add(new Axis
             {
@@ -325,5 +328,69 @@ namespace CRAS
             PopulateStatistics_Historical(fromDatePicker.Value.Date, toDatePicker.Value.Date);
         }
 
+        private void importDataButton_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Select Excel File";
+            openFileDialog.Filter = "Excel Files|*.xls;*.xlsx";
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string selectedFileName = openFileDialog.FileName;
+
+                // Check if the required columns exist in the Excel file
+                string errorColumns = CheckExcelColumns(selectedFileName);
+                if (errorColumns.Equals(""))
+                {
+                    // The file contains the required columns, perform your operations here
+                    bool success = pgsql_utilities.InsertExcelSaleData(MainForm.pgsql_connection, selectedFileName);
+                    MessageBox.Show("Inserted into DB", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+
+                }
+                else
+                {
+                    // The file does not contain the required columns
+                    MessageBox.Show("File does not contain these required columns " + errorColumns);
+                }
+            }
+        }
+
+        private string CheckExcelColumns(string filePath)
+        {
+            try
+            {
+                using (var package = new ExcelPackage(new System.IO.FileInfo(filePath)))
+                {
+                    string errorColumns = "";
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+
+                    if (worksheet != null)
+                    {
+                        // Define the required column names
+                        string[] requiredColumns = { "Date", "Total Sale", "Total Return", "Net Sale", "Sale Qty", "Return Qty", "Net Sale Qty", "Total Invoices" };
+
+                        // Check if all required columns are present in the worksheet
+                        foreach (var columnName in requiredColumns)
+                        {
+                            if (worksheet.Cells[1, 1, 1, worksheet.Dimension.Columns].Any(cell => string.Equals(cell.Text.Trim(), columnName, StringComparison.OrdinalIgnoreCase)) == false)
+                            {
+                                errorColumns += ": " + columnName;
+                                //return columnName;
+                            }
+                        }
+
+                        // All required columns are present
+                        return errorColumns;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+            }
+
+            return "";
+        }
     }
 }

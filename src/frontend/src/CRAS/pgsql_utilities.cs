@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using NpgsqlTypes;
+using OfficeOpenXml;
 using StackExchange.Redis;
 using System;
 using System.Collections;
@@ -680,5 +681,88 @@ namespace CRAS
             connection.Close();
             
         }
+
+        public static bool InsertExcelSaleData(NpgsqlConnection connection, string filePath)
+        {
+            try
+            {
+                using (var package = new ExcelPackage(new System.IO.FileInfo(filePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+
+                    if (worksheet != null)
+                    {
+                       
+                            connection.Open();
+
+                            for (int row = 2; row <= worksheet.Dimension.Rows; row++)
+                            {
+                                // Extract data from the Excel file
+                                DateTime date = DateTime.Parse(worksheet.Cells[row, 1].Text);
+                                decimal totalSale = decimal.Parse(worksheet.Cells[row, 2].Text);
+                                decimal totalReturn = decimal.Parse(worksheet.Cells[row, 3].Text);
+                                decimal netSale = decimal.Parse(worksheet.Cells[row, 4].Text);
+                                int saleQty = int.Parse(worksheet.Cells[row, 5].Text);
+                                int returnQty = int.Parse(worksheet.Cells[row, 6].Text);
+                                int netSaleQty = int.Parse(worksheet.Cells[row, 7].Text);
+                                int totalInvoices = int.Parse(worksheet.Cells[row, 8].Text);
+
+                                // Check if the date already exists in the table
+                                using (var command = new NpgsqlCommand($"SELECT COUNT(*) FROM DailySales WHERE date = @date", connection))
+                                {
+                                    command.Parameters.AddWithValue("@date", date);
+                                    int count = Convert.ToInt32(command.ExecuteScalar());
+
+                                    if (count > 0)
+                                    {
+                                        // Date already exists, perform update
+                                        using (var updateCommand = new NpgsqlCommand($"UPDATE DailySales SET total_sale = @totalSale, total_return = @totalReturn, net_sale = @netSale, sale_qty = @saleQty, return_qty = @returnQty, net_sale_qty = @netSaleQty, total_invoices = @totalInvoices WHERE date = @date", connection))
+                                        {
+                                            updateCommand.Parameters.AddWithValue("@date", date);
+                                            updateCommand.Parameters.AddWithValue("@totalSale", totalSale);
+                                            updateCommand.Parameters.AddWithValue("@totalReturn", totalReturn);
+                                            updateCommand.Parameters.AddWithValue("@netSale", netSale);
+                                            updateCommand.Parameters.AddWithValue("@saleQty", saleQty);
+                                            updateCommand.Parameters.AddWithValue("@returnQty", returnQty);
+                                            updateCommand.Parameters.AddWithValue("@netSaleQty", netSaleQty);
+                                            updateCommand.Parameters.AddWithValue("@totalInvoices", totalInvoices);
+
+                                            updateCommand.ExecuteNonQuery();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Date does not exist, perform insert
+                                        using (var insertCommand = new NpgsqlCommand($"INSERT INTO DailySales (date, total_sale, total_return, net_sale, sale_qty, return_qty, net_sale_qty, total_invoices) VALUES (@date, @totalSale, @totalReturn, @netSale, @saleQty, @returnQty, @netSaleQty, @totalInvoices)", connection))
+                                        {
+                                            insertCommand.Parameters.AddWithValue("@date", date);
+                                            insertCommand.Parameters.AddWithValue("@totalSale", totalSale);
+                                            insertCommand.Parameters.AddWithValue("@totalReturn", totalReturn);
+                                            insertCommand.Parameters.AddWithValue("@netSale", netSale);
+                                            insertCommand.Parameters.AddWithValue("@saleQty", saleQty);
+                                            insertCommand.Parameters.AddWithValue("@returnQty", returnQty);
+                                            insertCommand.Parameters.AddWithValue("@netSaleQty", netSaleQty);
+                                            insertCommand.Parameters.AddWithValue("@totalInvoices", totalInvoices);
+
+                                            insertCommand.ExecuteNonQuery();
+                                        }
+                                    }
+                                }
+                            }
+                            connection.Close();
+                            return true;
+                        
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+                connection.Close();
+            }
+            connection.Close();
+            return false;
+        }
+
     }
 }
