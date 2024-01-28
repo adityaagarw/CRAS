@@ -190,7 +190,16 @@ def add_params_inmem(parameters):
                 periodic_sleep_time="0.100",
                 num_threads_per_process="1",
                 frames_per_second="30",
-                exit_threshold=str(parameters.exit_threshold)
+                exit_threshold=str(parameters.exit_threshold),
+                entry_roi_x1="320",
+                entry_roi_y1="200",
+                entry_roi_x2="900",
+                entry_roi_y2="600",
+                exit_roi_x1="320",
+                exit_roi_y1="200",
+                exit_roi_x2="900",
+                exit_roi_y2="600",
+                resize_factor="1.0"
                 )
     in_mem_db.insert_params(params_record)
 
@@ -206,7 +215,9 @@ def add_params_inmem(parameters):
     in_mem_db.set_num_threads_per_process("1")
     in_mem_db.set_frames_per_second("30")
     in_mem_db.set_exit_threshold(str(parameters.exit_threshold))
-
+    in_mem_db.set_entry_roi(320,200,900,600)
+    in_mem_db.set_exit_roi(320,200,900,600)
+    in_mem_db.set_resize_factor("1.0")
     in_mem_db.disconnect()
 
 def set_boot_time_start():

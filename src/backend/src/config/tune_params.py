@@ -30,7 +30,7 @@ def create_slider(root, key, from_, to_, resolution=0.01, length=300):
 # Set up the Tkinter window
 root = tk.Tk()
 root.title("Tune parameters")
-root.geometry("400x300")
+root.geometry("400x700")
 
 # Create sliders
 create_slider(root, 'param_area_threshold', 0, 50000, 100)
@@ -38,5 +38,13 @@ create_slider(root, 'param_threshold', 0, 1, 0.01)
 create_slider(root, 'param_yaw_threshold', 0, 180, 1)
 create_slider(root, 'param_pitch_threshold', 0, 180, 1)
 create_slider(root, 'param_exit_threshold', 0, 1, 0.01)
-
+create_slider(root, 'param_entry_roi_x1', 10, 2000, 10)
+create_slider(root, 'param_entry_roi_y1', 10, 2000, 10)
+create_slider(root, 'param_entry_roi_x2', 10, 2000, 10)
+create_slider(root, 'param_entry_roi_y2', 10, 2000, 10)
+create_slider(root, 'param_exit_roi_x1', 10, 2000, 10)
+create_slider(root, 'param_exit_roi_y1', 10, 2000, 10)
+create_slider(root, 'param_exit_roi_x2', 10, 2000, 10)
+create_slider(root, 'param_exit_roi_y2', 10, 2000, 10)
+create_slider(root, 'param_resize_factor', 0.1, 10, 0.1)
 root.mainloop()

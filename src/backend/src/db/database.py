@@ -281,6 +281,22 @@ class LocalPostgresDB(Database):
         self.cursor.execute(create_table_query)
         self.connection.commit()
 
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS DailySales (
+            date                TIMESTAMP,
+            total_sale          NUMERIC(10, 2) DEFAULT 0,
+            total_return        NUMERIC(10, 2) DEFAULT 0,
+            net_sale            NUMERIC(10, 2) DEFAULT 0,
+            sale_qty            INTEGER DEFAULT 0,
+            return_qty          INTEGER DEFAULT 0,
+            net_sale_qty        INTEGER DEFAULT 0,
+            total_invoices      INTEGER DEFAULT 0,
+            PRIMARY KEY (date)
+        )
+        """
+        self.cursor.execute(create_table_query)
+        self.connection.commit()
+
     def insert_customer_record_old(self, record):
         with self.connection.cursor() as cursor:
             insert_query = """
@@ -738,7 +754,8 @@ class InMemExited:
 
 class InMemParams:
     def __init__(self, detection, model, threshold, yaw_threshold, pitch_threshold, area_threshold, billing_cam_time, similarity_method, periodic_sleep_time,
-                 num_threads_per_process, frames_per_second, exit_threshold):
+                 num_threads_per_process, frames_per_second, exit_threshold, entry_roi_x1, entry_roi_y1, entry_roi_x2, entry_roi_y2, 
+                 exit_roi_x1, exit_roi_y1, exit_roi_x2, exit_roi_y2, resize_factor):
         self.detection = detection
         self.model = model
         self.threshold = threshold
@@ -751,6 +768,15 @@ class InMemParams:
         self.num_threads_per_process = num_threads_per_process
         self.frames_per_second = frames_per_second
         self.exit_threshold = exit_threshold
+        self.entry_roi_x1 = entry_roi_x1
+        self.entry_roi_y1 = entry_roi_y1
+        self.entry_roi_x2 = entry_roi_x2
+        self.entry_roi_y2 = entry_roi_y2
+        self.exit_roi_x1 = exit_roi_x1
+        self.exit_roi_y1 = exit_roi_y1
+        self.exit_roi_x2 = exit_roi_x2
+        self.exit_roi_y2 = exit_roi_y2
+        self.resize_factor = resize_factor
 
 class InMemParamNames:
     detection = "param_detection"
@@ -765,6 +791,15 @@ class InMemParamNames:
     num_threads_per_process = "param_num_threads_per_process"
     frames_per_second = "param_frames_per_second"
     exit_threshold = "param_exit_threshold"
+    entry_roi_x1 = "param_entry_roi_x1"
+    entry_roi_y1 = "param_entry_roi_y1"
+    entry_roi_x2 = "param_entry_roi_x2"
+    entry_roi_y2 = "param_entry_roi_y2"
+    exit_roi_x1 = "param_exit_roi_x1"
+    exit_roi_y1 = "param_exit_roi_y1"
+    exit_roi_x2 = "param_exit_roi_x2"
+    exit_roi_y2 = "param_exit_roi_y2"
+    resize_factor = "param_resize_factor"
 
 BOOT_TIME_START = "inmem_boot_time_start"
 BOOT_TIME_END = "inmem_boot_time_end"
@@ -860,6 +895,30 @@ class InMemoryRedisDB(Database):
     
     def set_exit_threshold(self, exit_threshold):
         return self.connection.set(InMemParamNames.exit_threshold, str(exit_threshold))
+    
+    def get_entry_roi(self):
+        return self.connection.mget(InMemParamNames.entry_roi_x1, InMemParamNames.entry_roi_y1, InMemParamNames.entry_roi_x2, InMemParamNames.entry_roi_y2)
+    
+    def set_entry_roi(self, entry_roi_x1, entry_roi_y1, entry_roi_x2, entry_roi_y2):
+        self.connection.set(InMemParamNames.entry_roi_x1, str(entry_roi_x1))
+        self.connection.set(InMemParamNames.entry_roi_y1, str(entry_roi_y1))
+        self.connection.set(InMemParamNames.entry_roi_x2, str(entry_roi_x2))
+        self.connection.set(InMemParamNames.entry_roi_y2, str(entry_roi_y2))
+
+    def get_exit_roi(self):
+        return self.connection.mget(InMemParamNames.exit_roi_x1, InMemParamNames.exit_roi_y1, InMemParamNames.exit_roi_x2, InMemParamNames.exit_roi_y2)
+    
+    def set_exit_roi(self, exit_roi_x1, exit_roi_y1, exit_roi_x2, exit_roi_y2):
+        self.connection.set(InMemParamNames.exit_roi_x1, str(exit_roi_x1))
+        self.connection.set(InMemParamNames.exit_roi_y1, str(exit_roi_y1))
+        self.connection.set(InMemParamNames.exit_roi_x2, str(exit_roi_x2))
+        self.connection.set(InMemParamNames.exit_roi_y2, str(exit_roi_y2))
+
+    def get_resize_factor(self):
+        return self.connection.get(InMemParamNames.resize_factor).decode()
+    
+    def set_resize_factor(self, resize_factor):
+        self.connection.set(InMemParamNames.resize_factor, str(resize_factor))
     ####################################################################################################
 
     def insert_record(self, record, type='customer'):
