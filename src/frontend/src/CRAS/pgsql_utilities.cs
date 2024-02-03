@@ -139,7 +139,30 @@ namespace CRAS
 
             return overview;
         }
-        
+
+        public static DataTable GetSalesOverview(NpgsqlConnection connection, string fromDate, string toDate = "")
+        {
+            DataTable overview = new DataTable();
+
+            if (toDate.Length == 0) toDate = fromDate;
+
+            connection.Open();
+
+            string query = $"SELECT SUM(total_sale) as TotalSale, SUM(total_return) as TotalReturn, SUM(net_sale) as NetSale, SUM(sale_qty) as SaleQty, SUM(return_qty) as ReturnQty, SUM(net_sale_qty) as NetSaleQty, SUM(total_invoices) as TotalInvoices FROM DailySales WHERE CAST(date AS DATE) >= '{fromDate}' AND CAST(date AS DATE) <= '{toDate}'";
+
+            Console.WriteLine(query);
+
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+
+            NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter();
+            dataAdapter.SelectCommand = command;
+            dataAdapter.Fill(overview);
+
+            connection.Close();
+
+            return overview;
+        }
+
         public static DataTable GetTableData(NpgsqlConnection connection, string table_name, string whereClause = "", string orderByClause = "", string limit = "")
         {
             DataTable tableData = new DataTable();
