@@ -42,7 +42,10 @@ Redis port: 6379
 
 
 ---------------------------------------------------------
+-> Install visual c++
 -> Set windows long path
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+-Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
 -> Install python 3.10.11
 -> Set env variables
 -> In file: C:\Users\snehn\AppData\Local\Programs\Python\Python310\lib\site-packages\keras_vggface\models.py
